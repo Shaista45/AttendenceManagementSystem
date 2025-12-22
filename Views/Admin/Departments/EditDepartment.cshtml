@@ -1,0 +1,106 @@
+@model AttendenceManagementSystem.Models.Department
+@{
+    ViewData["Title"] = "Edit Department";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-edit me-2"></i>Edit Department
+        </h1>
+        <a class="btn btn-secondary" asp-action="Departments">
+            <i class="fas fa-arrow-left me-2"></i>Back to List
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Department Information</h6>
+                </div>
+                <div class="card-body">
+                    <form asp-action="EditDepartment" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="CreatedAt" />
+                        
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label">Department Name <span class="text-danger">*</span></label>
+                            <input asp-for="Name" class="form-control" placeholder="Enter department name" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Code" class="form-label">Department Code</label>
+                            <input asp-for="Code" class="form-control" placeholder="Enter department code (e.g., CS, EE)" />
+                            <span asp-validation-for="Code" class="text-danger"></span>
+                            <small class="form-text text-muted">Optional: A short code to identify the department</small>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                            <a class="btn btn-secondary" asp-action="Departments">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle me-2"></i>Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2"><strong>Department ID:</strong> @Model.Id</p>
+                    <p class="mb-2"><strong>Created:</strong> @Model.CreatedAt.ToString("MMM dd, yyyy")</p>
+                    <hr />
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-exclamation-triangle text-warning me-1"></i>
+                        Editing the department will affect all associated batches, courses, and students.
+                    </p>
+                </div>
+            </div>
+
+            @if (Model.Batches != null || Model.Courses != null || Model.Teachers != null || Model.Students != null)
+            {
+                <div class="card shadow mt-3">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-chart-bar me-2"></i>Quick Stats
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <i class="fas fa-users text-primary me-2"></i>
+                            <strong>Batches:</strong> @(Model.Batches?.Count ?? 0)
+                        </div>
+                        <div class="mb-2">
+                            <i class="fas fa-book text-info me-2"></i>
+                            <strong>Courses:</strong> @(Model.Courses?.Count ?? 0)
+                        </div>
+                        <div class="mb-2">
+                            <i class="fas fa-chalkboard-teacher text-success me-2"></i>
+                            <strong>Teachers:</strong> @(Model.Teachers?.Count ?? 0)
+                        </div>
+                        <div class="mb-0">
+                            <i class="fas fa-user-graduate text-warning me-2"></i>
+                            <strong>Students:</strong> @(Model.Students?.Count ?? 0)
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

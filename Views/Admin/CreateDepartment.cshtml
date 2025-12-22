@@ -1,0 +1,469 @@
+@model AttendenceManagementSystem.Models.Department
+@{
+    ViewData["Title"] = "Department Management";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-building me-2"></i>Department Management</h1>
+        <a class="btn btn-secondary" asp-action="Departments">Back to Departments</a>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <!-- Workflow Instructions -->
+            <div class="alert alert-info mb-4">
+                <h5 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Department Creation Workflow</h5>
+                <p class="mb-0">Follow this sequence for logical department setup:</p>
+                <ol class="mb-0 mt-2">
+                    <li><strong>Create Department</strong> - First create the department</li>
+                    <li><strong>Add Batches</strong> - Then add batches to the department</li>
+                    <li><strong>Add Sections</strong> - Create sections for specific batches</li>
+                    <li><strong>Assign Teachers</strong> - Add teachers to the department</li>
+                    <li><strong>Add Courses</strong> - Define courses offered by the department</li>
+                </ol>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <ul class="nav nav-tabs" id="departmentTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="department-tab" data-bs-toggle="tab" data-bs-target="#department" type="button" role="tab">
+                        <i class="fas fa-building me-2"></i>Department
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link disabled-tab" id="batch-tab" data-bs-toggle="tab" data-bs-target="#batch" type="button" role="tab" disabled title="Create a department first">
+                        <i class="fas fa-calendar-alt me-2"></i>Batches
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link disabled-tab" id="section-tab" data-bs-toggle="tab" data-bs-target="#section" type="button" role="tab" disabled title="Create a department and batch first">
+                        <i class="fas fa-users me-2"></i>Sections
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link disabled-tab" id="teacher-tab" data-bs-toggle="tab" data-bs-target="#teacher" type="button" role="tab" disabled title="Create a department first">
+                        <i class="fas fa-chalkboard-teacher me-2"></i>Teachers
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link disabled-tab" id="course-tab" data-bs-toggle="tab" data-bs-target="#course" type="button" role="tab" disabled title="Create a department first">
+                        <i class="fas fa-book me-2"></i>Courses
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tabs Content -->
+            <div class="tab-content mt-3" id="departmentTabContent">
+                <!-- Department Tab -->
+                <div class="tab-pane fade show active" id="department" role="tabpanel">
+                    <h5 class="mb-3">Create Department</h5>
+                    <form id="createDepartmentForm" asp-action="CreateDepartment" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label"></label>
+                            <input asp-for="Name" class="form-control" id="departmentName" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Code" class="form-label"></label>
+                            <input asp-for="Code" class="form-control" id="departmentCode" />
+                            <span asp-validation-for="Code" class="text-danger"></span>
+                            <small class="form-text text-muted">Short code for the department (e.g., CS, EE, BBA)</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="Description" class="form-label">Description (Optional)</label>
+                            <textarea id="Description" name="Description" class="form-control" rows="2" placeholder="Brief description of the department"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Create Department</button>
+                    </form>
+                </div>
+
+                <!-- Batch Tab -->
+                <div class="tab-pane fade" id="batch" role="tabpanel">
+                    <h5 class="mb-3">Add Batch</h5>
+                    <div id="batchFormSection">
+                        <form id="createBatchForm" asp-action="CreateBatch" method="post">
+                            <div class="mb-3">
+                                <label for="DepartmentId" class="form-label">Department</label>
+                                <select id="DepartmentId" name="DepartmentId" class="form-select" required>
+                                    <option value="">-- Select Department --</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="Year" class="form-label">Year/Session</label>
+                                <input type="text" id="Year" name="Year" class="form-control" placeholder="e.g., 2024" required maxlength="4" pattern="\d{4}" />
+                                <small class="form-text text-muted">Enter the batch year (e.g., 2024)</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="Description" class="form-label">Description (Optional)</label>
+                                <input type="text" id="BatchDescription" name="Description" class="form-control" placeholder="e.g., Spring 2024" maxlength="50" />
+                            </div>
+
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Create Batch</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Section Tab -->
+                <div class="tab-pane fade" id="section" role="tabpanel">
+                    <h5 class="mb-3">Add Section</h5>
+                    <div id="sectionFormSection">
+                        <form id="createSectionForm" asp-action="CreateSection" method="post">
+                            <div class="mb-3">
+                                <label for="SectionDepartmentId" class="form-label">Department</label>
+                                <select id="SectionDepartmentId" class="form-select" required>
+                                    <option value="">-- Select Department --</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="SectionBatchId" class="form-label">Batch</label>
+                                <select id="SectionBatchId" name="BatchId" class="form-select" required>
+                                    <option value="">-- Select Department First --</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="SectionName" class="form-label">Section Name</label>
+                                <input type="text" id="SectionName" name="Name" class="form-control" placeholder="e.g., A, B, Morning" required maxlength="10" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="SectionCapacity" class="form-label">Maximum Capacity (Optional)</label>
+                                <input type="number" id="SectionCapacity" name="Capacity" class="form-control" min="1" max="200" placeholder="e.g., 50" />
+                            </div>
+
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Create Section</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Teacher Tab -->
+                <div class="tab-pane fade" id="teacher" role="tabpanel">
+                    <h5 class="mb-3">Add Teacher</h5>
+                    <form id="createTeacherForm" asp-action="CreateTeacherQuick" method="post">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="TeacherFullName" class="form-label">Full Name</label>
+                                <input type="text" id="TeacherFullName" name="FullName" class="form-control" required maxlength="100" />
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="TeacherEmail" class="form-label">Email</label>
+                                <input type="email" id="TeacherEmail" name="Email" class="form-control" required />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="TeacherEmployeeId" class="form-label">Employee ID</label>
+                                <input type="text" id="TeacherEmployeeId" name="EmployeeId" class="form-control" maxlength="50" />
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="TeacherPhoneNumber" class="form-label">Phone Number</label>
+                                <input type="tel" id="TeacherPhoneNumber" name="PhoneNumber" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="TeacherDepartmentId" class="form-label">Department</label>
+                            <select id="TeacherDepartmentId" name="DepartmentId" class="form-select" required>
+                                <option value="">-- Select Department --</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="TeacherPassword" class="form-label">Default Password</label>
+                            <input type="password" id="TeacherPassword" name="Password" class="form-control" value="Teacher123!" required />
+                            <small class="form-text text-muted">Default password: Teacher123! (can be changed later)</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Create Teacher</button>
+                    </form>
+                </div>
+
+                <!-- Course Tab -->
+                <div class="tab-pane fade" id="course" role="tabpanel">
+                    <h5 class="mb-3">Add Course</h5>
+                    <form id="createCourseForm" asp-action="CreateCourse" method="post">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="CourseCode" class="form-label">Course Code</label>
+                                <input type="text" id="CourseCode" name="Code" class="form-control" placeholder="e.g., CS101" required maxlength="20" />
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="CourseCredits" class="form-label">Credits</label>
+                                <input type="number" id="CourseCredits" name="Credits" class="form-control" value="3" required min="1" max="10" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="CourseTitle" class="form-label">Course Title</label>
+                            <input type="text" id="CourseTitle" name="Title" class="form-control" placeholder="e.g., Introduction to Programming" required maxlength="100" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="CourseDepartmentId" class="form-label">Department</label>
+                            <select id="CourseDepartmentId" name="DepartmentId" class="form-select" required>
+                                <option value="">-- Select Department --</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="CourseDescription" class="form-label">Description (Optional)</label>
+                            <textarea id="CourseDescription" name="Description" class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Create Course</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .disabled-tab {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .nav-tabs .nav-link.active {
+            font-weight: 600;
+        }
+        
+        .workflow-step {
+            padding: 10px;
+            border-left: 3px solid #0d6efd;
+            margin-bottom: 15px;
+            background-color: #f8f9fa;
+        }
+        
+        .step-completed {
+            border-left-color: #198754;
+            background-color: #f0fff4;
+        }
+        
+        .step-pending {
+            border-left-color: #6c757d;
+            background-color: #f8f9fa;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Initialize tab state
+            initializeTabs();
+            
+            // Load departments for all dropdowns
+            loadDepartments();
+            
+            // Department form submission handler
+            $('#createDepartmentForm').on('submit', function(e) {
+                e.preventDefault();
+                var form = $(this);
+                
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function(response) {
+                        if (response.success) {
+                            // Enable other tabs
+                            enableTabs();
+                            
+                            // Reload departments
+                            loadDepartments();
+                            
+                            // Show success message
+                            showAlert('Department created successfully! You can now add batches, sections, teachers, and courses.', 'success');
+                            
+                            // Auto-switch to batch tab
+                            $('#batch-tab').removeClass('disabled').tab('show');
+                        } else {
+                            showAlert('Error creating department: ' + response.message, 'danger');
+                        }
+                    },
+                    error: function() {
+                        showAlert('Error creating department. Please try again.', 'danger');
+                    }
+                });
+            });
+            
+            // Department change handler for batch dropdown
+            $('#SectionDepartmentId').change(function() {
+                var departmentId = $(this).val();
+                loadBatches(departmentId, '#SectionBatchId');
+            });
+            
+            // Batch form submission handler
+            $('#createBatchForm').on('submit', function(e) {
+                e.preventDefault();
+                submitForm($(this), 'Batch created successfully!');
+            });
+            
+            // Section form submission handler
+            $('#createSectionForm').on('submit', function(e) {
+                e.preventDefault();
+                submitForm($(this), 'Section created successfully!');
+            });
+            
+            // Teacher form submission handler
+            $('#createTeacherForm').on('submit', function(e) {
+                e.preventDefault();
+                submitForm($(this), 'Teacher created successfully!');
+            });
+            
+            // Course form submission handler
+            $('#createCourseForm').on('submit', function(e) {
+                e.preventDefault();
+                submitForm($(this), 'Course created successfully!');
+            });
+            
+            function initializeTabs() {
+                // Only department tab is enabled initially
+                $('#batch-tab, #section-tab, #teacher-tab, #course-tab').addClass('disabled');
+                $('#batch-tab').attr('disabled', true);
+                $('#section-tab').attr('disabled', true);
+                $('#teacher-tab').attr('disabled', true);
+                $('#course-tab').attr('disabled', true);
+            }
+            
+            function enableTabs() {
+                // Enable all tabs after department is created
+                $('#batch-tab, #section-tab, #teacher-tab, #course-tab').removeClass('disabled').attr('disabled', false);
+            }
+            
+            function loadDepartments() {
+                $.ajax({
+                    url: '@Url.Action("GetAllDepartments", "Admin")',
+                    type: 'GET',
+                    success: function(data) {
+                        var deptDropdowns = ['#DepartmentId', '#SectionDepartmentId', '#TeacherDepartmentId', '#CourseDepartmentId'];
+                        
+                        deptDropdowns.forEach(function(selector) {
+                            var dropdown = $(selector);
+                            dropdown.empty();
+                            dropdown.append('<option value="">-- Select Department --</option>');
+                            
+                            if (data && data.length > 0) {
+                                data.forEach(function(dept) {
+                                    dropdown.append('<option value="' + dept.id + '">' + dept.name + ' (' + dept.code + ')</option>');
+                                });
+                            } else {
+                                dropdown.append('<option value="" disabled>No departments available</option>');
+                            }
+                        });
+                        
+                        // If no departments, keep other tabs disabled
+                        if (!data || data.length === 0) {
+                            initializeTabs();
+                        }
+                    },
+                    error: function() {
+                        showAlert('Error loading departments', 'danger');
+                    }
+                });
+            }
+            
+            function loadBatches(departmentId, targetSelector) {
+                if (!departmentId) {
+                    $(targetSelector).empty().append('<option value="">-- Select Department First --</option>');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("GetBatchesByDepartment", "Admin")',
+                    type: 'GET',
+                    data: { departmentId: departmentId },
+                    success: function(data) {
+                        var dropdown = $(targetSelector);
+                        dropdown.empty();
+                        dropdown.append('<option value="">-- Select Batch --</option>');
+                        
+                        if (data && data.length > 0) {
+                            data.forEach(function(batch) {
+                                dropdown.append('<option value="' + batch.id + '">' + batch.year + (batch.description ? ' - ' + batch.description : '') + '</option>');
+                            });
+                        } else {
+                            dropdown.append('<option value="" disabled>No batches available for this department</option>');
+                        }
+                    },
+                    error: function() {
+                        showAlert('Error loading batches', 'danger');
+                    }
+                });
+            }
+            
+            function submitForm(form, successMessage) {
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert(successMessage, 'success');
+                            form[0].reset();
+                            
+                            // If it's a batch creation, reload batches for section dropdown
+                            if (form.attr('id') === 'createBatchForm') {
+                                var deptId = $('#SectionDepartmentId').val();
+                                if (deptId) {
+                                    loadBatches(deptId, '#SectionBatchId');
+                                }
+                            }
+                        } else {
+                            showAlert('Error: ' + response.message, 'danger');
+                        }
+                    },
+                    error: function(xhr) {
+                        var errorMsg = 'An error occurred. Please try again.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+                        showAlert(errorMsg, 'danger');
+                    }
+                });
+            }
+            
+            function showAlert(message, type) {
+                // Remove existing alerts
+                $('.alert-dismissible').remove();
+                
+                // Create new alert
+                var alertClass = 'alert-' + type;
+                var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
+                                message +
+                                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                                '</div>';
+                
+                // Insert alert at top of card body
+                $('.card-body').prepend(alertHtml);
+                
+                // Auto-dismiss after 5 seconds
+                setTimeout(function() {
+                    $('.alert-dismissible .btn-close').click();
+                }, 5000);
+            }
+        });
+    </script>
+}
+            else
+            {
+                <p>No departments found. Please create a department first.</p>
+            }
+        </div>
+    </div>
+    

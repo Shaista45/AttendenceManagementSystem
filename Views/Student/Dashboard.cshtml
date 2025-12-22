@@ -1,0 +1,241 @@
+﻿@model dynamic
+@{
+    ViewData["Title"] = "Student Dashboard";
+    var student = ViewData["Student"] as dynamic;
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-user-graduate me-2"></i>Student Dashboard
+        </h1>
+        <div class="btn-group">
+            <a class="btn btn-primary" asp-controller="Student" asp-action="AutoMark">
+                <i class="fas fa-check-circle me-2"></i>Mark Current Attendance
+            </a>
+        </div>
+    </div>
+
+    <!-- Welcome Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h4 class="card-title">Welcome back, @student?.FullName!</h4>
+                            <p class="card-text">Roll Number: @student?.RollNumber</p>
+                            <p class="card-text">@student?.Department?.Name - Batch @student?.Batch?.Year, Section @student?.Section?.Name</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <i class="fas fa-user-graduate fa-4x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Courses
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalCourses</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-book fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Today Present
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TodayPresent/@Model.TotalCourses</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Overall Percentage
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.OverallPercentage.ToString("F1")%</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-percentage fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Current Class
+                            </div>
+                            <div class="h6 mb-0 font-weight-bold text-gray-800">@(Model.CurrentClass ?? "No Class")</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Quick Actions -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <a class="btn btn-primary w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center" 
+                               asp-controller="Student" asp-action="MyAttendance">
+                                <i class="fas fa-calendar fa-2x mb-2"></i>
+                                <span>My Attendance</span>
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a class="btn btn-success w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center" 
+                               asp-controller="Student" asp-action="AttendanceSummary">
+                                <i class="fas fa-chart-line fa-2x mb-2"></i>
+                                <span>View Summary</span>
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a class="btn btn-info w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center" 
+                               asp-controller="Student" asp-action="MyTimetable">
+                                <i class="fas fa-clock fa-2x mb-2"></i>
+                                <span>Timetable</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Today's Attendance -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Today's Attendance</h6>
+                    <span class="badge bg-primary">@DateTime.Today.ToString("dd MMM yyyy")</span>
+                </div>
+                <div class="card-body">
+                    @if (ViewData["TodayAttendance"] != null && ((IEnumerable<dynamic>)ViewData["TodayAttendance"]).Any())
+                    {
+                        <div class="list-group">
+                            @foreach (var attendance in (IEnumerable<dynamic>)ViewData["TodayAttendance"])
+                            {
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">@attendance.Course?.Code - @attendance.Course?.Title</h6>
+                                        <small class="text-muted">Marked at: @attendance.MarkedAt.ToString("hh:mm tt")</small>
+                                    </div>
+                                    <span class="badge @(attendance.Status.ToString() == "Present" ? "bg-success" : attendance.Status.ToString() == "Absent" ? "bg-danger" : "bg-warning")">
+                                        @attendance.Status
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-calendar-times fa-2x text-gray-300 mb-3"></i>
+                            <h6 class="text-gray-500">No attendance marked for today</h6>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Course Performance -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Course Performance</h6>
+                </div>
+                <div class="card-body">
+                    @if (ViewData["AttendancePercentage"] != null)
+                    {
+                        var percentages = (Dictionary<int, double>)ViewData["AttendancePercentage"];
+                        foreach (var (courseId, percentage) in percentages)
+                        {
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="small">Course @courseId</span>
+                                    <span class="small @(percentage >= 75 ? "text-success" : percentage >= 60 ? "text-warning" : "text-danger")">
+                                        @percentage.ToString("F1")%
+                                    </span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar @(percentage >= 75 ? "bg-success" : percentage >= 60 ? "bg-warning" : "bg-danger")" 
+                                         role="progressbar" style="width: @percentage%" 
+                                         aria-valuenow="@percentage" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-3">
+                            <i class="fas fa-chart-bar fa-2x text-gray-300 mb-2"></i>
+                            <p class="text-muted small">No attendance data available</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Current Class Info -->
+            @if (ViewData["CurrentClass"] != null)
+            {
+                var currentClass = ViewData["CurrentClass"] as dynamic;
+                <div class="card shadow">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Current Class</h6>
+                    </div>
+                    <div class="card-body text-center">
+                        <i class="fas fa-chalkboard-teacher fa-3x text-primary mb-3"></i>
+                        <h5>@currentClass?.Course?.Code</h5>
+                        <p class="text-muted">@currentClass?.Course?.Title</p>
+                        <p class="text-muted">Teacher: @currentClass?.Teacher?.FullName</p>
+                        <a class="btn btn-success btn-sm" asp-controller="Student" asp-action="AutoMark">
+                            <i class="fas fa-check me-2"></i>Mark Present
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

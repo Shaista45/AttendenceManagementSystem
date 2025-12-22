@@ -1,0 +1,119 @@
+﻿@model AttendenceManagementSystem.Controllers.MarkAttendanceViewModel
+@{
+    ViewData["Title"] = "Mark Attendance";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-edit me-2"></i>Mark Attendance
+        </h1>
+        <div class="alert alert-warning mb-0">
+            <i class="fas fa-info-circle me-2"></i>
+            Attendance can only be modified within @(DateTime.Now.AddDays(-2).ToString("dd MMM yyyy"))
+        </div>
+    </div>
+
+    <!-- Attendance Form -->
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Mark Attendance for @Model.Date.ToString("dd MMM yyyy")</h6>
+        </div>
+        <div class="card-body">
+            <form method="post" asp-action="MarkAttendance">
+                <input type="hidden" asp-for="CourseId" />
+                <input type="hidden" asp-for="Date" />
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Select Course</label>
+                        <select asp-for="CourseId" asp-items="@(ViewData["Courses"] as SelectList)"
+                                class="form-control" onchange="this.form.submit()">
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Date</label>
+                        <input type="date" asp-for="Date" class="form-control" onchange="this.form.submit()" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        @if (!Model.CanEdit)
+                        {
+                            <div class="alert alert-danger p-2 text-center">
+                                <small>Locked</small>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                @if (Model.Students.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Roll No</th>
+                                    <th>Student Name</th>
+                                    <th>Batch</th>
+                                    <th>Section</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.Students.Count; i++)
+                                {
+                                    <tr>
+                                        <input type="hidden" asp-for="@Model.Students[i].StudentId" />
+                                        <input type="hidden" asp-for="@Model.Students[i].RollNumber" />
+                                        <input type="hidden" asp-for="@Model.Students[i].FullName" />
+                                        <input type="hidden" asp-for="@Model.Students[i].Batch" />
+                                        <input type="hidden" asp-for="@Model.Students[i].Section" />
+
+                                        <td>
+                                            <strong>@Model.Students[i].RollNumber</strong>
+                                        </td>
+                                        <td>@Model.Students[i].FullName</td>
+                                        <td>@Model.Students[i].Batch</td>
+                                        <td>@Model.Students[i].Section</td>
+                                        <td>
+                                            <select asp-for="@Model.Students[i].Status" class="form-control form-control-sm"
+                                                    disabled="@(!Model.CanEdit)">
+                                                <option value="0">Present</option>
+                                                <option value="1">Absent</option>
+                                                <option value="2">Late</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if (Model.CanEdit)
+                    {
+                        <div class="text-end mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>Save Attendance
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-lock me-2"></i>
+                            This attendance record is locked and cannot be modified.
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-users fa-3x text-gray-300 mb-3"></i>
+                        <h5 class="text-gray-500">No Students Found</h5>
+                        <p class="text-muted">No students are enrolled in the selected course for your assigned batches.</p>
+                    </div>
+                }
+            </form>
+        </div>
+    </div>
+</div>

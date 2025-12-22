@@ -1,0 +1,729 @@
+﻿@model IEnumerable<AttendenceManagementSystem.Models.Department>
+@{
+    ViewData["Title"] = "Departments";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-building me-2"></i>Departments
+        </h1>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-primary" id="refreshBtn" title="Refresh">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            <a class="btn btn-primary" asp-action="CreateDepartment">
+                <i class="fas fa-plus me-2"></i>Add New Department
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Departments
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Count()</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-building fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Teachers
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalTeachers">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chalkboard-teacher fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Total Courses
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalCourses">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-book fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Total Students
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalStudents">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">All Departments</h6>
+            <div class="d-flex gap-2">
+                <div class="input-group input-group-sm" style="width: 250px;">
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search departments...">
+                    <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown">
+                        <i class="fas fa-filter me-1"></i>Filter
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item filter-option" href="#" data-filter="all">All Departments</a></li>
+                        <li><a class="dropdown-item filter-option" href="#" data-filter="with-batches">With Batches</a></li>
+                        <li><a class="dropdown-item filter-option" href="#" data-filter="with-courses">With Courses</a></li>
+                        <li><a class="dropdown-item filter-option" href="#" data-filter="with-teachers">With Teachers</a></li>
+                        <li><a class="dropdown-item filter-option" href="#" data-filter="no-content">Empty Departments</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover" id="departmentsTable" width="100%" cellspacing="0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>
+                                    <a href="#" class="sortable-header" data-sort="name">
+                                        Name <i class="fas fa-sort"></i>
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="#" class="sortable-header" data-sort="code">
+                                        Code <i class="fas fa-sort"></i>
+                                    </a>
+                                </th>
+                                <th>Batches</th>
+                                <th>Courses</th>
+                                <th>Teachers</th>
+                                <th>Students</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            @foreach (var department in Model)
+                            {
+                                var batchCount = department.Batches?.Count ?? 0;
+                                var courseCount = department.Courses?.Count ?? 0;
+                                var teacherCount = department.Teachers?.Count ?? 0;
+                                var studentCount = department.Students?.Count ?? 0;
+                                var isActive = batchCount > 0 && courseCount > 0 && teacherCount > 0;
+                                
+                                <tr data-department-id="@department.Id" 
+                                    data-name="@department.Name"
+                                    data-code="@department.Code"
+                                    data-batches="@batchCount"
+                                    data-courses="@courseCount"
+                                    data-teachers="@teacherCount"
+                                    data-students="@studentCount">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="symbol symbol-circle symbol-40 me-3">
+                                                <div class="symbol-label bg-light-primary">
+                                                    <i class="fas fa-building text-primary"></i>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">@department.Name</div>
+                                                <div class="text-muted small">ID: @department.Id</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@department.Code</span>
+                                    </td>
+                                    <td>
+                                        @if (batchCount > 0)
+                                        {
+                                            <a href="#" class="badge bg-primary view-batches" data-dept-id="@department.Id" data-bs-toggle="tooltip" title="View Batches">
+                                                @batchCount
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark">0</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (courseCount > 0)
+                                        {
+                                            <a href="#" class="badge bg-info view-courses" data-dept-id="@department.Id" data-bs-toggle="tooltip" title="View Courses">
+                                                @courseCount
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark">0</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (teacherCount > 0)
+                                        {
+                                            <a href="#" class="badge bg-success view-teachers" data-dept-id="@department.Id" data-bs-toggle="tooltip" title="View Teachers">
+                                                @teacherCount
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark">0</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (studentCount > 0)
+                                        {
+                                            <span class="badge bg-warning">@studentCount</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark">0</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (isActive)
+                                        {
+                                            <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Active</span>
+                                        }
+                                        else if (batchCount > 0 || courseCount > 0 || teacherCount > 0)
+                                        {
+                                            <span class="badge bg-warning"><i class="fas fa-exclamation-circle me-1"></i>Partial</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary"><i class="fas fa-clock me-1"></i>Setup Needed</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                    <a class="dropdown-item" asp-action="ViewDepartment" asp-route-id="@department.Id">
+                                                        <i class="fas fa-eye me-2"></i>View Details
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" asp-action="EditDepartment" asp-route-id="@department.Id">
+                                                        <i class="fas fa-edit me-2"></i>Edit Department
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item quick-add-batch" href="#" data-dept-id="@department.Id">
+                                                        <i class="fas fa-calendar-plus me-2"></i>Add Batch
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item quick-add-course" href="#" data-dept-id="@department.Id">
+                                                        <i class="fas fa-book-medical me-2"></i>Add Course
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item quick-add-teacher" href="#" data-dept-id="@department.Id">
+                                                        <i class="fas fa-user-plus me-2"></i>Add Teacher
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item text-danger delete-department" href="#" data-dept-id="@department.Id" data-dept-name="@department.Name">
+                                                        <i class="fas fa-trash me-2"></i>Delete Department
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-light">
+                                <td colspan="8" class="text-center small text-muted">
+                                    Showing @Model.Count() departments | 
+                                    <span id="filterStatus">All departments</span>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-building fa-4x text-gray-300"></i>
+                    </div>
+                    <h4 class="text-gray-500 mb-3">No Departments Found</h4>
+                    <p class="text-muted mb-4">Get started by creating your first department to organize your institution.</p>
+                    <a class="btn btn-primary btn-lg" asp-action="CreateDepartment">
+                        <i class="fas fa-plus me-2"></i>Create First Department
+                    </a>
+                    <div class="mt-4">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Departments help organize batches, courses, teachers, and students.
+                        </small>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Quick Add Modals -->
+<div class="modal fade" id="quickAddModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="quickAddModalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="quickAddModalBody">
+                <!-- Content loaded dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="deleteDeptName"></strong>?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Warning:</strong> This action will also delete all associated batches, courses, teachers, and students. This cannot be undone.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Delete Department</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .symbol {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .symbol-circle {
+            border-radius: 50%;
+        }
+        
+        .symbol-40 {
+            width: 40px;
+            height: 40px;
+        }
+        
+        .symbol-label {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .sortable-header {
+            color: inherit;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .sortable-header:hover {
+            color: #0d6efd;
+        }
+        
+        .badge {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .badge:hover {
+            transform: scale(1.05);
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(13, 110, 253, 0.05);
+            cursor: pointer;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+        
+        #searchInput {
+            min-width: 200px;
+        }
+        
+        .card-header {
+            background-color: #f8f9fa;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // Calculate totals
+            calculateTotals();
+            
+            // Search functionality
+            $('#searchInput').on('keyup', function() {
+                filterTable();
+            });
+            
+            $('#clearSearch').on('click', function() {
+                $('#searchInput').val('').trigger('keyup');
+            });
+            
+            // Sort functionality
+            $('.sortable-header').on('click', function(e) {
+                e.preventDefault();
+                var sortBy = $(this).data('sort');
+                sortTable(sortBy);
+            });
+            
+            // Filter functionality
+            $('.filter-option').on('click', function(e) {
+                e.preventDefault();
+                var filter = $(this).data('filter');
+                applyFilter(filter);
+                $(this).closest('.dropdown-menu').find('.dropdown-item').removeClass('active');
+                $(this).addClass('active');
+                $('#filterDropdown').html('<i class="fas fa-filter me-1"></i>' + $(this).text());
+            });
+            
+            // Refresh button
+            $('#refreshBtn').on('click', function() {
+                location.reload();
+            });
+            
+            // Quick add functionality
+            $('.quick-add-batch').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var deptId = $(this).data('dept-id');
+                loadQuickAddForm('batch', deptId);
+            });
+            
+            $('.quick-add-course').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var deptId = $(this).data('dept-id');
+                loadQuickAddForm('course', deptId);
+            });
+            
+            $('.quick-add-teacher').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var deptId = $(this).data('dept-id');
+                loadQuickAddForm('teacher', deptId);
+            });
+            
+            // View details functionality
+            $('.view-batches, .view-courses, .view-teachers').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var deptId = $(this).data('dept-id');
+                var type = $(this).hasClass('view-batches') ? 'batches' : 
+                          $(this).hasClass('view-courses') ? 'courses' : 'teachers';
+                viewDetails(type, deptId);
+            });
+            
+            // Delete department
+            $('.delete-department').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var deptId = $(this).data('dept-id');
+                var deptName = $(this).data('dept-name');
+                $('#deleteDeptName').text(deptName);
+                $('#deleteModal').data('dept-id', deptId).modal('show');
+            });
+            
+            // Confirm delete
+            $('#confirmDelete').on('click', function() {
+                var deptId = $('#deleteModal').data('dept-id');
+                deleteDepartment(deptId);
+            });
+            
+            // Row click navigation
+            $('#tableBody tr').on('click', function(e) {
+                // Don't navigate if clicking on buttons or links
+                if ($(e.target).closest('button, a, .dropdown').length === 0) {
+                    var deptId = $(this).data('department-id');
+                    window.location.href = '@Url.Action("ViewDepartment", "Admin")/' + deptId;
+                }
+            });
+            
+            // Functions
+            function calculateTotals() {
+                var totalTeachers = 0;
+                var totalCourses = 0;
+                var totalStudents = 0;
+                
+                $('#tableBody tr').each(function() {
+                    totalTeachers += parseInt($(this).data('teachers') || 0);
+                    totalCourses += parseInt($(this).data('courses') || 0);
+                    totalStudents += parseInt($(this).data('students') || 0);
+                });
+                
+                $('#totalTeachers').text(totalTeachers);
+                $('#totalCourses').text(totalCourses);
+                $('#totalStudents').text(totalStudents);
+            }
+            
+            function filterTable() {
+                var searchText = $('#searchInput').val().toLowerCase();
+                var visibleRows = 0;
+                
+                $('#tableBody tr').each(function() {
+                    var name = $(this).data('name').toLowerCase();
+                    var code = $(this).data('code').toLowerCase();
+                    
+                    if (name.includes(searchText) || code.includes(searchText) || searchText === '') {
+                        $(this).show();
+                        visibleRows++;
+                    } else {
+                        $(this).hide();
+                    }
+                });
+                
+                $('#filterStatus').text(visibleRows + ' departments found');
+            }
+            
+            function sortTable(sortBy) {
+                var $tbody = $('#tableBody');
+                var $rows = $tbody.find('tr').toArray();
+                
+                $rows.sort(function(a, b) {
+                    var aVal, bVal;
+                    
+                    switch(sortBy) {
+                        case 'name':
+                            aVal = $(a).data('name').toLowerCase();
+                            bVal = $(b).data('name').toLowerCase();
+                            break;
+                        case 'code':
+                            aVal = $(a).data('code').toLowerCase();
+                            bVal = $(b).data('code').toLowerCase();
+                            break;
+                        case 'batches':
+                            aVal = parseInt($(a).data('batches'));
+                            bVal = parseInt($(b).data('batches'));
+                            break;
+                        case 'courses':
+                            aVal = parseInt($(a).data('courses'));
+                            bVal = parseInt($(b).data('courses'));
+                            break;
+                        default:
+                            return 0;
+                    }
+                    
+                    if (aVal < bVal) return -1;
+                    if (aVal > bVal) return 1;
+                    return 0;
+                });
+                
+                $rows.forEach(function(row) {
+                    $tbody.append(row);
+                });
+                
+                // Update sort indicators
+                $('.sortable-header i').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
+                var $header = $('.sortable-header[data-sort="' + sortBy + '"] i');
+                $header.removeClass('fa-sort').addClass('fa-sort-up');
+            }
+            
+            function applyFilter(filter) {
+                $('#tableBody tr').each(function() {
+                    var batches = parseInt($(this).data('batches'));
+                    var courses = parseInt($(this).data('courses'));
+                    var teachers = parseInt($(this).data('teachers'));
+                    var showRow = false;
+                    
+                    switch(filter) {
+                        case 'all':
+                            showRow = true;
+                            break;
+                        case 'with-batches':
+                            showRow = batches > 0;
+                            break;
+                        case 'with-courses':
+                            showRow = courses > 0;
+                            break;
+                        case 'with-teachers':
+                            showRow = teachers > 0;
+                            break;
+                        case 'no-content':
+                            showRow = batches === 0 && courses === 0 && teachers === 0;
+                            break;
+                    }
+                    
+                    $(this).toggle(showRow);
+                });
+                
+                var visibleCount = $('#tableBody tr:visible').length;
+                $('#filterStatus').text(visibleCount + ' departments found');
+            }
+            
+            function loadQuickAddForm(type, deptId) {
+                var title = '';
+                var url = '';
+                
+                switch(type) {
+                    case 'batch':
+                        title = 'Add Batch';
+                        url = '@Url.Action("QuickAddBatch", "Admin")';
+                        break;
+                    case 'course':
+                        title = 'Add Course';
+                        url = '@Url.Action("QuickAddCourse", "Admin")';
+                        break;
+                    case 'teacher':
+                        title = 'Add Teacher';
+                        url = '@Url.Action("QuickAddTeacher", "Admin")';
+                        break;
+                }
+                
+                $('#quickAddModalTitle').text(title);
+                
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    data: { departmentId: deptId },
+                    success: function(response) {
+                        $('#quickAddModalBody').html(response);
+                        $('#quickAddModal').modal('show');
+                    },
+                    error: function() {
+                        showAlert('Error loading form', 'danger');
+                    }
+                });
+            }
+            
+            function viewDetails(type, deptId) {
+                // Redirect to appropriate view page with filters
+                var url = '';
+                
+                switch(type) {
+                    case 'batches':
+                        url = '@Url.Action("Batches", "Admin")?departmentId=' + deptId;
+                        break;
+                    case 'courses':
+                        url = '@Url.Action("Courses", "Admin")?departmentId=' + deptId;
+                        break;
+                    case 'teachers':
+                        url = '@Url.Action("Teachers", "Admin")?departmentId=' + deptId;
+                        break;
+                }
+                
+                if (url) {
+                    window.location.href = url;
+                }
+            }
+            
+            function deleteDepartment(deptId) {
+                $.ajax({
+                    url: '@Url.Action("DeleteDepartment", "Admin")',
+                    type: 'POST',
+                    data: { id: deptId },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#deleteModal').modal('hide');
+                            showAlert('Department deleted successfully', 'success');
+                            // Remove the row from table
+                            $('tr[data-department-id="' + deptId + '"]').remove();
+                            calculateTotals();
+                        } else {
+                            showAlert('Error: ' + response.message, 'danger');
+                        }
+                    },
+                    error: function() {
+                        showAlert('Error deleting department', 'danger');
+                    }
+                });
+            }
+            
+            function showAlert(message, type) {
+                // Remove existing alerts
+                $('.alert-dismissible').remove();
+                
+                // Create new alert
+                var alertClass = 'alert-' + type;
+                var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
+                                '<i class="fas fa-info-circle me-2"></i>' + message +
+                                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                                '</div>';
+                
+                // Insert alert at top of container
+                $('.container-fluid').prepend(alertHtml);
+                
+                // Auto-dismiss after 5 seconds
+                setTimeout(function() {
+                    $('.alert-dismissible .btn-close').click();
+                }, 5000);
+            }
+        });
+    </script>
+}
