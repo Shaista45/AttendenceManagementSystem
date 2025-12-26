@@ -792,17 +792,29 @@ namespace AttendenceManagementSystem.Controllers
                 var assignedCourses = timetables.Select(tt => tt.CourseId).Distinct().Count();
 
                 var courseIds = timetables.Select(tt => tt.CourseId).Distinct().ToList();
-                var attendanceQuery = _context.Attendances
-                    .Where(a => courseIds.Contains(a.CourseId));
+                
+                int totalClasses = 0;
+                int markedClasses = 0;
 
-                if (filters.StartDate.HasValue)
-                    attendanceQuery = attendanceQuery.Where(a => a.Date >= DateOnly.FromDateTime(filters.StartDate.Value));
+                if (courseIds.Any())
+                {
+                    var attendanceQuery = _context.Attendances
+                        .Where(a => courseIds.Contains(a.CourseId));
 
-                if (filters.EndDate.HasValue)
-                    attendanceQuery = attendanceQuery.Where(a => a.Date <= DateOnly.FromDateTime(filters.EndDate.Value));
+                    if (filters.StartDate.HasValue)
+                        attendanceQuery = attendanceQuery.Where(a => a.Date >= DateOnly.FromDateTime(filters.StartDate.Value));
 
-                var totalClasses = await attendanceQuery.Select(a => new { a.CourseId, a.Date }).Distinct().CountAsync();
-                var markedClasses = await attendanceQuery.CountAsync();
+                    if (filters.EndDate.HasValue)
+                        attendanceQuery = attendanceQuery.Where(a => a.Date <= DateOnly.FromDateTime(filters.EndDate.Value));
+
+                    var distinctClasses = await attendanceQuery
+                        .GroupBy(a => new { a.CourseId, a.Date })
+                        .Select(g => g.Key)
+                        .ToListAsync();
+                    
+                    totalClasses = distinctClasses.Count;
+                    markedClasses = await attendanceQuery.CountAsync();
+                }
 
                 teacherReports.Add(new TeacherReportViewModel
                 {
