@@ -74,9 +74,14 @@
                             <a asp-action="Teachers" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left me-2"></i>Back to Teachers
                             </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-2"></i>Save Teacher
-                            </button>
+                            <div>
+                                <button type="submit" name="action" value="save" class="btn btn-outline-primary me-2">
+                                    <i class="fas fa-save me-2"></i>Save Only
+                                </button>
+                                <button type="submit" name="action" value="saveAndAssign" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Save & Assign Courses
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>

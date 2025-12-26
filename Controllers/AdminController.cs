@@ -1172,7 +1172,7 @@ namespace AttendenceManagementSystem.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateTeacher(TeacherViewModel model)
+        public async Task<IActionResult> CreateTeacher(TeacherViewModel model, string action)
         {
             if (ModelState.IsValid)
             {
@@ -1219,6 +1219,13 @@ namespace AttendenceManagementSystem.Controllers
                         await _context.SaveChangesAsync();
 
                         ShowMessage("Teacher created successfully! Status: Pending Approval");
+                        
+                        // Check which button was clicked
+                        if (action == "saveAndAssign")
+                        {
+                            return RedirectToAction(nameof(AssignCourses), new { id = teacher.Id });
+                        }
+                        
                         return RedirectToAction(nameof(Teachers));
                     }
                     else
@@ -1520,6 +1527,53 @@ namespace AttendenceManagementSystem.Controllers
             }
 
             return RedirectToAction(nameof(AssignCourses), new { id = teacherId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteTeacher(int id)
+        {
+            try
+            {
+                var teacher = await _context.Teachers
+                    .Include(t => t.User)
+                    .Include(t => t.Timetables)
+                    .Include(t => t.Attendances)
+                    .FirstOrDefaultAsync(t => t.Id == id);
+
+                if (teacher == null)
+                    return NotFound();
+
+                // Delete related records
+                if (teacher.Attendances != null && teacher.Attendances.Any())
+                {
+                    _context.Attendances.RemoveRange(teacher.Attendances);
+                }
+
+                if (teacher.Timetables != null && teacher.Timetables.Any())
+                {
+                    _context.Timetables.RemoveRange(teacher.Timetables);
+                }
+
+                // Delete teacher record
+                _context.Teachers.Remove(teacher);
+
+                // Delete associated user account
+                if (teacher.User != null)
+                {
+                    await _userManager.DeleteAsync(teacher.User);
+                }
+
+                await _context.SaveChangesAsync();
+
+                ShowMessage($"Teacher {teacher.FullName} has been deleted successfully!");
+                return RedirectToAction(nameof(Teachers));
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error deleting teacher: {ex.Message}");
+                return RedirectToAction(nameof(Teachers));
+            }
         }
         #endregion
     }

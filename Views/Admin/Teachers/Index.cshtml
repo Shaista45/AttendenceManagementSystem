@@ -82,15 +82,11 @@
                                         <div class="btn-group" role="group">
                                             <a asp-action="TeacherDetails" asp-route-id="@teacher.Id" 
                                                class="btn btn-sm btn-info" title="View Details">
-                                                <i class="fas fa-eye"></i>
+                                                <i class="fas fa-eye"></i> View
                                             </a>
                                             <a asp-action="EditTeacherInfo" asp-route-id="@teacher.Id" 
                                                class="btn btn-sm btn-primary" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <a asp-action="AssignCourses" asp-route-id="@teacher.Id" 
-                                               class="btn btn-sm btn-secondary" title="Assign Courses">
-                                                <i class="fas fa-book"></i>
+                                                <i class="fas fa-edit"></i> Edit
                                             </a>
                                             @if (!teacher.IsApproved)
                                             {
@@ -98,18 +94,18 @@
                                                     @Html.AntiForgeryToken()
                                                     <button type="submit" class="btn btn-sm btn-success" 
                                                             title="Approve Teacher"
-                                                            onclick="return confirm('Approve @teacher.FullName?');">
-                                                        <i class="fas fa-check"></i>
+                                                            onclick="return confirm('Approve @teacher.FullName? This will allow them to log in.');">
+                                                        <i class="fas fa-check"></i> Approve
                                                     </button>
                                                 </form>
                                             }
                                             <form asp-action="DisableTeacher" asp-route-id="@teacher.Id" method="post" class="d-inline">
                                                 @Html.AntiForgeryToken()
                                                 <button type="submit" 
-                                                        class="btn btn-sm @(teacher.IsActive ? "btn-danger" : "btn-success")" 
+                                                        class="btn btn-sm @(teacher.IsActive ? "btn-warning" : "btn-success")" 
                                                         title="@(teacher.IsActive ? "Disable" : "Enable")"
                                                         onclick="return confirm('@(teacher.IsActive ? "Disable" : "Enable") @teacher.FullName?');">
-                                                    <i class="fas fa-@(teacher.IsActive ? "ban" : "check-circle")"></i>
+                                                    <i class="fas fa-@(teacher.IsActive ? "ban" : "check-circle")"></i> @(teacher.IsActive ? "Disable" : "Enable")
                                                 </button>
                                             </form>
                                         </div>
