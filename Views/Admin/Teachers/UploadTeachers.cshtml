@@ -1,0 +1,163 @@
+@{
+    ViewData["Title"] = "Upload Teachers from Excel";
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-3">
+                <i class="fas fa-file-excel me-2"></i>Upload Teachers from Excel
+            </h2>
+        </div>
+    </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Message"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["UploadErrors"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Upload Errors:</strong><br/>
+            @Html.Raw(TempData["UploadErrors"])
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-upload me-2"></i>Upload Excel File
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" asp-action="UploadTeachers">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="mb-3">
+                            <label for="departmentId" class="form-label">
+                                <i class="fas fa-building me-1"></i>Select Department <span class="text-danger">*</span>
+                            </label>
+                            <select name="departmentId" id="departmentId" class="form-select" required>
+                                <option value="">-- Select Department --</option>
+                                @foreach (var dept in (SelectList)ViewBag.Departments)
+                                {
+                                    <option value="@dept.Value">@dept.Text</option>
+                                }
+                            </select>
+                            <div class="form-text">All teachers in the uploaded file will be assigned to this department</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="file" class="form-label">
+                                <i class="fas fa-file-excel me-1"></i>Select Excel File <span class="text-danger">*</span>
+                            </label>
+                            <input type="file" 
+                                   name="file" 
+                                   id="file" 
+                                   class="form-control" 
+                                   accept=".xlsx,.xls" 
+                                   required />
+                            <div class="form-text">Only .xlsx and .xls files are allowed</div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Excel Format Requirements:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Column 1: Full Name</li>
+                                <li>Column 2: Email (must be unique)</li>
+                                <li>Column 3: Employee ID (must be unique)</li>
+                                <li>Column 4: Phone Number</li>
+                                <li>Column 5: Password (minimum 6 characters)</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-upload me-2"></i>Upload Teachers
+                            </button>
+                            <a asp-action="Teachers" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Teachers
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-download me-2"></i>Download Template
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p>Download the Excel template with sample data and instructions to ensure proper formatting.</p>
+                    
+                    <a asp-action="DownloadTeacherTemplate" class="btn btn-primary w-100 mb-3">
+                        <i class="fas fa-download me-2"></i>Download Template
+                    </a>
+
+                    <div class="alert alert-light mb-0">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-lightbulb me-1"></i>Tips:
+                        </h6>
+                        <ul class="small mb-0">
+                            <li>Fill the template with teacher data</li>
+                            <li>Remove sample rows before uploading</li>
+                            <li>Ensure all required fields are filled</li>
+                            <li>Verify email addresses are valid</li>
+                            <li>Use strong passwords</li>
+                            <li>All teachers will be in "Pending" status initially</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-warning mt-3">
+                <div class="card-header bg-warning">
+                    <h6 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Important Notes
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="small mb-0">
+                        <li>Duplicate emails will be skipped</li>
+                        <li>Duplicate employee IDs will be skipped</li>
+                        <li>Invalid data rows will be reported</li>
+                        <li>Successfully added teachers will need approval</li>
+                        <li>Teachers can login only after approval</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('file').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name;
+            if (fileName) {
+                console.log('Selected file:', fileName);
+            }
+        });
+    </script>
+}

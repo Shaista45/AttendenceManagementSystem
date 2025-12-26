@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ClosedXML.Excel;
 using System.Drawing;
+using Microsoft.AspNetCore.Http;
 
 namespace AttendenceManagementSystem.Services
 {
@@ -223,6 +224,122 @@ namespace AttendenceManagementSystem.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error exporting attendance to Excel");
+                throw;
+            }
+        }
+
+        public async Task<List<TeacherExcelData>> ImportTeachersFromExcelAsync(IFormFile file, int departmentId)
+        {
+            var teachers = new List<TeacherExcelData>();
+
+            try
+            {
+                using var stream = new MemoryStream();
+                await file.CopyToAsync(stream);
+                stream.Position = 0;
+
+                using var workbook = new XLWorkbook(stream);
+                var worksheet = workbook.Worksheet(1);
+                var rows = worksheet.RangeUsed().RowsUsed().Skip(1); // Skip header
+
+                int rowNumber = 1;
+                foreach (var row in rows)
+                {
+                    rowNumber++;
+                    try
+                    {
+                        var fullName = row.Cell(1).GetValue<string>().Trim();
+                        var email = row.Cell(2).GetValue<string>().Trim();
+                        var employeeId = row.Cell(3).GetValue<string>().Trim();
+                        var phoneNumber = row.Cell(4).GetValue<string>().Trim();
+                        var password = row.Cell(5).GetValue<string>().Trim();
+
+                        if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(email) || 
+                            string.IsNullOrWhiteSpace(employeeId) || string.IsNullOrWhiteSpace(password))
+                        {
+                            continue; // Skip empty rows
+                        }
+
+                        teachers.Add(new TeacherExcelData
+                        {
+                            RowNumber = rowNumber,
+                            FullName = fullName,
+                            Email = email,
+                            EmployeeId = employeeId,
+                            PhoneNumber = phoneNumber,
+                            Password = password
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning($"Error reading row {rowNumber}: {ex.Message}");
+                    }
+                }
+
+                return teachers;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error importing teachers from Excel");
+                throw new Exception($"Error reading Excel file: {ex.Message}");
+            }
+        }
+
+        public byte[] GenerateTeacherTemplate()
+        {
+            try
+            {
+                using var workbook = new XLWorkbook();
+                var worksheet = workbook.Worksheets.Add("Teachers");
+
+                // Add headers
+                worksheet.Cell(1, 1).Value = "Full Name";
+                worksheet.Cell(1, 2).Value = "Email";
+                worksheet.Cell(1, 3).Value = "Employee ID";
+                worksheet.Cell(1, 4).Value = "Phone Number";
+                worksheet.Cell(1, 5).Value = "Password";
+
+                // Add sample data
+                worksheet.Cell(2, 1).Value = "John Doe";
+                worksheet.Cell(2, 2).Value = "john.doe@example.com";
+                worksheet.Cell(2, 3).Value = "EMP001";
+                worksheet.Cell(2, 4).Value = "1234567890";
+                worksheet.Cell(2, 5).Value = "Teacher@123";
+
+                worksheet.Cell(3, 1).Value = "Jane Smith";
+                worksheet.Cell(3, 2).Value = "jane.smith@example.com";
+                worksheet.Cell(3, 3).Value = "EMP002";
+                worksheet.Cell(3, 4).Value = "0987654321";
+                worksheet.Cell(3, 5).Value = "Teacher@456";
+
+                // Format headers
+                var headerRange = worksheet.Range(1, 1, 1, 5);
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
+                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                // Add instructions
+                worksheet.Cell(5, 1).Value = "Instructions:";
+                worksheet.Cell(6, 1).Value = "1. Fill in teacher details starting from row 2";
+                worksheet.Cell(7, 1).Value = "2. All fields are required";
+                worksheet.Cell(8, 1).Value = "3. Email must be unique and valid";
+                worksheet.Cell(9, 1).Value = "4. Employee ID must be unique";
+                worksheet.Cell(10, 1).Value = "5. Password must be at least 6 characters";
+                worksheet.Cell(11, 1).Value = "6. Delete sample rows before uploading";
+
+                var instructionsRange = worksheet.Range(5, 1, 11, 1);
+                instructionsRange.Style.Font.Italic = true;
+                instructionsRange.Style.Font.FontColor = XLColor.DarkGray;
+
+                worksheet.Columns().AdjustToContents();
+
+                using var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+                return stream.ToArray();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating teacher template");
                 throw;
             }
         }

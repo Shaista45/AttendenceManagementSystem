@@ -2028,6 +2028,148 @@ namespace AttendenceManagementSystem.Controllers
                 return RedirectToAction(nameof(Teachers));
             }
         }
+
+        // Upload Teachers from Excel
+        public IActionResult UploadTeachers()
+        {
+            ViewBag.Departments = new SelectList(_context.Departments.ToList(), "Id", "Name");
+            return View("~/Views/Admin/Teachers/UploadTeachers.cshtml");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadTeachers(IFormFile file, int departmentId)
+        {
+            if (file == null || file.Length == 0)
+            {
+                ShowErrorMessage("Please select a valid Excel file.");
+                ViewBag.Departments = new SelectList(_context.Departments.ToList(), "Id", "Name");
+                return View("~/Views/Admin/Teachers/UploadTeachers.cshtml");
+            }
+
+            if (!file.FileName.EndsWith(".xlsx") && !file.FileName.EndsWith(".xls"))
+            {
+                ShowErrorMessage("Only Excel files (.xlsx, .xls) are allowed.");
+                ViewBag.Departments = new SelectList(_context.Departments.ToList(), "Id", "Name");
+                return View("~/Views/Admin/Teachers/UploadTeachers.cshtml");
+            }
+
+            try
+            {
+                var teachers = await _excelService.ImportTeachersFromExcelAsync(file, departmentId);
+                
+                int successCount = 0;
+                int errorCount = 0;
+                var errors = new List<string>();
+
+                foreach (var teacherData in teachers)
+                {
+                    try
+                    {
+                        // Check if email already exists
+                        var existingUser = await _userManager.FindByEmailAsync(teacherData.Email);
+                        if (existingUser != null)
+                        {
+                            errors.Add($"Row {teacherData.RowNumber}: Email {teacherData.Email} already exists.");
+                            errorCount++;
+                            continue;
+                        }
+
+                        // Check if employee ID already exists
+                        var existingEmployee = await _context.Teachers
+                            .FirstOrDefaultAsync(t => t.EmployeeId == teacherData.EmployeeId);
+                        if (existingEmployee != null)
+                        {
+                            errors.Add($"Row {teacherData.RowNumber}: Employee ID {teacherData.EmployeeId} already exists.");
+                            errorCount++;
+                            continue;
+                        }
+
+                        // Create ApplicationUser
+                        var user = new ApplicationUser
+                        {
+                            UserName = teacherData.Email,
+                            Email = teacherData.Email,
+                            EmailConfirmed = true
+                        };
+
+                        var result = await _userManager.CreateAsync(user, teacherData.Password);
+
+                        if (result.Succeeded)
+                        {
+                            await _userManager.AddToRoleAsync(user, "Teacher");
+
+                            // Create Teacher
+                            var teacher = new Teacher
+                            {
+                                UserId = user.Id,
+                                FullName = teacherData.FullName,
+                                Email = teacherData.Email,
+                                EmployeeId = teacherData.EmployeeId,
+                                PhoneNumber = teacherData.PhoneNumber,
+                                DepartmentId = departmentId,
+                                IsApproved = false,
+                                IsActive = true,
+                                CreatedAt = DateTime.UtcNow
+                            };
+
+                            _context.Teachers.Add(teacher);
+                            await _context.SaveChangesAsync();
+
+                            successCount++;
+                        }
+                        else
+                        {
+                            errors.Add($"Row {teacherData.RowNumber}: Failed to create user - {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                            errorCount++;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        errors.Add($"Row {teacherData.RowNumber}: {ex.Message}");
+                        errorCount++;
+                    }
+                }
+
+                if (successCount > 0)
+                {
+                    ShowMessage($"Successfully uploaded {successCount} teacher(s).");
+                }
+
+                if (errorCount > 0)
+                {
+                    var errorMessage = $"{errorCount} teacher(s) failed to upload:<br/>" + string.Join("<br/>", errors.Take(10));
+                    if (errors.Count > 10)
+                        errorMessage += $"<br/>... and {errors.Count - 10} more errors.";
+                    
+                    TempData["UploadErrors"] = errorMessage;
+                }
+
+                return RedirectToAction(nameof(Teachers));
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error processing Excel file: {ex.Message}");
+                ViewBag.Departments = new SelectList(_context.Departments.ToList(), "Id", "Name");
+                return View("~/Views/Admin/Teachers/UploadTeachers.cshtml");
+            }
+        }
+
+        [HttpGet]
+        public IActionResult DownloadTeacherTemplate()
+        {
+            try
+            {
+                var fileBytes = _excelService.GenerateTeacherTemplate();
+                return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Teacher_Upload_Template.xlsx");
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Error generating template: {ex.Message}");
+                return RedirectToAction(nameof(Teachers));
+            }
+        }
+
         #endregion
     }
 }
