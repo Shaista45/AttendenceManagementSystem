@@ -1207,6 +1207,7 @@ namespace AttendenceManagementSystem.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<JsonResult> GetBatchesByDepartment(int departmentId)
         {
             var batches = await _context.Batches
@@ -1217,6 +1218,7 @@ namespace AttendenceManagementSystem.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<JsonResult> GetSectionsByBatch(int batchId)
         {
             var sections = await _context.Sections
