@@ -460,34 +460,64 @@ namespace AttendenceManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Validate that the selected Department, Batch, and Section exist and are properly linked
+                // Validate Department
                 var department = await _context.Departments.FindAsync(model.DepartmentId);
-                var batch = await _context.Batches.FindAsync(model.BatchId);
-                var section = await _context.Sections.FindAsync(model.SectionId);
-
                 if (department == null)
                 {
                     ModelState.AddModelError("DepartmentId", "Selected department does not exist.");
-                }
-                if (batch == null || batch.DepartmentId != model.DepartmentId)
-                {
-                    ModelState.AddModelError("BatchId", "Selected batch does not exist or does not belong to the selected department.");
-                }
-                if (section == null || section.BatchId != model.BatchId)
-                {
-                    ModelState.AddModelError("SectionId", "Selected section does not exist or does not belong to the selected batch.");
-                }
-
-                if (department == null || batch == null || section == null)
-                {
-                    // Repopulate dropdowns on error
                     ViewData["Departments"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
                         await _context.Departments.ToListAsync(), "Id", "Name", model.DepartmentId);
-                    ViewData["Batches"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
-                        await _context.Batches.Where(b => b.DepartmentId == model.DepartmentId).ToListAsync(), "Id", "Year", model.BatchId);
-                    ViewData["Sections"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
-                        await _context.Sections.Where(s => s.BatchId == model.BatchId).ToListAsync(), "Id", "Name", model.SectionId);
                     return View(model);
+                }
+
+                // Role-specific validation
+                if (model.Role == "Student")
+                {
+                    if (!model.BatchId.HasValue || !model.SectionId.HasValue)
+                    {
+                        ModelState.AddModelError("", "Batch and Section are required for student registration.");
+                        ViewData["Departments"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+                            await _context.Departments.ToListAsync(), "Id", "Name", model.DepartmentId);
+                        return View(model);
+                    }
+
+                    var batch = await _context.Batches.FindAsync(model.BatchId.Value);
+                    var section = await _context.Sections.FindAsync(model.SectionId.Value);
+
+                    if (batch == null || batch.DepartmentId != model.DepartmentId)
+                    {
+                        ModelState.AddModelError("BatchId", "Selected batch does not exist or does not belong to the selected department.");
+                    }
+                    if (section == null || section.BatchId != model.BatchId.Value)
+                    {
+                        ModelState.AddModelError("SectionId", "Selected section does not exist or does not belong to the selected batch.");
+                    }
+
+                    if (batch == null || section == null)
+                    {
+                        ViewData["Departments"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+                            await _context.Departments.ToListAsync(), "Id", "Name", model.DepartmentId);
+                        return View(model);
+                    }
+                }
+                else if (model.Role == "Teacher")
+                {
+                    if (string.IsNullOrWhiteSpace(model.EmployeeId))
+                    {
+                        ModelState.AddModelError("EmployeeId", "Employee ID is required for teacher registration.");
+                        ViewData["Departments"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+                            await _context.Departments.ToListAsync(), "Id", "Name", model.DepartmentId);
+                        return View(model);
+                    }
+
+                    // Check if Employee ID already exists
+                    if (await _context.Teachers.AnyAsync(t => t.EmployeeId == model.EmployeeId))
+                    {
+                        ModelState.AddModelError("EmployeeId", "This Employee ID is already registered.");
+                        ViewData["Departments"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+                            await _context.Departments.ToListAsync(), "Id", "Name", model.DepartmentId);
+                        return View(model);
+                    }
                 }
 
                 var user = new ApplicationUser
@@ -501,49 +531,74 @@ namespace AttendenceManagementSystem.Controllers
 
                 if (result.Succeeded)
                 {
-                    // Assign to Student role by default
-                    await _userManager.AddToRoleAsync(user, "Student");
+                    // Assign role
+                    await _userManager.AddToRoleAsync(user, model.Role);
 
-                    // Create Student record with selected department, batch, and section
                     try
                     {
-                        var rollNumber = model.RollNumber;
-                        if (string.IsNullOrWhiteSpace(rollNumber))
+                        if (model.Role == "Student")
                         {
-                            rollNumber = $"S{new Random().Next(100000, 999999)}";
+                            // Create Student record
+                            var rollNumber = model.RollNumber;
+                            if (string.IsNullOrWhiteSpace(rollNumber))
+                            {
+                                rollNumber = $"S{new Random().Next(100000, 999999)}";
+                            }
+
+                            // Check if roll number already exists
+                            while (await _context.Students.AnyAsync(s => s.RollNumber == rollNumber))
+                            {
+                                rollNumber = $"S{new Random().Next(100000, 999999)}";
+                            }
+
+                            var student = new AttendenceManagementSystem.Models.Student
+                            {
+                                UserId = user.Id,
+                                FullName = model.FullName,
+                                Email = model.Email,
+                                RollNumber = rollNumber,
+                                DepartmentId = model.DepartmentId,
+                                BatchId = model.BatchId!.Value,
+                                SectionId = model.SectionId!.Value,
+                                PhoneNumber = model.PhoneNumber,
+                                CreatedAt = DateTime.UtcNow
+                            };
+
+                            _context.Students.Add(student);
+                            await _context.SaveChangesAsync();
+
+                            await _signInManager.SignInAsync(user, isPersistent: false);
+                            return RedirectToAction("Dashboard", "Student");
                         }
-
-                        // Check if roll number already exists
-                        if (await _context.Students.AnyAsync(s => s.RollNumber == rollNumber))
+                        else if (model.Role == "Teacher")
                         {
-                            rollNumber = $"S{new Random().Next(100000, 999999)}";
+                            // Create Teacher record (pending approval)
+                            var teacher = new AttendenceManagementSystem.Models.Teacher
+                            {
+                                UserId = user.Id,
+                                FullName = model.FullName,
+                                Email = model.Email,
+                                EmployeeId = model.EmployeeId!,
+                                PhoneNumber = model.PhoneNumber,
+                                DepartmentId = model.DepartmentId,
+                                IsApproved = false, // Requires admin approval
+                                IsActive = true,
+                                CreatedAt = DateTime.UtcNow
+                            };
+
+                            _context.Teachers.Add(teacher);
+                            await _context.SaveChangesAsync();
+
+                            // Don't auto sign-in for teachers - they need approval
+                            TempData["Message"] = "Registration successful! Your account is pending admin approval. You will be able to login once approved.";
+                            return RedirectToAction("Login");
                         }
-
-                        var student = new AttendenceManagementSystem.Models.Student
-                        {
-                            UserId = user.Id,
-                            FullName = model.FullName,
-                            Email = model.Email,
-                            RollNumber = rollNumber,
-                            DepartmentId = model.DepartmentId,
-                            BatchId = model.BatchId,
-                            SectionId = model.SectionId,
-                            CreatedAt = DateTime.UtcNow
-                        };
-
-                        _context.Students.Add(student);
-                        await _context.SaveChangesAsync();
                     }
                     catch (Exception ex)
                     {
-                        // Log the error but don't block registration
-                        // The user account is created, they can be assigned to a department later by admin
-                        System.Diagnostics.Debug.WriteLine($"Error creating student record: {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine($"Error creating user record: {ex.Message}");
+                        ModelState.AddModelError("", "Registration successful but there was an error creating your profile. Please contact support.");
                     }
-
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-
-                    return RedirectToAction("Dashboard", "Student");
                 }
 
                 foreach (var error in result.Errors)
@@ -555,10 +610,6 @@ namespace AttendenceManagementSystem.Controllers
             // Repopulate dropdowns on error
             ViewData["Departments"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
                 await _context.Departments.ToListAsync(), "Id", "Name", model.DepartmentId);
-            ViewData["Batches"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
-                await _context.Batches.Where(b => b.DepartmentId == model.DepartmentId).ToListAsync(), "Id", "Year", model.BatchId);
-            ViewData["Sections"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
-                await _context.Sections.Where(s => s.BatchId == model.BatchId).ToListAsync(), "Id", "Name", model.SectionId);
             return View(model);
         }
 
@@ -593,6 +644,10 @@ namespace AttendenceManagementSystem.Controllers
     public class RegisterViewModel
     {
         [Required]
+        [Display(Name = "Register As")]
+        public string Role { get; set; } = "Student";
+
+        [Required]
         [StringLength(100)]
         [Display(Name = "Full Name")]
         public string FullName { get; set; } = string.Empty;
@@ -617,16 +672,24 @@ namespace AttendenceManagementSystem.Controllers
         [Display(Name = "Department")]
         public int DepartmentId { get; set; }
 
-        [Required]
+        // Student-specific fields
         [Display(Name = "Batch/Session")]
-        public int BatchId { get; set; }
+        public int? BatchId { get; set; }
 
-        [Required]
         [Display(Name = "Section")]
-        public int SectionId { get; set; }
+        public int? SectionId { get; set; }
 
         [StringLength(50)]
         [Display(Name = "Roll Number")]
         public string? RollNumber { get; set; }
+
+        // Teacher-specific fields
+        [StringLength(50)]
+        [Display(Name = "Employee ID")]
+        public string? EmployeeId { get; set; }
+
+        [Phone]
+        [Display(Name = "Phone Number")]
+        public string? PhoneNumber { get; set; }
     }
 }
