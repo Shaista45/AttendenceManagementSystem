@@ -31,7 +31,6 @@ namespace AttendenceManagementSystem.ViewModels
         [Display(Name = "Department Name")]
         public string? DepartmentName { get; set; }
 
-        [Required(ErrorMessage = "Password is required")]
         [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters long")]
         [DataType(DataType.Password)]
         [Display(Name = "Password")]

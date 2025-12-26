@@ -1,0 +1,208 @@
+@model AttendenceManagementSystem.Models.Student
+@{
+    ViewData["Title"] = "Edit Student";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-edit me-2"></i>Edit Student
+        </h1>
+        <a class="btn btn-secondary" asp-action="Students">
+            <i class="fas fa-arrow-left me-2"></i>Back to List
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Student Information</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="EditStudent">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="UserId" />
+                        <input type="hidden" asp-for="RollNumber" />
+                        <input type="hidden" asp-for="CreatedAt" />
+                        
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="FullName" class="form-control" placeholder="Full Name" />
+                                    <label asp-for="FullName">Full Name <span class="text-danger">*</span></label>
+                                    <span asp-validation-for="FullName" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Email" class="form-control" placeholder="Email" />
+                                    <label asp-for="Email">Email <span class="text-danger">*</span></label>
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="PhoneNumber" class="form-control" placeholder="Phone Number" />
+                                    <label asp-for="PhoneNumber">Phone Number</label>
+                                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" value="@Model.RollNumber" disabled />
+                                    <label>Roll Number</label>
+                                    <small class="text-muted">Roll number cannot be changed</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h5 class="text-primary mb-3 mt-4">
+                            <i class="fas fa-graduation-cap me-2"></i>Academic Information
+                        </h5>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <select asp-for="DepartmentId" class="form-select" id="departmentSelect" asp-items="@(ViewData["Departments"] as SelectList)">
+                                        <option value="">-- Select Department --</option>
+                                    </select>
+                                    <label asp-for="DepartmentId">Department <span class="text-danger">*</span></label>
+                                    <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <select asp-for="BatchId" class="form-select" id="batchSelect" asp-items="@(ViewData["Batches"] as SelectList)">
+                                        <option value="">-- Select Batch/Session --</option>
+                                    </select>
+                                    <label asp-for="BatchId">Batch/Session <span class="text-danger">*</span></label>
+                                    <span asp-validation-for="BatchId" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <select asp-for="SectionId" class="form-select" id="sectionSelect" asp-items="@(ViewData["Sections"] as SelectList)">
+                                        <option value="">-- Select Section --</option>
+                                    </select>
+                                    <label asp-for="SectionId">Section <span class="text-danger">*</span></label>
+                                    <span asp-validation-for="SectionId" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                            <a asp-action="Students" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Info Panel -->
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Student Info</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Roll Number:</strong><br/>@Model.RollNumber</p>
+                    <p><strong>Current Department:</strong><br/>@Model.Department?.Name</p>
+                    <p><strong>Current Batch:</strong><br/>@Model.Batch?.Year</p>
+                    <p><strong>Current Section:</strong><br/>@Model.Section?.Name</p>
+                    <p><strong>Registered:</strong><br/>@Model.CreatedAt.ToString("MMM dd, yyyy")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function() {
+            // Load batches when department is selected
+            $('#departmentSelect').on('change', function() {
+                var departmentId = $(this).val();
+                var batchSelect = $('#batchSelect');
+                var sectionSelect = $('#sectionSelect');
+                
+                // Clear batch and section dropdowns
+                batchSelect.html('<option value="">-- Select Batch/Session --</option>');
+                sectionSelect.html('<option value="">-- Select Section --</option>');
+                
+                if (departmentId) {
+                    $.ajax({
+                        url: '@Url.Action("GetBatchesByDepartment", "Admin")',
+                        type: 'GET',
+                        data: { departmentId: departmentId },
+                        success: function(batches) {
+                            $.each(batches, function(i, batch) {
+                                batchSelect.append($('<option></option>').val(batch.id).html(batch.year));
+                            });
+                            // Restore selected batch if exists
+                            var selectedBatch = '@Model.BatchId';
+                            if (selectedBatch) {
+                                batchSelect.val(selectedBatch).trigger('change');
+                            }
+                        },
+                        error: function() {
+                            alert('Error loading batches. Please try again.');
+                        }
+                    });
+                }
+            });
+
+            // Load sections when batch is selected
+            $('#batchSelect').on('change', function() {
+                var batchId = $(this).val();
+                var sectionSelect = $('#sectionSelect');
+                
+                // Clear section dropdown
+                sectionSelect.html('<option value="">-- Select Section --</option>');
+                
+                if (batchId) {
+                    $.ajax({
+                        url: '@Url.Action("GetSectionsByBatch", "Admin")',
+                        type: 'GET',
+                        data: { batchId: batchId },
+                        success: function(sections) {
+                            $.each(sections, function(i, section) {
+                                sectionSelect.append($('<option></option>').val(section.id).html(section.name));
+                            });
+                            // Restore selected section if exists
+                            var selectedSection = '@Model.SectionId';
+                            if (selectedSection) {
+                                sectionSelect.val(selectedSection);
+                            }
+                        },
+                        error: function() {
+                            alert('Error loading sections. Please try again.');
+                        }
+                    });
+                }
+            });
+
+            // Trigger department change to load initial data
+            if ($('#departmentSelect').val()) {
+                $('#departmentSelect').trigger('change');
+            }
+        });
+    </script>
+}

@@ -1,0 +1,106 @@
+@model AttendenceManagementSystem.Models.Student
+@{
+    ViewData["Title"] = "Student Details";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-user me-2"></i>Student Details
+        </h1>
+        <div class="btn-group">
+            <a class="btn btn-warning" asp-action="EditStudent" asp-route-id="@Model.Id">
+                <i class="fas fa-edit me-2"></i>Edit
+            </a>
+            <a class="btn btn-secondary" asp-action="Students">
+                <i class="fas fa-arrow-left me-2"></i>Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Personal Information -->
+        <div class="col-md-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Personal Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-4 font-weight-bold">Roll Number:</div>
+                        <div class="col-sm-8">@Model.RollNumber</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 font-weight-bold">Full Name:</div>
+                        <div class="col-sm-8">@Model.FullName</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 font-weight-bold">Email:</div>
+                        <div class="col-sm-8">@Model.Email</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 font-weight-bold">Phone Number:</div>
+                        <div class="col-sm-8">@(Model.PhoneNumber ?? "N/A")</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 font-weight-bold">Created At:</div>
+                        <div class="col-sm-8">@Model.CreatedAt.ToString("MMM dd, yyyy")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Academic Information -->
+        <div class="col-md-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Academic Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-4 font-weight-bold">Department:</div>
+                        <div class="col-sm-8">@Model.Department?.Name</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 font-weight-bold">Batch/Session:</div>
+                        <div class="col-sm-8">@Model.Batch?.Year</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 font-weight-bold">Section:</div>
+                        <div class="col-sm-8">@Model.Section?.Name</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 font-weight-bold">User Account:</div>
+                        <div class="col-sm-8">
+                            @if (Model.User != null)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">No Account</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Summary -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+        </div>
+        <div class="card-body">
+            <div class="btn-group">
+                <a class="btn btn-primary" asp-controller="Admin" asp-action="StudentAttendanceReport" asp-route-studentId="@Model.Id">
+                    <i class="fas fa-chart-bar me-2"></i>View Attendance Report
+                </a>
+                <a class="btn btn-info" asp-controller="Admin" asp-action="Enrollments" asp-route-studentId="@Model.Id">
+                    <i class="fas fa-book me-2"></i>View Enrolled Courses
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

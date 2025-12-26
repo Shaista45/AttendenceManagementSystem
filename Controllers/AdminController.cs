@@ -687,6 +687,145 @@ namespace AttendenceManagementSystem.Controllers
 
             return View();
         }
+
+        // Student Details
+        public async Task<IActionResult> StudentDetails(int id)
+        {
+            var student = await _context.Students
+                .Include(s => s.Department)
+                .Include(s => s.Batch)
+                .Include(s => s.Section)
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (student == null)
+            {
+                ShowMessage("Student not found.", "error");
+                return RedirectToAction(nameof(Students));
+            }
+
+            return View("~/Views/Admin/Students/Details.cshtml", student);
+        }
+
+        // Edit Student - GET
+        public async Task<IActionResult> EditStudent(int id)
+        {
+            var student = await _context.Students
+                .Include(s => s.Department)
+                .Include(s => s.Batch)
+                .Include(s => s.Section)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (student == null)
+            {
+                ShowMessage("Student not found.", "error");
+                return RedirectToAction(nameof(Students));
+            }
+
+            await PopulateStudentDropdowns(student.DepartmentId, student.BatchId);
+            return View("~/Views/Admin/Students/Edit.cshtml", student);
+        }
+
+        // Edit Student - POST
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditStudent(int id, Student student)
+        {
+            if (id != student.Id)
+            {
+                ShowMessage("Invalid student data.", "error");
+                return RedirectToAction(nameof(Students));
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var existingStudent = await _context.Students.FindAsync(id);
+                    if (existingStudent == null)
+                    {
+                        ShowMessage("Student not found.", "error");
+                        return RedirectToAction(nameof(Students));
+                    }
+
+                    // Update student properties
+                    existingStudent.FullName = student.FullName;
+                    existingStudent.Email = student.Email;
+                    existingStudent.PhoneNumber = student.PhoneNumber;
+                    existingStudent.DepartmentId = student.DepartmentId;
+                    existingStudent.BatchId = student.BatchId;
+                    existingStudent.SectionId = student.SectionId;
+
+                    _context.Update(existingStudent);
+                    await _context.SaveChangesAsync();
+
+                    ShowMessage("Student updated successfully!");
+                    return RedirectToAction(nameof(Students));
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!await StudentExists(student.Id))
+                    {
+                        ShowMessage("Student not found.", "error");
+                    }
+                    else
+                    {
+                        ShowMessage("Error updating student. Please try again.", "error");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ShowMessage($"Error: {ex.Message}", "error");
+                }
+            }
+
+            await PopulateStudentDropdowns(student.DepartmentId, student.BatchId);
+            return View("~/Views/Admin/Students/Edit.cshtml", student);
+        }
+
+        // Delete Student - POST
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteStudent(int id)
+        {
+            try
+            {
+                var student = await _context.Students
+                    .Include(s => s.User)
+                    .FirstOrDefaultAsync(s => s.Id == id);
+
+                if (student == null)
+                {
+                    return Json(new { success = false, message = "Student not found." });
+                }
+
+                // Delete associated user account if exists
+                if (student.User != null)
+                {
+                    var user = await _userManager.FindByIdAsync(student.UserId);
+                    if (user != null)
+                    {
+                        await _userManager.DeleteAsync(user);
+                    }
+                }
+
+                // Delete student record
+                _context.Students.Remove(student);
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, message = "Student deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Error deleting student: {ex.Message}" });
+            }
+        }
+
+        private async Task<bool> StudentExists(int id)
+        {
+            return await _context.Students.AnyAsync(e => e.Id == id);
+        }
+
         #endregion
 
         #region Reports
@@ -1199,11 +1338,34 @@ namespace AttendenceManagementSystem.Controllers
             return _context.Departments.Any(e => e.Id == id);
         }
 
-        private async Task PopulateStudentDropdowns()
+        private async Task PopulateStudentDropdowns(int? departmentId = null, int? batchId = null)
         {
-            ViewData["DepartmentId"] = new SelectList(await _context.Departments.ToListAsync(), "Id", "Name");
-            ViewData["BatchId"] = new SelectList(await _context.Batches.ToListAsync(), "Id", "Year");
-            ViewData["SectionId"] = new SelectList(await _context.Sections.ToListAsync(), "Id", "Name");
+            ViewData["Departments"] = new SelectList(await _context.Departments.ToListAsync(), "Id", "Name", departmentId);
+            
+            if (departmentId.HasValue)
+            {
+                var batches = await _context.Batches.Where(b => b.DepartmentId == departmentId.Value).ToListAsync();
+                ViewData["Batches"] = new SelectList(batches, "Id", "Year", batchId);
+            }
+            else
+            {
+                ViewData["Batches"] = new SelectList(await _context.Batches.ToListAsync(), "Id", "Year", batchId);
+            }
+
+            if (batchId.HasValue)
+            {
+                var sections = await _context.Sections.Where(s => s.BatchId == batchId.Value).ToListAsync();
+                ViewData["Sections"] = new SelectList(sections, "Id", "Name");
+            }
+            else
+            {
+                ViewData["Sections"] = new SelectList(await _context.Sections.ToListAsync(), "Id", "Name");
+            }
+            
+            // Keep old keys for backward compatibility
+            ViewData["DepartmentId"] = ViewData["Departments"];
+            ViewData["BatchId"] = ViewData["Batches"];
+            ViewData["SectionId"] = ViewData["Sections"];
         }
 
         [HttpGet]
