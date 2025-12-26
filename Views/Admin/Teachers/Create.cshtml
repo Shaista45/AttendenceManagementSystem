@@ -1,0 +1,90 @@
+@model AttendenceManagementSystem.ViewModels.TeacherViewModel
+
+@{
+    ViewData["Title"] = "Add Teacher";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-plus me-2"></i>Add New Teacher
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="CreateTeacher" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="FullName" class="form-label"></label>
+                                <input asp-for="FullName" class="form-control" placeholder="Enter full name" />
+                                <span asp-validation-for="FullName" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label"></label>
+                                <input asp-for="Email" class="form-control" placeholder="Enter email address" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="EmployeeId" class="form-label"></label>
+                                <input asp-for="EmployeeId" class="form-control" placeholder="Enter employee ID (optional)" />
+                                <span asp-validation-for="EmployeeId" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="PhoneNumber" class="form-label"></label>
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="Enter phone number (optional)" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="DepartmentId" class="form-label"></label>
+                            <select asp-for="DepartmentId" asp-items="ViewBag.Departments" class="form-select">
+                                <option value="">-- Select Department --</option>
+                            </select>
+                            <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Password" class="form-label"></label>
+                                <input asp-for="Password" class="form-control" placeholder="Enter password (min 6 characters)" />
+                                <span asp-validation-for="Password" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="ConfirmPassword" class="form-label"></label>
+                                <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm password" />
+                                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Note:</strong> The teacher will be created with "Pending" status. You can approve them from the Teachers list.
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a asp-action="Teachers" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Teachers
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Teacher
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

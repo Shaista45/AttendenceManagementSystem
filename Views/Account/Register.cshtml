@@ -6,43 +6,99 @@
 
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-md-8">
             <div class="card shadow-lg border-0 rounded-lg mt-5">
                 <div class="card-header bg-success text-white">
                     <h3 class="text-center font-weight-light my-4">
-                        <i class="fas fa-user-plus me-2"></i>Create Account
+                        <i class="fas fa-user-plus me-2"></i>Create Student Account
                     </h3>
                 </div>
                 <div class="card-body">
-                    <form method="post" asp-action="Register">
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <form method="post" asp-action="Register" id="registerForm">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                        <div class="form-floating mb-3">
-                            <input asp-for="FullName" class="form-control" placeholder="John Doe" />
-                            <label asp-for="FullName">Full Name</label>
-                            <span asp-validation-for="FullName" class="text-danger"></span>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="FullName" class="form-control" placeholder="John Doe" />
+                                    <label asp-for="FullName">Full Name</label>
+                                    <span asp-validation-for="FullName" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Email" class="form-control" placeholder="name@example.com" />
+                                    <label asp-for="Email">Email address</label>
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="form-floating mb-3">
-                            <input asp-for="Email" class="form-control" placeholder="name@example.com" />
-                            <label asp-for="Email">Email address</label>
-                            <span asp-validation-for="Email" class="text-danger"></span>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Password" class="form-control" placeholder="Password" type="password" />
+                                    <label asp-for="Password">Password</label>
+                                    <span asp-validation-for="Password" class="text-danger"></span>
+                                    <small class="text-muted">At least 6 characters</small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm Password" type="password" />
+                                    <label asp-for="ConfirmPassword">Confirm Password</label>
+                                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="form-floating mb-3">
-                            <input asp-for="Password" class="form-control" placeholder="Password" type="password" />
-                            <label asp-for="Password">Password</label>
-                            <span asp-validation-for="Password" class="text-danger"></span>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="RollNumber" class="form-control" placeholder="Enter roll number (optional)" />
+                                    <label asp-for="RollNumber">Roll Number (Optional)</label>
+                                    <span asp-validation-for="RollNumber" class="text-danger"></span>
+                                    <small class="text-muted">Leave blank to auto-generate</small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <select asp-for="DepartmentId" class="form-select" id="departmentSelect" asp-items="@(ViewData["Departments"] as SelectList)">
+                                        <option value="">-- Select Department --</option>
+                                    </select>
+                                    <label asp-for="DepartmentId">Department</label>
+                                    <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="form-floating mb-3">
-                            <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm Password" type="password" />
-                            <label asp-for="ConfirmPassword">Confirm Password</label>
-                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <select asp-for="BatchId" class="form-select" id="batchSelect">
+                                        <option value="">-- Select Batch/Session --</option>
+                                    </select>
+                                    <label asp-for="BatchId">Batch/Session</label>
+                                    <span asp-validation-for="BatchId" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <select asp-for="SectionId" class="form-select" id="sectionSelect">
+                                        <option value="">-- Select Section --</option>
+                                    </select>
+                                    <label asp-for="SectionId">Section</label>
+                                    <span asp-validation-for="SectionId" class="text-danger"></span>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success btn-lg">
+                        <div class="d-grid gap-2 mt-3">
+                            <button type="submit" class="btn btn-success btn-lg" id="registerBtn">
                                 <i class="fas fa-user-plus me-2"></i>Register
                             </button>
                         </div>
@@ -60,4 +116,79 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        $(document).ready(function() {
+            // Load batches when department is selected
+            $('#departmentSelect').on('change', function() {
+                var departmentId = $(this).val();
+                var batchSelect = $('#batchSelect');
+                var sectionSelect = $('#sectionSelect');
+                
+                // Clear batch and section dropdowns
+                batchSelect.html('<option value="">-- Select Batch/Session --</option>');
+                sectionSelect.html('<option value="">-- Select Section --</option>');
+                
+                if (departmentId) {
+                    $.ajax({
+                        url: '@Url.Action("GetBatchesByDepartment", "Admin")',
+                        type: 'GET',
+                        data: { departmentId: departmentId },
+                        success: function(batches) {
+                            $.each(batches, function(i, batch) {
+                                batchSelect.append($('<option></option>').val(batch.id).html(batch.year));
+                            });
+                        },
+                        error: function() {
+                            alert('Error loading batches. Please try again.');
+                        }
+                    });
+                }
+            });
+
+            // Load sections when batch is selected
+            $('#batchSelect').on('change', function() {
+                var batchId = $(this).val();
+                var sectionSelect = $('#sectionSelect');
+                
+                // Clear section dropdown
+                sectionSelect.html('<option value="">-- Select Section --</option>');
+                
+                if (batchId) {
+                    $.ajax({
+                        url: '@Url.Action("GetSectionsByBatch", "Admin")',
+                        type: 'GET',
+                        data: { batchId: batchId },
+                        success: function(sections) {
+                            $.each(sections, function(i, section) {
+                                sectionSelect.append($('<option></option>').val(section.id).html(section.name));
+                            });
+                        },
+                        error: function() {
+                            alert('Error loading sections. Please try again.');
+                        }
+                    });
+                }
+            });
+
+            // Form submission handling
+            $('#registerForm').on('submit', function(e) {
+                var departmentId = $('#departmentSelect').val();
+                var batchId = $('#batchSelect').val();
+                var sectionId = $('#sectionSelect').val();
+                
+                if (!departmentId || !batchId || !sectionId) {
+                    e.preventDefault();
+                    alert('Please select Department, Batch, and Section.');
+                    return false;
+                }
+                
+                // Disable button to prevent double submission
+                $('#registerBtn').prop('disabled', true)
+                    .html('<i class="fas fa-spinner fa-spin me-2"></i>Registering...');
+                
+                return true;
+            });
+        });
+    </script>
 }

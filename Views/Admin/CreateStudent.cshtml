@@ -1,0 +1,192 @@
+@model AttendenceManagementSystem.Models.Student
+@{
+    ViewData["Title"] = "Add New Student";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-user-plus me-2"></i>Add New Student
+        </h1>
+        <a class="btn btn-secondary" asp-action="Students">
+            <i class="fas fa-arrow-left me-2"></i>Back to List
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Student Information</h6>
+                </div>
+                <div class="card-body">
+                    <form asp-action="CreateStudent" method="post" id="studentForm">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="RollNumber" class="form-label">
+                                    Roll Number <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="RollNumber" class="form-control" placeholder="Enter roll number" />
+                                <span asp-validation-for="RollNumber" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FullName" class="form-label">
+                                    Full Name <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="FullName" class="form-control" placeholder="Enter full name" />
+                                <span asp-validation-for="FullName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Email" class="form-label">
+                                    Email <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Email" type="email" class="form-control" placeholder="Enter email address" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PhoneNumber" class="form-label">
+                                    Phone Number
+                                </label>
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="Enter phone number" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="DepartmentId" class="form-label">
+                                    Department <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="DepartmentId" class="form-select" asp-items="ViewBag.DepartmentId" id="departmentSelect">
+                                    <option value="">-- Select Department --</option>
+                                </select>
+                                <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="BatchId" class="form-label">
+                                    Batch <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="BatchId" class="form-select" id="batchSelect">
+                                    <option value="">-- Select Batch --</option>
+                                </select>
+                                <span asp-validation-for="BatchId" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="SectionId" class="form-label">
+                                    Section <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="SectionId" class="form-select" id="sectionSelect">
+                                    <option value="">-- Select Section --</option>
+                                </select>
+                                <span asp-validation-for="SectionId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary" id="saveStudentBtn">
+                                    <i class="fas fa-save me-2"></i>Save Student
+                                </button>
+                                <a class="btn btn-secondary" asp-action="Students">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            // Load batches when department is selected
+            $('#departmentSelect').on('change', function() {
+                var departmentId = $(this).val();
+                var batchSelect = $('#batchSelect');
+                var sectionSelect = $('#sectionSelect');
+                
+                // Clear batch and section dropdowns
+                batchSelect.html('<option value="">-- Select Batch --</option>');
+                sectionSelect.html('<option value="">-- Select Section --</option>');
+                
+                if (departmentId) {
+                    $.ajax({
+                        url: '@Url.Action("GetBatchesByDepartment", "Admin")',
+                        type: 'GET',
+                        data: { departmentId: departmentId },
+                        success: function(batches) {
+                            $.each(batches, function(i, batch) {
+                                batchSelect.append($('<option></option>').val(batch.id).html(batch.year));
+                            });
+                        },
+                        error: function() {
+                            alert('Error loading batches. Please try again.');
+                        }
+                    });
+                }
+            });
+
+            // Load sections when batch is selected
+            $('#batchSelect').on('change', function() {
+                var batchId = $(this).val();
+                var sectionSelect = $('#sectionSelect');
+                
+                // Clear section dropdown
+                sectionSelect.html('<option value="">-- Select Section --</option>');
+                
+                if (batchId) {
+                    $.ajax({
+                        url: '@Url.Action("GetSectionsByBatch", "Admin")',
+                        type: 'GET',
+                        data: { batchId: batchId },
+                        success: function(sections) {
+                            $.each(sections, function(i, section) {
+                                sectionSelect.append($('<option></option>').val(section.id).html(section.name));
+                            });
+                        },
+                        error: function() {
+                            alert('Error loading sections. Please try again.');
+                        }
+                    });
+                }
+            });
+
+            // Form validation and submission
+            $('#studentForm').on('submit', function(e) {
+                var rollNumber = $('input[name="RollNumber"]').val().trim();
+                var fullName = $('input[name="FullName"]').val().trim();
+                var email = $('input[name="Email"]').val().trim();
+                var departmentId = $('#departmentSelect').val();
+                var batchId = $('#batchSelect').val();
+                var sectionId = $('#sectionSelect').val();
+                
+                if (!rollNumber || !fullName || !email || !departmentId || !batchId || !sectionId) {
+                    e.preventDefault();
+                    alert('Please fill in all required fields.');
+                    return false;
+                }
+                
+                // Disable button to prevent double submission
+                $('#saveStudentBtn').prop('disabled', true)
+                    .html('<i class="fas fa-spinner fa-spin me-2"></i>Saving...');
+                
+                return true;
+            });
+        });
+    </script>
+}

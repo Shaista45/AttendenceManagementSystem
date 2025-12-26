@@ -1,0 +1,153 @@
+@model AttendenceManagementSystem.ViewModels.TeacherViewModel
+
+@{
+    ViewData["Title"] = "Teacher Details";
+    var timetables = ViewBag.Timetables as List<dynamic>;
+}
+
+<div class="container-fluid py-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0">
+                <i class="fas fa-user me-2"></i>Teacher Details
+            </h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="40%">Full Name:</th>
+                            <td><strong>@Model.FullName</strong></td>
+                        </tr>
+                        <tr>
+                            <th>Email:</th>
+                            <td>@Model.Email</td>
+                        </tr>
+                        <tr>
+                            <th>Employee ID:</th>
+                            <td>@(Model.EmployeeId ?? "N/A")</td>
+                        </tr>
+                        <tr>
+                            <th>Phone Number:</th>
+                            <td>@(Model.PhoneNumber ?? "N/A")</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="40%">Department:</th>
+                            <td>@Model.DepartmentName</td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                @if (Model.IsApproved)
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>Approved
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-clock me-1"></i>Pending Approval
+                                    </span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Active:</th>
+                            <td>
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Inactive</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Created At:</th>
+                            <td>@Model.CreatedAt.ToString("MMM dd, yyyy")</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-book me-2"></i>Assigned Courses
+            </h5>
+            <a asp-action="AssignCourses" asp-route-id="@Model.Id" class="btn btn-sm btn-light">
+                <i class="fas fa-plus me-1"></i>Assign New Course
+            </a>
+        </div>
+        <div class="card-body">
+            @if (timetables != null && timetables.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Course Name</th>
+                                <th>Batch</th>
+                                <th>Section</th>
+                                <th>Day</th>
+                                <th>Time Slot</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tt in timetables)
+                            {
+                                <tr>
+                                    <td><strong>@tt.CourseName</strong></td>
+                                    <td>@tt.BatchName</td>
+                                    <td>@tt.SectionName</td>
+                                    <td>
+                                        <span class="badge bg-primary">@tt.DayOfWeek</span>
+                                    </td>
+                                    <td>@tt.TimeSlot</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Teaching Workload:</strong> @Model.AssignedCoursesCount unique @(Model.AssignedCoursesCount == 1 ? "course" : "courses")
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No courses assigned yet.</p>
+                    <a asp-action="AssignCourses" asp-route-id="@Model.Id" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Assign Courses
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="mt-4 d-flex justify-content-between">
+        <a asp-action="Teachers" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Teachers
+        </a>
+        <div>
+            <a asp-action="EditTeacherInfo" asp-route-id="@Model.Id" class="btn btn-primary">
+                <i class="fas fa-edit me-2"></i>Edit Information
+            </a>
+            <a asp-action="AssignCourses" asp-route-id="@Model.Id" class="btn btn-info">
+                <i class="fas fa-book me-2"></i>Update Assignments
+            </a>
+        </div>
+    </div>
+</div>

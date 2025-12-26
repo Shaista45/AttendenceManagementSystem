@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace AttendenceManagementSystem.Models
 {
@@ -7,7 +8,7 @@ namespace AttendenceManagementSystem.Models
     {
         public int Id { get; set; }
 
-        [Required]
+        [BindNever]
         public string UserId { get; set; } = string.Empty;
 
         [Required]

@@ -1,0 +1,272 @@
+@{
+    ViewData["Title"] = "Upload Students";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-file-upload me-2"></i>Upload Students from Excel
+        </h1>
+        <a class="btn btn-secondary" asp-action="Dashboard">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Upload Form Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-cloud-upload-alt me-2"></i>Upload Excel File
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form asp-action="UploadStudents" method="post" enctype="multipart/form-data" id="uploadForm">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="mb-4">
+                            <label for="file" class="form-label">Select Excel File (.xlsx) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="file" 
+                                       class="form-control" 
+                                       id="file" 
+                                       name="file" 
+                                       accept=".xlsx" 
+                                       required />
+                                <button class="btn btn-primary" type="submit" id="uploadBtn">
+                                    <i class="fas fa-upload me-2"></i>Upload
+                                </button>
+                            </div>
+                            <small class="form-text text-muted mt-2">
+                                <i class="fas fa-info-circle me-1"></i>Only .xlsx files are supported. Maximum file size: 10MB
+                            </small>
+                        </div>
+
+                        <div id="uploadProgress" class="progress mb-3" style="display: none;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" 
+                                 aria-valuenow="100" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100" 
+                                 style="width: 100%">
+                                Uploading...
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Excel Format Instructions Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-info text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-table me-2"></i>Required Excel Format
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">Your Excel file must have the following columns in order:</p>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Column</th>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Example</th>
+                                    <th>Required</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>A</strong></td>
+                                    <td>Roll Number</td>
+                                    <td>Text</td>
+                                    <td>2024001</td>
+                                    <td><span class="badge bg-danger">Yes</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>B</strong></td>
+                                    <td>Full Name</td>
+                                    <td>Text</td>
+                                    <td>John Smith</td>
+                                    <td><span class="badge bg-danger">Yes</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>C</strong></td>
+                                    <td>Email</td>
+                                    <td>Email</td>
+                                    <td>john.smith@university.com</td>
+                                    <td><span class="badge bg-danger">Yes</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>D</strong></td>
+                                    <td>Phone Number</td>
+                                    <td>Text</td>
+                                    <td>+1234567890</td>
+                                    <td><span class="badge bg-secondary">Optional</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>E</strong></td>
+                                    <td>Department Name</td>
+                                    <td>Text</td>
+                                    <td>Computer Science</td>
+                                    <td><span class="badge bg-danger">Yes</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>F</strong></td>
+                                    <td>Batch Year</td>
+                                    <td>Text</td>
+                                    <td>2024</td>
+                                    <td><span class="badge bg-danger">Yes</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>G</strong></td>
+                                    <td>Section Name</td>
+                                    <td>Text</td>
+                                    <td>A</td>
+                                    <td><span class="badge bg-danger">Yes</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Important Notes:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>The first row should contain column headers (they will be skipped)</li>
+                            <li>All required fields must be filled</li>
+                            <li>Email addresses must be unique across all students</li>
+                            <li>Roll numbers must be unique</li>
+                            <li>Departments, batches, and sections will be created automatically if they don't exist</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sample Excel Template Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-success text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-download me-2"></i>Download Sample Template
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p>Download a sample Excel template with the correct format:</p>
+                    <button type="button" class="btn btn-success" id="downloadTemplateBtn">
+                        <i class="fas fa-download me-2"></i>Download Sample Template
+                    </button>
+                </div>
+            </div>
+
+            <!-- Recent Upload Logs Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-history me-2"></i>Upload History
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>File Name</th>
+                                    <th>Records</th>
+                                    <th>Status</th>
+                                    <th>Uploaded By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Upload history will be displayed here after your first upload
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Handle form submission with progress indicator
+            $('#uploadForm').on('submit', function(e) {
+                const fileInput = $('#file')[0];
+                if (!fileInput.files || !fileInput.files[0]) {
+                    e.preventDefault();
+                    alert('Please select a file to upload.');
+                    return false;
+                }
+
+                const file = fileInput.files[0];
+                const maxSize = 10 * 1024 * 1024; // 10MB
+
+                if (file.size > maxSize) {
+                    e.preventDefault();
+                    alert('File size exceeds 10MB. Please select a smaller file.');
+                    return false;
+                }
+
+                if (!file.name.toLowerCase().endsWith('.xlsx')) {
+                    e.preventDefault();
+                    alert('Please select an Excel file (.xlsx).');
+                    return false;
+                }
+
+                // Show progress indicator
+                $('#uploadProgress').show();
+                $('#uploadBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Uploading...');
+            });
+
+            // Handle file input change
+            $('#file').on('change', function() {
+                const fileName = $(this).val().split('\\').pop();
+                if (fileName) {
+                    $(this).next('.btn').html('<i class="fas fa-upload me-2"></i>Upload ' + fileName);
+                } else {
+                    $(this).next('.btn').html('<i class="fas fa-upload me-2"></i>Upload');
+                }
+            });
+
+            // Download sample template
+            $('#downloadTemplateBtn').on('click', function() {
+                // Create a sample Excel data
+                const sampleData = [
+                    ['Roll Number', 'Full Name', 'Email', 'Phone Number', 'Department Name', 'Batch Year', 'Section Name'],
+                    ['2024001', 'John Smith', 'john.smith@university.com', '+1234567890', 'Computer Science', '2024', 'A'],
+                    ['2024002', 'Jane Doe', 'jane.doe@university.com', '+1234567891', 'Computer Science', '2024', 'A'],
+                    ['2024003', 'Mike Johnson', 'mike.johnson@university.com', '+1234567892', 'Electrical Engineering', '2024', 'B']
+                ];
+
+                // Create CSV content
+                let csvContent = sampleData.map(row => row.join(',')).join('\\n');
+                
+                // Create download link
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                
+                link.setAttribute('href', url);
+                link.setAttribute('download', 'students_template.csv');
+                link.style.visibility = 'hidden';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // Show info message
+                alert('CSV template downloaded. Please convert it to .xlsx format using Excel or save it directly as .xlsx from Excel.');
+            });
+        });
+    </script>
+}

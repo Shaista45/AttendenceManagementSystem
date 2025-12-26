@@ -119,6 +119,12 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
+                                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Admin" && ViewContext.RouteData.Values["Action"]?.ToString() == "Teachers" ? "active" : "")" 
+                                       asp-controller="Admin" asp-action="Teachers">
+                                        <i class="fas fa-chalkboard-teacher me-2"></i>Teachers
+                                    </a>
+                                </li>
+                                <li class="nav-item">
                                     <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Admin" && ViewContext.RouteData.Values["Action"]?.ToString() == "Reports" ? "active" : "")" 
                                        asp-controller="Admin" asp-action="Reports">
                                         <i class="fas fa-chart-bar me-2"></i>Reports

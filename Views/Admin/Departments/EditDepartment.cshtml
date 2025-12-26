@@ -14,93 +14,702 @@
     </div>
 
     <div class="row">
-        <div class="col-md-8">
-            <div class="card shadow">
+        <div class="col-md-12">
+            <div class="card shadow mb-4">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">Department Information</h6>
                 </div>
                 <div class="card-body">
-                    <form asp-action="EditDepartment" method="post">
+                    <form asp-action="EditDepartment" method="post" id="departmentForm">
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="Id" />
                         <input type="hidden" asp-for="CreatedAt" />
                         
-                        <div class="mb-3">
-                            <label asp-for="Name" class="form-label">Department Name <span class="text-danger">*</span></label>
-                            <input asp-for="Name" class="form-control" placeholder="Enter department name" />
-                            <span asp-validation-for="Name" class="text-danger"></span>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Name" class="form-label">Department Name <span class="text-danger">*</span></label>
+                                <input asp-for="Name" class="form-control" placeholder="Enter department name" />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Code" class="form-label">Department Code</label>
+                                <input asp-for="Code" class="form-control" placeholder="Enter department code (e.g., CS, EE)" />
+                                <span asp-validation-for="Code" class="text-danger"></span>
+                                <small class="form-text text-muted">Optional: A short code to identify the department</small>
+                            </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label asp-for="Code" class="form-label">Department Code</label>
-                            <input asp-for="Code" class="form-control" placeholder="Enter department code (e.g., CS, EE)" />
-                            <span asp-validation-for="Code" class="text-danger"></span>
-                            <small class="form-text text-muted">Optional: A short code to identify the department</small>
-                        </div>
-
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-2"></i>Save Changes
-                            </button>
-                            <a class="btn btn-secondary" asp-action="Departments">
-                                Cancel
-                            </a>
+                        <div class="row mt-4">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary" id="saveDepartmentBtn">
+                                    <i class="fas fa-save me-2"></i>Save Changes
+                                </button>
+                                <a class="btn btn-secondary" asp-action="Departments">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                                <button type="button" class="btn btn-danger float-end" id="deleteDepartmentBtn" data-department-id="@Model.Id" data-department-name="@Model.Name">
+                                    <i class="fas fa-trash me-2"></i>Delete Department
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-4">
-            <div class="card shadow">
-                <div class="card-header py-3">
+            <!-- Batches Section -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-info-circle me-2"></i>Information
+                        <i class="fas fa-users me-2"></i>Batches (@(Model.Batches?.Count ?? 0))
                     </h6>
+                    
+
+                    <button type="button" class="btn btn-sm btn-primary quick-add-batch-btn" data-department-id="@Model.Id">
+                        <i class="fas fa-plus me-1"></i>Add Batch
+                    </button>
+
                 </div>
                 <div class="card-body">
-                    <p class="mb-2"><strong>Department ID:</strong> @Model.Id</p>
-                    <p class="mb-2"><strong>Created:</strong> @Model.CreatedAt.ToString("MMM dd, yyyy")</p>
-                    <hr />
-                    <p class="text-muted mb-0">
-                        <i class="fas fa-exclamation-triangle text-warning me-1"></i>
-                        Editing the department will affect all associated batches, courses, and students.
-                    </p>
+                    @if (Model.Batches != null && Model.Batches.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Year</th>
+                                        <th>Description</th>
+                                        <th>Sections</th>
+                                        <th>Students</th>
+                                        <th>Created</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var batch in Model.Batches.OrderByDescending(b => b.Year))
+                                    {
+                                        <tr>
+                                            <td><strong>@batch.Year</strong></td>
+                                            <td>@(batch.Description ?? "-")</td>
+                                            <td>
+                                                <span class="badge bg-primary">
+                                                    @(batch.Sections?.Count ?? 0)
+                                                </span>
+                                            </td>
+                                            <td><span class="badge bg-warning">@(batch.Students?.Count ?? 0)</span></td>
+                                            <td>@batch.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                            <td class="text-end">
+                                                <div class="btn-group">
+                                                    <a asp-controller="Admin" asp-action="ViewBatch" asp-route-id="@batch.Id" 
+                                                       class="btn btn-sm btn-outline-primary" 
+                                                       title="View Batch Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a asp-controller="Admin" asp-action="EditBatch" asp-route-id="@batch.Id" 
+                                                       class="btn btn-sm btn-outline-secondary" 
+                                                       title="Edit Batch">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <button type="button" 
+                                                            class="btn btn-sm btn-outline-danger delete-batch" 
+                                                            data-batch-id="@batch.Id" 
+                                                            data-batch-year="@batch.Year"
+                                                            title="Delete Batch">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <p>No batches found. Click "Add Batch" to create one.</p>
+                        </div>
+                    }
                 </div>
             </div>
 
-            @if (Model.Batches != null || Model.Courses != null || Model.Teachers != null || Model.Students != null)
-            {
-                <div class="card shadow mt-3">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">
-                            <i class="fas fa-chart-bar me-2"></i>Quick Stats
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-2">
-                            <i class="fas fa-users text-primary me-2"></i>
-                            <strong>Batches:</strong> @(Model.Batches?.Count ?? 0)
-                        </div>
-                        <div class="mb-2">
-                            <i class="fas fa-book text-info me-2"></i>
-                            <strong>Courses:</strong> @(Model.Courses?.Count ?? 0)
-                        </div>
-                        <div class="mb-2">
-                            <i class="fas fa-chalkboard-teacher text-success me-2"></i>
-                            <strong>Teachers:</strong> @(Model.Teachers?.Count ?? 0)
-                        </div>
-                        <div class="mb-0">
-                            <i class="fas fa-user-graduate text-warning me-2"></i>
-                            <strong>Students:</strong> @(Model.Students?.Count ?? 0)
-                        </div>
-                    </div>
+            <!-- Courses Section -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-book me-2"></i>Courses (@(Model.Courses?.Count ?? 0))
+                    </h6>
+                    <button type="button" class="btn btn-sm btn-primary quick-add-course-btn" data-department-id="@Model.Id">
+                        <i class="fas fa-plus me-1"></i>Add Course
+                    </button>
                 </div>
-            }
+                <div class="card-body">
+                    @if (Model.Courses != null && Model.Courses.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Title</th>
+                                        <th>Credits</th>
+                                        <th>Enrollments</th>
+                                        <th>Created</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var course in Model.Courses.OrderBy(c => c.Code))
+                                    {
+                                        <tr>
+                                            <td><span class="badge bg-secondary">@course.Code</span></td>
+                                            <td><strong>@course.Title</strong></td>
+                                            <td>@course.Credits</td>
+                                            <td><span class="badge bg-success">@(course.Enrollments?.Count ?? 0)</span></td>
+                                            <td>@course.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                            <td class="text-end">
+                                                <div class="btn-group">
+                                                    <a asp-controller="Admin" asp-action="ViewCourse" asp-route-id="@course.Id" 
+                                                       class="btn btn-sm btn-outline-primary" 
+                                                       title="View Course Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a asp-controller="Admin" asp-action="EditCourse" asp-route-id="@course.Id" 
+                                                       class="btn btn-sm btn-outline-secondary" 
+                                                       title="Edit Course">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <button type="button" 
+                                                            class="btn btn-sm btn-outline-danger delete-course" 
+                                                            data-course-id="@course.Id" 
+                                                            data-course-title="@course.Title"
+                                                            title="Delete Course">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <p>No courses found. Click "Add Course" to create one.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Teachers Section -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chalkboard-teacher me-2"></i>Teachers (@(Model.Teachers?.Count ?? 0))
+                    </h6>
+                    <a asp-controller="Admin" asp-action="AddTeacher" asp-route-departmentId="@Model.Id" 
+                       class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i>Add Teacher
+                    </a>
+                </div>
+                <div class="card-body">
+                    @if (Model.Teachers != null && Model.Teachers.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Employee ID</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Created</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var teacher in Model.Teachers.OrderBy(t => t.FullName))
+                                    {
+                                        <tr>
+                                            <td><strong>@teacher.FullName</strong></td>
+                                            <td><span class="badge bg-info">@teacher.EmployeeId</span></td>
+                                            <td>@teacher.Email</td>
+                                            <td>@(teacher.PhoneNumber ?? "-")</td>
+                                            <td>@teacher.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                            <td class="text-end">
+                                                <div class="btn-group">
+                                                    <a asp-controller="Admin" asp-action="ViewTeacher" asp-route-id="@teacher.Id" 
+                                                       class="btn btn-sm btn-outline-primary" 
+                                                       title="View Teacher Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a asp-controller="Admin" asp-action="EditTeacher" asp-route-id="@teacher.Id" 
+                                                       class="btn btn-sm btn-outline-secondary" 
+                                                       title="Edit Teacher">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <p>No teachers found for this department.</p>
+                        </div>
+                    }
+                </div>
+                 <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary" id="saveDepartmentBtn">
+                                    <i class="fas fa-save me-2"></i>Save Changes
+                                </button>
+                                <a class="btn btn-secondary" asp-action="Departments">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                            </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modals -->
+<div class="modal fade" id="deleteBatchModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Delete Batch</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete batch <strong id="deleteBatchYear"></strong>?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    This will also delete all associated sections, students, and their attendance records.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteBatchForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="deleteBatchId" />
+                    <button type="submit" class="btn btn-danger">Delete Batch</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteCourseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Delete Course</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete course <strong id="deleteCourseTitle"></strong>?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    This will also delete all associated enrollments and attendance records.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteCourseForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="deleteCourseId" />
+                    <button type="submit" class="btn btn-danger">Delete Course</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Department Modal -->
+<div class="modal fade" id="deleteDepartmentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Delete Department</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete department <strong id="deleteDepartmentName"></strong>?</p>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>WARNING: This action cannot be undone!</strong>
+                    <p class="mb-0 mt-2">This will permanently delete:</p>
+                    <ul class="mb-0">
+                        <li>All batches in this department</li>
+                        <li>All sections in those batches</li>
+                        <li>All students in this department</li>
+                        <li>All courses in this department</li>
+                        <li>All attendance records</li>
+                        <li>All enrollments</li>
+                        <li>All timetables</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteDepartmentForm" asp-action="DeleteDepartmentConfirmed" asp-controller="Admin" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="deleteDepartmentId" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Yes, Delete Department
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Batch Modal -->
+<div class="modal fade" id="addBatchModal" tabindex="-1" role="dialog" aria-labelledby="addBatchModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+        </div>
+    </div>
+</div>
+
+<!-- Add Course Modal -->
+<div class="modal fade" id="addCourseModal" tabindex="-1" role="dialog" aria-labelledby="addCourseModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCourseModalLabel">
+                    <i class="fas fa-book me-2"></i>Add New Course
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="courseModalError" class="alert alert-danger d-none"></div>
+                <form id="addCourseForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="DepartmentId" id="CourseDepartmentId" value="@Model.Id" />
+                    
+                    <div class="mb-3">
+                        <label for="CourseCode" class="form-label">Course Code <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="CourseCode" name="Code" required />
+                        <small class="text-muted">E.g., CS101, MATH201</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="CourseTitle" class="form-label">Course Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="CourseTitle" name="Title" required />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="CourseCredits" class="form-label">Credits <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="CourseCredits" name="Credits" min="1" max="10" required />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="CourseDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="CourseDescription" name="Description" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-primary" id="saveCourseBtn">
+                    <i class="fas fa-save me-2"></i>Save Course
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            // Delete Department Confirmation
+            $('#deleteDepartmentBtn').on('click', function() {
+                const departmentId = $(this).data('department-id');
+                const departmentName = $(this).data('department-name');
+                $('#deleteDepartmentName').text(departmentName);
+                $('#deleteDepartmentId').val(departmentId);
+                
+                const modal = new bootstrap.Modal(document.getElementById('deleteDepartmentModal'));
+                modal.show();
+            });
+
+            // Handle Delete Department Form
+            $('#deleteDepartmentForm').on('submit', function(e) {
+                e.preventDefault();
+                const form = $(this);
+                const submitBtn = form.find('button[type="submit"]');
+                
+                submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Deleting...');
+                
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function(response) {
+                        // On success, redirect to departments list
+                        window.location.href = '@Url.Action("Departments", "Admin")';
+                    },
+                    error: function(xhr) {
+                        let errorMsg = 'Error deleting department';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        } else if (xhr.responseText) {
+                            errorMsg = xhr.responseText;
+                        }
+                        alert(errorMsg);
+                        submitBtn.prop('disabled', false).html('<i class="fas fa-trash me-2"></i>Yes, Delete Department');
+                    }
+                });
+            });
+
+            // Delete Batch Confirmation
+            $('.delete-batch').on('click', function() {
+                const batchId = $(this).data('batch-id');
+                const batchYear = $(this).data('batch-year');
+                $('#deleteBatchYear').text(batchYear);
+                $('#deleteBatchId').val(batchId);
+                
+                const modal = new bootstrap.Modal(document.getElementById('deleteBatchModal'));
+                modal.show();
+            });
+
+            // Delete Course Confirmation
+            $('.delete-course').on('click', function() {
+                const courseId = $(this).data('course-id');
+                const courseTitle = $(this).data('course-title');
+                $('#deleteCourseTitle').text(courseTitle);
+                $('#deleteCourseId').val(courseId);
+                
+                const modal = new bootstrap.Modal(document.getElementById('deleteCourseModal'));
+                modal.show();
+            });
+
+            // Handle Delete Batch Form
+            $('#deleteBatchForm').on('submit', function(e) {
+                e.preventDefault();
+                const form = $(this);
+                const url = '@Url.Action("DeleteBatch", "Admin")';
+                const submitBtn = $(this).find('button[type="submit"]');
+                
+                submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Deleting...');
+                
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success message
+                            const alertHtml = '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                                '<i class="fas fa-check-circle me-2"></i>' + response.message +
+                                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+                            $('.container-fluid').prepend(alertHtml);
+                            $('#deleteBatchModal').modal('hide');
+                            setTimeout(() => location.reload(), 1000);
+                        } else {
+                            alert('Error: ' + response.message);
+                            submitBtn.prop('disabled', false).html('Delete Batch');
+                        }
+                    },
+                    error: function(xhr) {
+                        let errorMsg = 'Error deleting batch';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+                        alert(errorMsg);
+                        submitBtn.prop('disabled', false).html('Delete Batch');
+                        $('#deleteBatchModal').modal('hide');
+                    }
+                });
+            });
+
+            // Handle Delete Course Form
+            $('#deleteCourseForm').on('submit', function(e) {
+                e.preventDefault();
+                const form = $(this);
+                const url = '@Url.Action("DeleteCourse", "Admin")';
+                const submitBtn = $(this).find('button[type="submit"]');
+                
+                submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Deleting...');
+                
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function(response) {
+                        if (response.success) {
+                            const alertHtml = '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                                '<i class="fas fa-check-circle me-2"></i>' + response.message +
+                                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+                            $('.container-fluid').prepend(alertHtml);
+                            $('#deleteCourseModal').modal('hide');
+                            setTimeout(() => location.reload(), 1000);
+                        } else {
+                            alert('Error: ' + response.message);
+                            submitBtn.prop('disabled', false).html('Delete Course');
+                        }
+                    },
+                    error: function(xhr) {
+                        let errorMsg = 'Error deleting course';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+                        alert(errorMsg);
+                        submitBtn.prop('disabled', false).html('Delete Course');
+                        $('#deleteCourseModal').modal('hide');
+                    }
+                });
+            });
+
+            // Department form validation and submission
+            $('#departmentForm').on('submit', function(e) {
+                const name = $('input[name="Name"]').val().trim();
+                if (!name) {
+                    e.preventDefault();
+                    alert('Please enter a department name.');
+                    $('input[name="Name"]').focus();
+                    return false;
+                }
+                
+                // Disable button to prevent double submission
+                $('#saveDepartmentBtn').prop('disabled', true)
+                    .html('<i class="fas fa-spinner fa-spin me-2"></i>Saving...');
+                return true;
+            });
+
+            // Quick Add Batch
+            $('.quick-add-batch-btn').on('click', function() {
+                var departmentId = $(this).data('department-id');
+                var modal = $('#addBatchModal');
+                var modalContent = modal.find('.modal-content');
+
+                $.get('/Admin/CreateBatch?departmentId=' + departmentId, function(data) {
+                    modalContent.html(data);
+                    var bsModal = new bootstrap.Modal(document.getElementById('addBatchModal'));
+                    bsModal.show();
+                }).fail(function() {
+                    alert('Error loading batch form. Please try again.');
+                });
+            });
+
+            // Handle cancel/close buttons in dynamically loaded batch modal
+            $(document).on('click', '#addBatchModal [data-bs-dismiss="modal"], #addBatchModal [data-dismiss="modal"]', function() {
+                var modalEl = document.getElementById('addBatchModal');
+                var bsModal = bootstrap.Modal.getInstance(modalEl);
+                if (bsModal) {
+                    bsModal.hide();
+                }
+            });
+
+            // Save Batch from Modal
+            $(document).on('click', '#saveBatchBtn', function() {
+                var form = $('#addBatchForm');
+                var saveBtn = $(this);
+                
+                // Clear previous errors
+                $('#addBatchModal .alert-danger').remove();
+                
+                if (form.valid()) {
+                    saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Saving...');
+                    
+                    $.ajax({
+                        url: '/Admin/CreateBatch',
+                        type: 'POST',
+                        data: form.serialize(),
+                        success: function(response) {
+                            if (response.success) {
+                                $('#addBatchModal').modal('hide');
+                                const alertHtml = '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                                    '<i class="fas fa-check-circle me-2"></i>Batch created successfully!' +
+                                    '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+                                $('.container-fluid').prepend(alertHtml);
+                                setTimeout(() => location.reload(), 1000);
+                            } else {
+                                var errorSummary = '<strong>Please fix the following errors:</strong><ul>';
+                                $.each(response.errors, function(key, value) {
+                                    errorSummary += '<li>' + value + '</li>';
+                                });
+                                errorSummary += '</ul>';
+                                $('#addBatchModal .modal-body').prepend('<div class="alert alert-danger">' + errorSummary + '</div>');
+                                saveBtn.prop('disabled', false).html('<i class="fas fa-save me-2"></i>Save Batch');
+                            }
+                        },
+                        error: function() {
+                            $('#addBatchModal .modal-body').prepend('<div class="alert alert-danger">An error occurred while saving the batch.</div>');
+                            saveBtn.prop('disabled', false).html('<i class="fas fa-save me-2"></i>Save Batch');
+                        }
+                    });
+                }
+            });
+
+            // Quick Add Course
+            $('.quick-add-course-btn').on('click', function() {
+                var departmentId = $(this).data('department-id');
+                $('#CourseDepartmentId').val(departmentId);
+                $('#addCourseForm')[0].reset();
+                $('#courseModalError').addClass('d-none');
+                const modal = new bootstrap.Modal(document.getElementById('addCourseModal'));
+                modal.show();
+            });
+
+            // Save Course from Modal
+            $('#saveCourseBtn').on('click', function() {
+                var form = $('#addCourseForm');
+                var saveBtn = $(this);
+                
+                // Clear previous errors
+                $('#courseModalError').addClass('d-none').text('');
+                
+                // Validate form
+                if (!form[0].checkValidity()) {
+                    form[0].reportValidity();
+                    return;
+                }
+                
+                saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Saving...');
+                
+                $.ajax({
+                    url: '@Url.Action("CreateCourseQuick", "Admin")',
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function(response) {
+                        if (response.success) {
+                            $('#addCourseModal').modal('hide');
+                            const alertHtml = '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                                '<i class="fas fa-check-circle me-2"></i>' + response.message +
+                                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+                            $('.container-fluid').prepend(alertHtml);
+                            setTimeout(() => location.reload(), 1000);
+                        } else {
+                            $('#courseModalError').removeClass('d-none').text(response.message);
+                            saveBtn.prop('disabled', false).html('<i class="fas fa-save me-2"></i>Save Course');
+                        }
+                    },
+                    error: function(xhr) {
+                        let errorMsg = 'An error occurred while saving the course.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+                        $('#courseModalError').removeClass('d-none').text(errorMsg);
+                        saveBtn.prop('disabled', false).html('<i class="fas fa-save me-2"></i>Save Course');
+                    }
+                });
+            });
+        });
+    </script>
 }

@@ -26,6 +26,10 @@ namespace AttendenceManagementSystem.Models
         [Phone]
         public string? PhoneNumber { get; set; }
 
+        public bool IsApproved { get; set; } = false;
+
+        public bool IsActive { get; set; } = true;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties - made nullable

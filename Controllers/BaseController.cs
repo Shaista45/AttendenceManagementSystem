@@ -21,5 +21,10 @@ namespace AttendenceManagementSystem.Controllers
             TempData["Message"] = message;
             TempData["MessageType"] = type;
         }
+
+        protected void ShowErrorMessage(string message)
+        {
+            TempData["ErrorMessage"] = message;
+        }
     }
 }
