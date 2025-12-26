@@ -690,42 +690,495 @@ namespace AttendenceManagementSystem.Controllers
         #endregion
 
         #region Reports
+        
+        // Reports Dashboard
         public async Task<IActionResult> Reports()
         {
-            ViewData["Courses"] = new SelectList(await _context.Courses.ToListAsync(), "Id", "Code");
-            ViewData["Batches"] = new SelectList(await _context.Batches.Include(b => b.Department).ToListAsync(), "Id", "Year");
-            return View();
+            await LoadFilterDropdowns();
+            return View("~/Views/Admin/Reports/Index.cshtml");
         }
 
+        // Student Attendance Report
+        [HttpGet]
+        public async Task<IActionResult> StudentAttendanceReport(ReportFilterViewModel filters)
+        {
+            await LoadFilterDropdowns();
+            
+            var query = _context.Students
+                .Include(s => s.Department)
+                .Include(s => s.Batch)
+                .Include(s => s.Section)
+                .AsQueryable();
+
+            if (filters.DepartmentId.HasValue)
+                query = query.Where(s => s.DepartmentId == filters.DepartmentId);
+
+            if (filters.BatchId.HasValue)
+                query = query.Where(s => s.BatchId == filters.BatchId);
+
+            if (filters.SectionId.HasValue)
+                query = query.Where(s => s.SectionId == filters.SectionId);
+
+            var students = await query.ToListAsync();
+            var studentReports = new List<StudentAttendanceReportViewModel>();
+
+            foreach (var student in students)
+            {
+                var attendanceQuery = _context.Attendances
+                    .Where(a => a.StudentId == student.Id);
+
+                if (filters.StartDate.HasValue)
+                    attendanceQuery = attendanceQuery.Where(a => a.Date >= DateOnly.FromDateTime(filters.StartDate.Value));
+
+                if (filters.EndDate.HasValue)
+                    attendanceQuery = attendanceQuery.Where(a => a.Date <= DateOnly.FromDateTime(filters.EndDate.Value));
+
+                if (filters.CourseId.HasValue)
+                    attendanceQuery = attendanceQuery.Where(a => a.CourseId == filters.CourseId);
+
+                var attendances = await attendanceQuery.ToListAsync();
+                var totalClasses = attendances.Count;
+                var classesAttended = attendances.Count(a => a.Status == AttendanceStatus.Present);
+
+                studentReports.Add(new StudentAttendanceReportViewModel
+                {
+                    StudentId = student.Id,
+                    StudentName = student.FullName,
+                    RollNumber = student.RollNumber,
+                    Department = student.Department?.Name ?? "",
+                    Batch = student.Batch?.Year ?? "",
+                    Section = student.Section?.Name ?? "",
+                    TotalClasses = totalClasses,
+                    ClassesAttended = classesAttended,
+                    ClassesAbsent = totalClasses - classesAttended,
+                    AttendancePercentage = totalClasses > 0 ? Math.Round((decimal)classesAttended / totalClasses * 100, 2) : 0
+                });
+            }
+
+            var viewModel = new StudentAttendanceReportPageViewModel
+            {
+                Filters = filters,
+                Students = studentReports.OrderBy(s => s.StudentName).ToList()
+            };
+
+            return View("~/Views/Admin/Reports/StudentAttendance.cshtml", viewModel);
+        }
+
+        // Teacher Report
+        [HttpGet]
+        public async Task<IActionResult> TeacherReport(ReportFilterViewModel filters)
+        {
+            await LoadFilterDropdowns();
+            
+            var query = _context.Teachers
+                .Include(t => t.Department)
+                .Where(t => t.IsActive);
+
+            if (filters.DepartmentId.HasValue)
+                query = query.Where(t => t.DepartmentId == filters.DepartmentId);
+
+            var teachers = await query.ToListAsync();
+            var teacherReports = new List<TeacherReportViewModel>();
+
+            foreach (var teacher in teachers)
+            {
+                var timetableQuery = _context.Timetables
+                    .Where(tt => tt.TeacherId == teacher.Id);
+
+                if (filters.CourseId.HasValue)
+                    timetableQuery = timetableQuery.Where(tt => tt.CourseId == filters.CourseId);
+
+                var timetables = await timetableQuery.ToListAsync();
+                var assignedCourses = timetables.Select(tt => tt.CourseId).Distinct().Count();
+
+                var courseIds = timetables.Select(tt => tt.CourseId).Distinct().ToList();
+                var attendanceQuery = _context.Attendances
+                    .Where(a => courseIds.Contains(a.CourseId));
+
+                if (filters.StartDate.HasValue)
+                    attendanceQuery = attendanceQuery.Where(a => a.Date >= DateOnly.FromDateTime(filters.StartDate.Value));
+
+                if (filters.EndDate.HasValue)
+                    attendanceQuery = attendanceQuery.Where(a => a.Date <= DateOnly.FromDateTime(filters.EndDate.Value));
+
+                var totalClasses = await attendanceQuery.Select(a => new { a.CourseId, a.Date }).Distinct().CountAsync();
+                var markedClasses = await attendanceQuery.CountAsync();
+
+                teacherReports.Add(new TeacherReportViewModel
+                {
+                    TeacherId = teacher.Id,
+                    TeacherName = teacher.FullName,
+                    EmployeeId = teacher.EmployeeId ?? "",
+                    Department = teacher.Department?.Name ?? "",
+                    AssignedCourses = assignedCourses,
+                    TotalClassesTaken = totalClasses,
+                    AttendanceMarked = markedClasses,
+                    AttendancePending = 0,
+                    MarkingPercentage = markedClasses > 0 ? 100 : 0
+                });
+            }
+
+            var viewModel = new TeacherReportPageViewModel
+            {
+                Filters = filters,
+                Teachers = teacherReports.OrderBy(t => t.TeacherName).ToList()
+            };
+
+            return View("~/Views/Admin/Reports/TeacherReport.cshtml", viewModel);
+        }
+
+        // Course Report
+        [HttpGet]
+        public async Task<IActionResult> CourseReport(ReportFilterViewModel filters)
+        {
+            await LoadFilterDropdowns();
+            
+            var query = _context.Courses
+                .Include(c => c.Department)
+                .AsQueryable();
+
+            if (filters.DepartmentId.HasValue)
+                query = query.Where(c => c.DepartmentId == filters.DepartmentId);
+
+            if (filters.CourseId.HasValue)
+                query = query.Where(c => c.Id == filters.CourseId);
+
+            var courses = await query.ToListAsync();
+            var courseReports = new List<CourseReportViewModel>();
+
+            foreach (var course in courses)
+            {
+                var attendanceQuery = _context.Attendances
+                    .Where(a => a.CourseId == course.Id);
+
+                if (filters.StartDate.HasValue)
+                    attendanceQuery = attendanceQuery.Where(a => a.Date >= DateOnly.FromDateTime(filters.StartDate.Value));
+
+                if (filters.EndDate.HasValue)
+                    attendanceQuery = attendanceQuery.Where(a => a.Date <= DateOnly.FromDateTime(filters.EndDate.Value));
+
+                var attendances = await attendanceQuery.ToListAsync();
+                var totalLectures = attendances.Select(a => a.Date).Distinct().Count();
+                var totalStudents = attendances.Select(a => a.StudentId).Distinct().Count();
+                var averageAttendance = attendances.Any() 
+                    ? Math.Round((decimal)attendances.Count(a => a.Status == AttendanceStatus.Present) / attendances.Count * 100, 2)
+                    : 0;
+
+                // Calculate defaulters (students with < 75% attendance)
+                var studentAttendance = attendances
+                    .GroupBy(a => a.StudentId)
+                    .Select(g => new
+                    {
+                        StudentId = g.Key,
+                        Total = g.Count(),
+                        Present = g.Count(a => a.Status == AttendanceStatus.Present),
+                        Percentage = g.Count() > 0 ? (decimal)g.Count(a => a.Status == AttendanceStatus.Present) / g.Count() * 100 : 0
+                    });
+
+                var defaulters = studentAttendance.Count(sa => sa.Percentage < 75);
+
+                courseReports.Add(new CourseReportViewModel
+                {
+                    CourseId = course.Id,
+                    CourseCode = course.Code,
+                    CourseTitle = course.Title,
+                    Department = course.Department?.Name ?? "",
+                    TotalLectures = totalLectures,
+                    TotalStudents = totalStudents,
+                    AverageAttendance = averageAttendance,
+                    NumberOfDefaulters = defaulters
+                });
+            }
+
+            var viewModel = new CourseReportPageViewModel
+            {
+                Filters = filters,
+                Courses = courseReports.OrderBy(c => c.CourseCode).ToList()
+            };
+
+            return View("~/Views/Admin/Reports/CourseReport.cshtml", viewModel);
+        }
+
+        // Daily Attendance Report
+        [HttpGet]
+        public async Task<IActionResult> DailyAttendanceReport(ReportFilterViewModel filters)
+        {
+            await LoadFilterDropdowns();
+            
+            var attendanceQuery = _context.Attendances
+                .Include(a => a.Course)
+                .Include(a => a.Student)
+                    .ThenInclude(s => s.Section)
+                .AsQueryable();
+
+            if (filters.StartDate.HasValue)
+                attendanceQuery = attendanceQuery.Where(a => a.Date >= DateOnly.FromDateTime(filters.StartDate.Value));
+
+            if (filters.EndDate.HasValue)
+                attendanceQuery = attendanceQuery.Where(a => a.Date <= DateOnly.FromDateTime(filters.EndDate.Value));
+
+            if (filters.CourseId.HasValue)
+                attendanceQuery = attendanceQuery.Where(a => a.CourseId == filters.CourseId);
+
+            var attendances = await attendanceQuery.ToListAsync();
+
+            var dailyRecords = attendances
+                .GroupBy(a => new { a.Date, a.CourseId, SectionId = a.Student!.SectionId })
+                .Select(g => new DailyAttendanceReportViewModel
+                {
+                    Date = g.Key.Date.ToDateTime(TimeOnly.MinValue),
+                    CourseName = g.First().Course?.Title ?? "",
+                    Section = g.First().Student?.Section?.Name ?? "",
+                    TeacherName = "",  // Will need to get from timetable if needed
+                    TotalStudents = g.Count(),
+                    PresentCount = g.Count(a => a.Status == AttendanceStatus.Present),
+                    AbsentCount = g.Count(a => a.Status == AttendanceStatus.Absent),
+                    AttendancePercentage = g.Count() > 0 ? Math.Round((decimal)g.Count(a => a.Status == AttendanceStatus.Present) / g.Count() * 100, 2) : 0
+                })
+                .OrderByDescending(d => d.Date)
+                .ToList();
+
+            var viewModel = new DailyAttendanceReportPageViewModel
+            {
+                Filters = filters,
+                DailyRecords = dailyRecords
+            };
+
+            return View("~/Views/Admin/Reports/DailyAttendance.cshtml", viewModel);
+        }
+
+        // Low Attendance (Defaulter) Report
+        [HttpGet]
+        public async Task<IActionResult> LowAttendanceReport(ReportFilterViewModel filters)
+        {
+            await LoadFilterDropdowns();
+            
+            var query = _context.Students
+                .Include(s => s.Department)
+                .Include(s => s.Batch)
+                .Include(s => s.Section)
+                .AsQueryable();
+
+            if (filters.DepartmentId.HasValue)
+                query = query.Where(s => s.DepartmentId == filters.DepartmentId);
+
+            if (filters.BatchId.HasValue)
+                query = query.Where(s => s.BatchId == filters.BatchId);
+
+            if (filters.SectionId.HasValue)
+                query = query.Where(s => s.SectionId == filters.SectionId);
+
+            var students = await query.ToListAsync();
+            var defaulters = new List<LowAttendanceReportViewModel>();
+
+            foreach (var student in students)
+            {
+                var attendanceQuery = _context.Attendances
+                    .Include(a => a.Course)
+                    .Where(a => a.StudentId == student.Id);
+
+                if (filters.StartDate.HasValue)
+                    attendanceQuery = attendanceQuery.Where(a => a.Date >= DateOnly.FromDateTime(filters.StartDate.Value));
+
+                if (filters.EndDate.HasValue)
+                    attendanceQuery = attendanceQuery.Where(a => a.Date <= DateOnly.FromDateTime(filters.EndDate.Value));
+
+                if (filters.CourseId.HasValue)
+                    attendanceQuery = attendanceQuery.Where(a => a.CourseId == filters.CourseId);
+
+                var attendances = await attendanceQuery.ToListAsync();
+
+                // Group by course
+                var courseGroups = attendances.GroupBy(a => a.CourseId);
+
+                foreach (var courseGroup in courseGroups)
+                {
+                    var totalClasses = courseGroup.Count();
+                    var classesAttended = courseGroup.Count(a => a.Status == AttendanceStatus.Present);
+                    var percentage = totalClasses > 0 ? (decimal)classesAttended / totalClasses * 100 : 0;
+
+                    if (percentage < 75 && totalClasses > 0)
+                    {
+                        var courseName = courseGroup.First().Course?.Title ?? "";
+                        var requiredClasses = (int)Math.Ceiling(totalClasses * 0.75m);
+                        var shortfall = requiredClasses - classesAttended;
+
+                        defaulters.Add(new LowAttendanceReportViewModel
+                        {
+                            StudentId = student.Id,
+                            StudentName = student.FullName,
+                            RollNumber = student.RollNumber,
+                            Department = student.Department?.Name ?? "",
+                            Batch = student.Batch?.Year ?? "",
+                            Section = student.Section?.Name ?? "",
+                            CourseName = courseName,
+                            TotalClasses = totalClasses,
+                            ClassesAttended = classesAttended,
+                            AttendancePercentage = Math.Round(percentage, 2),
+                            ShortfallClasses = shortfall
+                        });
+                    }
+                }
+            }
+
+            var viewModel = new LowAttendanceReportPageViewModel
+            {
+                Filters = filters,
+                Defaulters = defaulters.OrderBy(d => d.AttendancePercentage).ToList()
+            };
+
+            return View("~/Views/Admin/Reports/LowAttendance.cshtml", viewModel);
+        }
+
+        // Summary Analytics
+        [HttpGet]
+        public async Task<IActionResult> SummaryAnalytics()
+        {
+            var viewModel = new SummaryAnalyticsViewModel
+            {
+                TotalStudents = await _context.Students.CountAsync(),
+                TotalTeachers = await _context.Teachers.CountAsync(t => t.IsActive),
+                TotalCourses = await _context.Courses.CountAsync(),
+                TotalDepartments = await _context.Departments.CountAsync(),
+                TotalClassesConducted = await _context.Attendances
+                    .Select(a => new { a.CourseId, a.Date })
+                    .Distinct()
+                    .CountAsync(),
+                TotalAttendanceMarked = await _context.Attendances.CountAsync()
+            };
+
+            var allAttendances = await _context.Attendances.ToListAsync();
+            viewModel.OverallAttendancePercentage = allAttendances.Any()
+                ? Math.Round((decimal)allAttendances.Count(a => a.Status == AttendanceStatus.Present) / allAttendances.Count * 100, 2)
+                : 0;
+
+            // Student performance categorization
+            var students = await _context.Students.ToListAsync();
+            foreach (var student in students)
+            {
+                var studentAttendances = allAttendances.Where(a => a.StudentId == student.Id).ToList();
+                if (studentAttendances.Any())
+                {
+                    var percentage = (decimal)studentAttendances.Count(a => a.Status == AttendanceStatus.Present) / studentAttendances.Count * 100;
+                    
+                    if (percentage >= 75)
+                        viewModel.StudentsAbove75Percent++;
+                    else if (percentage >= 50)
+                        viewModel.StudentsBelow75Percent++;
+                    else
+                        viewModel.StudentsBelow50Percent++;
+                }
+            }
+
+            // Department-wise statistics
+            var departments = await _context.Departments.ToListAsync();
+            foreach (var dept in departments)
+            {
+                var deptStudents = students.Where(s => s.DepartmentId == dept.Id).ToList();
+                var deptAttendances = allAttendances.Where(a => deptStudents.Select(s => s.Id).Contains(a.StudentId)).ToList();
+                
+                viewModel.DepartmentStats.Add(new DepartmentStatistic
+                {
+                    DepartmentName = dept.Name,
+                    StudentCount = deptStudents.Count,
+                    AverageAttendance = deptAttendances.Any()
+                        ? Math.Round((decimal)deptAttendances.Count(a => a.Status == AttendanceStatus.Present) / deptAttendances.Count * 100, 2)
+                        : 0
+                });
+            }
+
+            viewModel.LastAttendanceDate = allAttendances.Any()
+                ? allAttendances.Max(a => a.Date).ToDateTime(TimeOnly.MinValue)
+                : null;
+
+            viewModel.TodayClasses = allAttendances
+                .Where(a => a.Date == DateOnly.FromDateTime(DateTime.Today))
+                .Select(a => new { a.CourseId, a.Date })
+                .Distinct()
+                .Count();
+
+            return View("~/Views/Admin/Reports/SummaryAnalytics.cshtml", viewModel);
+        }
+
+        // Export to Excel
         [HttpPost]
-        public async Task<IActionResult> ExportAttendanceExcel(int? courseId, DateOnly? fromDate, DateOnly? toDate)
+        public async Task<IActionResult> ExportToExcel(string reportType, ReportFilterViewModel filters)
         {
             try
             {
-                var fileBytes = await _excelService.ExportAttendanceToExcelAsync(courseId, fromDate, toDate);
-                return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"Attendance_Report_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx");
+                byte[] fileBytes;
+                string fileName;
+
+                switch (reportType)
+                {
+                    case "student":
+                        fileBytes = await _excelService.ExportAttendanceToExcelAsync(filters.CourseId, 
+                            filters.StartDate.HasValue ? DateOnly.FromDateTime(filters.StartDate.Value) : null,
+                            filters.EndDate.HasValue ? DateOnly.FromDateTime(filters.EndDate.Value) : null);
+                        fileName = $"Student_Attendance_Report_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx";
+                        break;
+
+                    default:
+                        ShowErrorMessage("Invalid report type.");
+                        return RedirectToAction(nameof(Reports));
+                }
+
+                return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
             }
             catch (Exception ex)
             {
-                ShowMessage($"Error generating Excel report: {ex.Message}", "error");
+                ShowErrorMessage($"Error generating Excel report: {ex.Message}");
                 return RedirectToAction(nameof(Reports));
             }
         }
 
+        // Export to PDF
         [HttpPost]
-        public async Task<IActionResult> GenerateStudentReport(int studentId, DateOnly? fromDate, DateOnly? toDate)
+        public async Task<IActionResult> ExportToPdf(string reportType, int? entityId, ReportFilterViewModel filters)
         {
             try
             {
-                var pdfBytes = await _reportService.GenerateStudentAttendanceReportAsync(studentId, fromDate, toDate);
-                return File(pdfBytes, "application/pdf", $"Student_Report_{studentId}_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf");
+                byte[] pdfBytes;
+                string fileName;
+
+                switch (reportType)
+                {
+                    case "student":
+                        if (!entityId.HasValue)
+                        {
+                            ShowErrorMessage("Student ID is required.");
+                            return RedirectToAction(nameof(Reports));
+                        }
+                        pdfBytes = await _reportService.GenerateStudentAttendanceReportAsync(
+                            entityId.Value,
+                            filters.StartDate.HasValue ? DateOnly.FromDateTime(filters.StartDate.Value) : null,
+                            filters.EndDate.HasValue ? DateOnly.FromDateTime(filters.EndDate.Value) : null);
+                        fileName = $"Student_Report_{entityId}_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
+                        break;
+
+                    default:
+                        ShowErrorMessage("Invalid report type.");
+                        return RedirectToAction(nameof(Reports));
+                }
+
+                return File(pdfBytes, "application/pdf", fileName);
             }
             catch (Exception ex)
             {
-                ShowMessage($"Error generating PDF report: {ex.Message}", "error");
+                ShowErrorMessage($"Error generating PDF report: {ex.Message}");
                 return RedirectToAction(nameof(Reports));
             }
         }
+
+        // Helper method to load filter dropdowns
+        private async Task LoadFilterDropdowns()
+        {
+            ViewData["Departments"] = new SelectList(await _context.Departments.ToListAsync(), "Id", "Name");
+            ViewData["Batches"] = new SelectList(await _context.Batches.ToListAsync(), "Id", "Year");
+            ViewData["Sections"] = new SelectList(await _context.Sections.ToListAsync(), "Id", "Name");
+            ViewData["Courses"] = new SelectList(await _context.Courses.ToListAsync(), "Id", "Title");
+        }
+
         #endregion
 
         #region Utility Methods

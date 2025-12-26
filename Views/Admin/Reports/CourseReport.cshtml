@@ -1,0 +1,176 @@
+@model AttendenceManagementSystem.ViewModels.CourseReportPageViewModel
+@{
+    ViewData["Title"] = "Course-wise Report";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-3">
+                <i class="bi bi-book"></i> Course-wise Attendance Report
+            </h2>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="bi bi-funnel"></i> Filters</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" asp-action="CourseReport">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Department</label>
+                        <select name="DepartmentId" class="form-select" asp-items="ViewBag.Departments">
+                            <option value="">All Departments</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Course</label>
+                        <select name="CourseId" class="form-select" asp-items="ViewBag.Courses">
+                            <option value="">All Courses</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" name="StartDate" class="form-control" value="@Model.Filters.StartDate?.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">End Date</label>
+                        <input type="date" name="EndDate" class="form-control" value="@Model.Filters.EndDate?.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-success me-2">
+                            <i class="bi bi-search"></i> Apply Filters
+                        </button>
+                        <a asp-action="CourseReport" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Clear
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results -->
+    @if (Model.Courses.Any())
+    {
+        <div class="card">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-table"></i> Course Statistics
+                    <span class="badge bg-success">@Model.Courses.Count Courses</span>
+                </h5>
+                <div>
+                    <button onclick="window.print()" class="btn btn-sm btn-outline-success">
+                        <i class="bi bi-printer"></i> Print
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Course Code</th>
+                                <th>Course Title</th>
+                                <th>Department</th>
+                                <th class="text-center">Total Lectures</th>
+                                <th class="text-center">Total Students</th>
+                                <th class="text-center">Average Attendance</th>
+                                <th class="text-center">Defaulters</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var course in Model.Courses)
+                            {
+                                <tr>
+                                    <td>@course.CourseCode</td>
+                                    <td>@course.CourseTitle</td>
+                                    <td>@course.Department</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">@course.TotalLectures</span>
+                                    </td>
+                                    <td class="text-center">@course.TotalStudents</td>
+                                    <td class="text-center">
+                                        <div class="progress" style="height: 25px;">
+                                            <div class="progress-bar @(course.AverageAttendance >= 75 ? "bg-success" : "bg-danger")" 
+                                                 role="progressbar" 
+                                                 style="width: @course.AverageAttendance%"
+                                                 aria-valuenow="@course.AverageAttendance" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100">
+                                                <strong>@course.AverageAttendance.ToString("0.00")%</strong>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (course.NumberOfDefaulters > 0)
+                                        {
+                                            <span class="badge bg-danger">@course.NumberOfDefaulters</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">0</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-success">@Model.Courses.Count</h3>
+                        <p class="mb-0">Total Courses</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-info">@Model.Courses.Sum(c => c.TotalLectures)</h3>
+                        <p class="mb-0">Total Lectures</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-primary">@(Model.Courses.Any() ? Model.Courses.Average(c => c.AverageAttendance).ToString("0.00") : "0")%</h3>
+                        <p class="mb-0">Overall Average</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-danger">@Model.Courses.Sum(c => c.NumberOfDefaulters)</h3>
+                        <p class="mb-0">Total Defaulters</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No course records found. Please adjust your filters and try again.
+        </div>
+    }
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <a asp-action="Reports" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Reports
+            </a>
+        </div>
+    </div>
+</div>

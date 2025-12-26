@@ -1,0 +1,162 @@
+@model AttendenceManagementSystem.ViewModels.DailyAttendanceReportPageViewModel
+@{
+    ViewData["Title"] = "Daily Attendance Report";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-3">
+                <i class="bi bi-calendar-check"></i> Daily Attendance Report
+            </h2>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="bi bi-funnel"></i> Filters</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" asp-action="DailyAttendanceReport">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Course</label>
+                        <select name="CourseId" class="form-select" asp-items="ViewBag.Courses">
+                            <option value="">All Courses</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Section</label>
+                        <select name="SectionId" class="form-select" asp-items="ViewBag.Sections">
+                            <option value="">All Sections</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" name="StartDate" class="form-control" value="@Model.Filters.StartDate?.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">End Date</label>
+                        <input type="date" name="EndDate" class="form-control" value="@Model.Filters.EndDate?.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-warning me-2">
+                            <i class="bi bi-search"></i> Apply
+                        </button>
+                        <a asp-action="DailyAttendanceReport" class="btn btn-secondary">Clear</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results -->
+    @if (Model.DailyRecords.Any())
+    {
+        <div class="card">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-table"></i> Daily Attendance Records
+                    <span class="badge bg-warning">@Model.DailyRecords.Count Classes</span>
+                </h5>
+                <div>
+                    <button onclick="window.print()" class="btn btn-sm btn-outline-warning">
+                        <i class="bi bi-printer"></i> Print
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Date</th>
+                                <th>Course</th>
+                                <th>Section</th>
+                                <th>Teacher</th>
+                                <th class="text-center">Total Students</th>
+                                <th class="text-center">Present</th>
+                                <th class="text-center">Absent</th>
+                                <th class="text-center">Attendance %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var record in Model.DailyRecords)
+                            {
+                                <tr>
+                                    <td>@record.Date.ToString("dd MMM yyyy")</td>
+                                    <td>@record.CourseName</td>
+                                    <td>@record.Section</td>
+                                    <td>@record.TeacherName</td>
+                                    <td class="text-center">@record.TotalStudents</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success">@record.PresentCount</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-danger">@record.AbsentCount</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <strong class="@(record.AttendancePercentage >= 75 ? "text-success" : "text-danger")">
+                                            @record.AttendancePercentage.ToString("0.00")%
+                                        </strong>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-warning">@Model.DailyRecords.Count</h3>
+                        <p class="mb-0">Total Classes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-primary">@Model.DailyRecords.Sum(r => r.TotalStudents)</h3>
+                        <p class="mb-0">Total Attendance</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-success">@Model.DailyRecords.Sum(r => r.PresentCount)</h3>
+                        <p class="mb-0">Total Present</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-danger">@Model.DailyRecords.Sum(r => r.AbsentCount)</h3>
+                        <p class="mb-0">Total Absent</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No attendance records found. Please adjust your filters and try again.
+        </div>
+    }
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <a asp-action="Reports" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Reports
+            </a>
+        </div>
+    </div>
+</div>

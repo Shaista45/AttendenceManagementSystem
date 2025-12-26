@@ -1,0 +1,152 @@
+@model AttendenceManagementSystem.ViewModels.TeacherReportPageViewModel
+@{
+    ViewData["Title"] = "Teacher Report";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-3">
+                <i class="bi bi-person-badge"></i> Teacher Report
+            </h2>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="bi bi-funnel"></i> Filters</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" asp-action="TeacherReport">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Department</label>
+                        <select name="DepartmentId" class="form-select" asp-items="ViewBag.Departments">
+                            <option value="">All Departments</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Course</label>
+                        <select name="CourseId" class="form-select" asp-items="ViewBag.Courses">
+                            <option value="">All Courses</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-info me-2">
+                            <i class="bi bi-search"></i> Apply Filters
+                        </button>
+                        <a asp-action="TeacherReport" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Clear
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results -->
+    @if (Model.Teachers.Any())
+    {
+        <div class="card">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-table"></i> Teacher Performance
+                    <span class="badge bg-info">@Model.Teachers.Count Teachers</span>
+                </h5>
+                <div>
+                    <button onclick="window.print()" class="btn btn-sm btn-outline-info">
+                        <i class="bi bi-printer"></i> Print
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Employee ID</th>
+                                <th>Teacher Name</th>
+                                <th>Department</th>
+                                <th class="text-center">Assigned Courses</th>
+                                <th class="text-center">Classes Taken</th>
+                                <th class="text-center">Attendance Marked</th>
+                                <th class="text-center">Marking %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var teacher in Model.Teachers)
+                            {
+                                <tr>
+                                    <td>@teacher.EmployeeId</td>
+                                    <td>@teacher.TeacherName</td>
+                                    <td>@teacher.Department</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">@teacher.AssignedCourses</span>
+                                    </td>
+                                    <td class="text-center">@teacher.TotalClassesTaken</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success">@teacher.AttendanceMarked</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <strong class="text-success">@teacher.MarkingPercentage.ToString("0.00")%</strong>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-info">@Model.Teachers.Count</h3>
+                        <p class="mb-0">Total Teachers</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-primary">@Model.Teachers.Sum(t => t.AssignedCourses)</h3>
+                        <p class="mb-0">Total Assignments</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-success">@Model.Teachers.Sum(t => t.TotalClassesTaken)</h3>
+                        <p class="mb-0">Classes Taken</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-warning">@Model.Teachers.Sum(t => t.AttendanceMarked)</h3>
+                        <p class="mb-0">Attendance Marked</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No teacher records found. Please adjust your filters and try again.
+        </div>
+    }
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <a asp-action="Reports" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Reports
+            </a>
+        </div>
+    </div>
+</div>
