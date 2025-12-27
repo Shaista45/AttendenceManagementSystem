@@ -88,66 +88,102 @@
                     <input type="hidden" asp-for="CourseId" />
                     <input type="hidden" asp-for="Date" />
 
-                    <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap">
-                        <div>
-                            <button type="button" class="btn btn-sm btn-success me-2 mb-2" onclick="markAll('0')">
-                                <i class="fas fa-check me-1"></i>Mark All Present (Ctrl+P)
-                            </button>
-                            <button type="button" class="btn btn-sm btn-danger me-2 mb-2" onclick="markAll('1')">
-                                <i class="fas fa-times me-1"></i>Mark All Absent (Ctrl+Shift+A)
-                            </button>
-                            <button type="button" class="btn btn-sm btn-warning mb-2" onclick="markAll('2')">
-                                <i class="fas fa-clock me-1"></i>Mark All Late (Ctrl+L)
-                            </button>
-                        <div id="attendanceStats" class="mt-2 mt-md-0">
-                            <span class="badge bg-success me-1">
-                                <i class="fas fa-check me-1"></i>Present: <span id="presentCount">0</span>
-                            </span>
-                            <span class="badge bg-danger me-1">
-                                <i class="fas fa-times me-1"></i>Absent: <span id="absentCount">0</span>
-                            </span>
-                            <span class="badge bg-warning text-dark">
-                                <i class="fas fa-clock me-1"></i>Late: <span id="lateCount">0</span>
-                            </span>
+                    <!-- Quick Actions Section - UPDATED STYLING -->
+                    <div class="card mb-4 border-0 shadow-sm">
+                        <div class="card-body p-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                            <h5 class="fw-bold mb-3 text-gray-700">
+                                <i class="fas fa-bolt me-2 text-primary"></i>Quick Actions
+                            </h5>
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button type="button" class="btn btn-lg btn-success px-4 py-2 shadow-sm" onclick="markAll('0')" style="min-width: 180px;">
+                                        <i class="fas fa-check me-2"></i>Mark All Present
+                                        <small class="d-block fw-normal mt-1">(Ctrl+P)</small>
+                                    </button>
+                                    <button type="button" class="btn btn-lg btn-danger px-4 py-2 shadow-sm" onclick="markAll('1')" style="min-width: 180px;">
+                                        <i class="fas fa-times me-2"></i>Mark All Absent
+                                        <small class="d-block fw-normal mt-1">(Ctrl+Shift+A)</small>
+                                    </button>
+                                    <button type="button" class="btn btn-lg btn-warning px-4 py-2 shadow-sm" onclick="markAll('2')" style="min-width: 180px;">
+                                        <i class="fas fa-clock me-2"></i>Mark All Late
+                                        <small class="d-block fw-normal mt-1">(Ctrl+L)</small>
+                                    </button>
+                                </div>
+                                <div id="attendanceStats" class="bg-white p-3 rounded shadow-sm">
+                                    <div class="d-flex gap-3">
+                                        <div class="text-center">
+                                            <div class="badge bg-success bg-opacity-10 text-success p-2 rounded-circle mb-1" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                                                <i class="fas fa-check fa-lg"></i>
+                                            </div>
+                                            <div class="fw-bold fs-5" id="presentCount">0</div>
+                                            <small class="text-muted">Present</small>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="badge bg-danger bg-opacity-10 text-danger p-2 rounded-circle mb-1" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                                                <i class="fas fa-times fa-lg"></i>
+                                            </div>
+                                            <div class="fw-bold fs-5" id="absentCount">0</div>
+                                            <small class="text-muted">Absent</small>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="badge bg-warning bg-opacity-10 text-warning p-2 rounded-circle mb-1" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                                                <i class="fas fa-clock fa-lg"></i>
+                                            </div>
+                                            <div class="fw-bold fs-5" id="lateCount">0</div>
+                                            <small class="text-muted">Late</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="table-responsive">
+                    <!-- Students Table -->
+                    <div class="table-responsive mt-4">
                         <table class="table table-bordered table-hover">
                             <thead class="table-light">
                                 <tr>
-                                    <th width="8%">Roll No</th>
-                                    <th width="25%">Student Name</th>
-                                    <th width="12%">Batch</th>
-                                    <th width="12%">Section</th>
-                                    <th width="25%">Status</th>
+                                    <th width="8%" class="py-3">Roll No</th>
+                                    <th width="25%" class="py-3">Student Name</th>
+                                    <th width="12%" class="py-3">Batch</th>
+                                    <th width="12%" class="py-3">Section</th>
+                                    <th width="25%" class="py-3">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @for (int i = 0; i < Model.Students.Count; i++)
                                 {
-                                    <tr>
+                                    <tr class="align-middle">
                                         <input type="hidden" asp-for="@Model.Students[i].StudentId" />
                                         <input type="hidden" asp-for="@Model.Students[i].RollNumber" />
                                         <input type="hidden" asp-for="@Model.Students[i].FullName" />
                                         <input type="hidden" asp-for="@Model.Students[i].Batch" />
                                         <input type="hidden" asp-for="@Model.Students[i].Section" />
 
-                                        <td>
-                                            <strong>@Model.Students[i].RollNumber</strong>
+                                        <td class="py-3">
+                                            <span class="badge bg-primary bg-opacity-10 text-primary fs-6 px-3 py-2">
+                                                @Model.Students[i].RollNumber
+                                            </span>
                                         </td>
-                                        <td>@Model.Students[i].FullName</td>
-                                        <td>@Model.Students[i].Batch</td>
-                                        <td>@Model.Students[i].Section</td>
-                                        <td>
-                                            <select asp-for="@Model.Students[i].Status" class="form-select form-select-sm attendance-select"
+                                        <td class="py-3 fw-semibold">@Model.Students[i].FullName</td>
+                                        <td class="py-3">
+                                            <span class="badge bg-info bg-opacity-10 text-info px-3 py-2">
+                                                @Model.Students[i].Batch
+                                            </span>
+                                        </td>
+                                        <td class="py-3">
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2">
+                                                @Model.Students[i].Section
+                                            </span>
+                                        </td>
+                                        <td class="py-3">
+                                            <select asp-for="@Model.Students[i].Status" class="form-select form-select-lg py-2 attendance-select"
                                                     disabled="@(!Model.CanEdit)">
                                                 <option value="0" class="text-success">✓ Present</option>
                                                 <option value="1" class="text-danger">✗ Absent</option>
                                                 <option value="2" class="text-warning">⏰ Late</option>
                                             </select>
                                         </td>
-                                        
                                     </tr>
                                 }
                             </tbody>
@@ -156,17 +192,20 @@
 
                     @if (Model.CanEdit)
                     {
-                        <div class="text-end mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg">
+                        <div class="text-end mt-4 pt-4 border-top">
+                            <button type="submit" class="btn btn-primary btn-lg px-5 py-3 shadow">
                                 <i class="fas fa-save me-2"></i>Save Attendance
                             </button>
                         </div>
                     }
                     else
                     {
-                        <div class="alert alert-danger mt-3">
-                            <i class="fas fa-lock me-2"></i>
-                            This attendance record is locked and cannot be modified.
+                        <div class="alert alert-danger mt-3 d-flex align-items-center">
+                            <i class="fas fa-lock fa-2x me-3"></i>
+                            <div>
+                                <h5 class="alert-heading mb-1">Attendance Locked</h5>
+                                <p class="mb-0">This attendance record is locked and cannot be modified.</p>
+                            </div>
                         </div>
                     }
                 </form>
@@ -223,7 +262,7 @@
             let bgClass = status == '0' ? 'bg-success' : (status == '1' ? 'bg-danger' : 'bg-warning');
             
             // Create toast notification
-            let toast = `<div class="toast-notification ${bgClass} text-white" style="position: fixed; top: 80px; right: 20px; padding: 15px 20px; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 9999; animation: slideIn 0.3s ease-out;">
+            let toast = `<div class="toast-notification ${bgClass} text-white" style="position: fixed; top: 80px; right: 20px; padding: 15px 20px; border-radius: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; animation: slideIn 0.3s ease-out;">
                 <i class="fas fa-${icon} me-2"></i>All students marked as ${statusText}
             </div>`;
             
