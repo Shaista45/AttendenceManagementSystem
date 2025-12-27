@@ -88,30 +88,39 @@
                     <input type="hidden" asp-for="CourseId" />
                     <input type="hidden" asp-for="Date" />
 
-                    @if (Model.CanEdit)
-                    {
-                        <div class="mb-3">
-                            <button type="button" class="btn btn-success btn-sm me-2" onclick="markAll('0')">
-                                <i class="fas fa-check-double me-1"></i>Mark All Present
+                    <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                            <button type="button" class="btn btn-sm btn-success me-2 mb-2" onclick="markAll('0')">
+                                <i class="fas fa-check me-1"></i>Mark All Present (Ctrl+P)
                             </button>
-                            <button type="button" class="btn btn-danger btn-sm me-2" onclick="markAll('1')">
-                                <i class="fas fa-times-circle me-1"></i>Mark All Absent
+                            <button type="button" class="btn btn-sm btn-danger me-2 mb-2" onclick="markAll('1')">
+                                <i class="fas fa-times me-1"></i>Mark All Absent (Ctrl+Shift+A)
                             </button>
-                            <button type="button" class="btn btn-warning btn-sm" onclick="markAll('2')">
-                                <i class="fas fa-clock me-1"></i>Mark All Late
+                            <button type="button" class="btn btn-sm btn-warning mb-2" onclick="markAll('2')">
+                                <i class="fas fa-clock me-1"></i>Mark All Late (Ctrl+L)
                             </button>
+                        <div id="attendanceStats" class="mt-2 mt-md-0">
+                            <span class="badge bg-success me-1">
+                                <i class="fas fa-check me-1"></i>Present: <span id="presentCount">0</span>
+                            </span>
+                            <span class="badge bg-danger me-1">
+                                <i class="fas fa-times me-1"></i>Absent: <span id="absentCount">0</span>
+                            </span>
+                            <span class="badge bg-warning text-dark">
+                                <i class="fas fa-clock me-1"></i>Late: <span id="lateCount">0</span>
+                            </span>
                         </div>
-                    }
+                    </div>
 
                     <div class="table-responsive">
                         <table class="table table-bordered table-hover">
                             <thead class="table-light">
                                 <tr>
-                                    <th width="10%">Roll No</th>
-                                    <th width="30%">Student Name</th>
-                                    <th width="15%">Batch</th>
-                                    <th width="15%">Section</th>
-                                    <th width="30%">Status</th>
+                                    <th width="8%">Roll No</th>
+                                    <th width="25%">Student Name</th>
+                                    <th width="12%">Batch</th>
+                                    <th width="12%">Section</th>
+                                    <th width="25%">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -138,6 +147,7 @@
                                                 <option value="2" class="text-warning">⏰ Late</option>
                                             </select>
                                         </td>
+                                        
                                     </tr>
                                 }
                             </tbody>
@@ -186,9 +196,51 @@
 </div>
 
 @section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        function setStatus(index, status) {
+            // Set the status for a specific student
+            $('select[name="Students[' + index + '].Status"]').val(status);
+            updateSelectColor($('select[name="Students[' + index + '].Status"]')[0]);
+            updateStats();
+        }
+
         function markAll(status) {
+            // Update all attendance select dropdowns
             $('.attendance-select').val(status);
+            
+            // Update colors for all selects
+            $('.attendance-select').each(function() {
+                updateSelectColor(this);
+            });
+
+            // Update statistics
+            updateStats();
+
+            // Show confirmation toast
+            let statusText = status == '0' ? 'Present' : (status == '1' ? 'Absent' : 'Late');
+            let icon = status == '0' ? 'check-circle' : (status == '1' ? 'times-circle' : 'clock');
+            let bgClass = status == '0' ? 'bg-success' : (status == '1' ? 'bg-danger' : 'bg-warning');
+            
+            // Create toast notification
+            let toast = `<div class="toast-notification ${bgClass} text-white" style="position: fixed; top: 80px; right: 20px; padding: 15px 20px; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 9999; animation: slideIn 0.3s ease-out;">
+                <i class="fas fa-${icon} me-2"></i>All students marked as ${statusText}
+            </div>`;
+            
+            $('body').append(toast);
+            setTimeout(function() {
+                $('.toast-notification').fadeOut(300, function() { $(this).remove(); });
+            }, 2000);
+        }
+
+        function updateStats() {
+            var presentCount = $('.attendance-select option[value="0"]:selected').length;
+            var absentCount = $('.attendance-select option[value="1"]:selected').length;
+            var lateCount = $('.attendance-select option[value="2"]:selected').length;
+            
+            $('#presentCount').text(presentCount);
+            $('#absentCount').text(absentCount);
+            $('#lateCount').text(lateCount);
         }
 
         // Style select options based on value
@@ -196,11 +248,12 @@
             updateSelectColor(this);
         }).on('change', function() {
             updateSelectColor(this);
+            updateStats();
         });
 
         function updateSelectColor(selectElement) {
             var value = $(selectElement).val();
-            $(selectElement).removeClass('bg-success bg-danger bg-warning text-white');
+            $(selectElement).removeClass('bg-success bg-danger bg-warning text-white text-dark');
             if (value == '0') {
                 $(selectElement).addClass('bg-success text-white');
             } else if (value == '1') {
@@ -209,5 +262,58 @@
                 $(selectElement).addClass('bg-warning text-dark');
             }
         }
+
+        // Initialize stats on page load
+        $(document).ready(function() {
+            updateStats();
+        });
+
+        // Add keyboard shortcuts
+        $(document).on('keydown', function(e) {
+            // Ctrl+P for Present
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                markAll('0');
+            }
+            // Ctrl+A for Absent (but not Ctrl+A for Select All)
+            if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+                e.preventDefault();
+                markAll('1');
+            }
+            // Ctrl+L for Late
+            if (e.ctrlKey && e.key === 'l') {
+                e.preventDefault();
+                markAll('2');
+            }
+        });
+
+        // Confirm before submitting
+        $('form[method="post"]').on('submit', function(e) {
+            var presentCount = $('.attendance-select option[value="0"]:selected').length;
+            var absentCount = $('.attendance-select option[value="1"]:selected').length;
+            var lateCount = $('.attendance-select option[value="2"]:selected').length;
+            var totalCount = presentCount + absentCount + lateCount;
+            
+            if (!confirm(`Are you sure you want to save attendance for ${totalCount} students?\n\nPresent: ${presentCount}\nAbsent: ${absentCount}\nLate: ${lateCount}`)) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // Add animation for toast
+        $('<style>')
+            .text(`
+                @@keyframes slideIn {
+                    from {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+            `)
+            .appendTo('head');
     </script>
 }
