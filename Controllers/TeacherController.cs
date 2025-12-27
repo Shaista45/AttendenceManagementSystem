@@ -121,12 +121,17 @@ namespace AttendenceManagementSystem.Controllers
             // Get students enrolled in the selected course for teacher's batches/sections
             var students = await GetStudentsForCourseAsync(teacher.Id, selectedCourseId.Value);
 
-            // Get existing attendance for the date
-            var existingAttendance = await _context.Attendances
-                .Where(a => a.CourseId == selectedCourseId.Value &&
-                           a.Date == selectedDate &&
-                           students.Select(s => s.Id).Contains(a.StudentId))
-                .ToDictionaryAsync(a => a.StudentId, a => a.Status);
+            // Extract student IDs for query
+            var studentIds = students.Select(s => s.Id).ToList();
+
+            // Get existing attendance for the date (load all for the course/date first to avoid SQL Server 2014 OPENJSON issue)
+            var allAttendanceForDate = await _context.Attendances
+                .Where(a => a.CourseId == selectedCourseId.Value && a.Date == selectedDate)
+                .ToListAsync();
+            
+            var existingAttendance = allAttendanceForDate
+                .Where(a => studentIds.Contains(a.StudentId))
+                .ToDictionary(a => a.StudentId, a => a.Status);
 
             var viewModel = new MarkAttendanceViewModel
             {
