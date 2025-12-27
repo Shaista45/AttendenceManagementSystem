@@ -1,0 +1,239 @@
+@model AttendenceManagementSystem.ViewModels.StudentSummaryListViewModel
+@{
+    ViewData["Title"] = "Student Summary";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-users me-2"></i>Student Attendance Summary
+        </h1>
+        <a asp-action="Dashboard" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Filters Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-primary text-white">
+            <h6 class="m-0 font-weight-bold">
+                <i class="fas fa-filter me-2"></i>Filters
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="get" asp-action="StudentSummary" id="filterForm">
+                <div class="row">
+                    <!-- Course Selection -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-book me-1"></i>Course *
+                        </label>
+                        <select name="courseId" class="form-select" onchange="this.form.submit()" required>
+                            <option value="">-- Select Course --</option>
+                            @foreach (var course in Model.Courses)
+                            {
+                                <option value="@course.Id" selected="@(Model.CourseId == course.Id)">
+                                    @course.Code - @course.Title
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Batch Selection -->
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-calendar-alt me-1"></i>Batch *
+                        </label>
+                        <select name="batchId" class="form-select" onchange="this.form.submit()" required>
+                            <option value="">-- Select Batch --</option>
+                            @foreach (var batch in Model.Batches)
+                            {
+                                <option value="@batch.Id" selected="@(Model.BatchId == batch.Id)">
+                                    @batch.Year
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Section Selection -->
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-users me-1"></i>Section *
+                        </label>
+                        <select name="sectionId" class="form-select" onchange="this.form.submit()" required>
+                            <option value="">-- Select Section --</option>
+                            @foreach (var sec in Model.Sections)
+                            {
+                                <option value="@sec.Id" selected="@(Model.SectionId == sec.Id)">
+                                    @sec.Name
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- From Date -->
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-calendar me-1"></i>From Date
+                        </label>
+                        <input type="date" name="fromDate" value="@Model.FromDate.ToString("yyyy-MM-dd")" 
+                               class="form-control" onchange="this.form.submit()" />
+                    </div>
+
+                    <!-- To Date -->
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-calendar me-1"></i>To Date
+                        </label>
+                        <input type="date" name="toDate" value="@Model.ToDate.ToString("yyyy-MM-dd")" 
+                               class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")" 
+                               onchange="this.form.submit()" />
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results Card -->
+    @if (Model.Students.Any())
+    {
+        <div class="card shadow">
+            <div class="card-header py-3 bg-success text-white">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="fas fa-list me-2"></i>
+                    Student List - @Model.Students.Count Students
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover" id="studentsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="10%">Roll No</th>
+                                <th width="25%">Student Name</th>
+                                <th width="10%">Batch</th>
+                                <th width="10%">Section</th>
+                                <th width="10%">Total Classes</th>
+                                <th width="10%">Present</th>
+                                <th width="10%">Percentage</th>
+                                <th width="10%">Status</th>
+                                <th width="5%">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var student in Model.Students.OrderBy(s => s.RollNumber))
+                            {
+                                <tr class="@(student.AttendancePercentage < 65 ? "table-danger" : "")">
+                                    <td><strong>@student.RollNumber</strong></td>
+                                    <td>@student.StudentName</td>
+                                    <td>@student.BatchYear</td>
+                                    <td>@student.SectionName</td>
+                                    <td class="text-center">@student.TotalClasses</td>
+                                    <td class="text-center">@student.PresentCount</td>
+                                    <td class="text-center">
+                                        <strong class="text-@student.StatusColor">
+                                            @student.AttendancePercentage.ToString("F2")%
+                                        </strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-@student.StatusColor">
+                                            @student.Status
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <a asp-action="StudentDetail" 
+                                           asp-route-id="@student.StudentId"
+                                           asp-route-courseId="@Model.CourseId"
+                                           asp-route-fromDate="@Model.FromDate.ToString("yyyy-MM-dd")"
+                                           asp-route-toDate="@Model.ToDate.ToString("yyyy-MM-dd")"
+                                           class="btn btn-sm btn-info" 
+                                           title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Summary Statistics -->
+                <div class="row mt-4">
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted">Total Students</h6>
+                                <h3 class="text-primary">@Model.Students.Count</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted">Good Attendance (≥75%)</h6>
+                                <h3 class="text-success">@Model.Students.Count(s => s.AttendancePercentage >= 75)</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted">Warning (65-74%)</h6>
+                                <h3 class="text-warning">@Model.Students.Count(s => s.AttendancePercentage >= 65 && s.AttendancePercentage < 75)</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted">Shortage (&lt;65%)</h6>
+                                <h3 class="text-danger">@Model.Students.Count(s => s.AttendancePercentage < 65)</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (Model.CourseId.HasValue && Model.BatchId.HasValue && Model.SectionId.HasValue)
+    {
+        <div class="card shadow">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No students found for the selected criteria</h5>
+                <p class="text-muted">Please adjust your filters and try again.</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-hand-pointer fa-3x text-primary mb-3"></i>
+                <h5 class="text-primary">Please select filters to view student summary</h5>
+                <p class="text-muted">Use the filters above to search for students in your assigned courses.</p>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#studentsTable').DataTable({
+                "pageLength": 25,
+                "order": [[6, "asc"]], // Sort by percentage ascending to show shortage first
+                "language": {
+                    "emptyTable": "No students found"
+                }
+            });
+        });
+    </script>
+}

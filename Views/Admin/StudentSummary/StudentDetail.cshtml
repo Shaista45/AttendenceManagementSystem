@@ -1,0 +1,270 @@
+@model AttendenceManagementSystem.ViewModels.StudentDetailViewModel
+@{
+    ViewData["Title"] = "Student Detail";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-user me-2"></i>Student Attendance Details
+        </h1>
+        <a href="javascript:history.back()" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back
+        </a>
+    </div>
+
+    <!-- Student Information Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-primary text-white">
+            <h6 class="m-0 font-weight-bold">
+                <i class="fas fa-user-circle me-2"></i>Student Information
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td width="40%" class="fw-bold">Roll Number:</td>
+                            <td>@Model.RollNumber</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Full Name:</td>
+                            <td>@Model.FullName</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Email:</td>
+                            <td>@Model.Email</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Phone:</td>
+                            <td>@Model.PhoneNumber</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td width="40%" class="fw-bold">Department:</td>
+                            <td>@Model.DepartmentName</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Batch:</td>
+                            <td>@Model.BatchYear</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Section:</td>
+                            <td>@Model.SectionName</td>
+                        </tr>
+                        @if (!string.IsNullOrEmpty(Model.CourseName))
+                        {
+                            <tr>
+                                <td class="fw-bold">Course:</td>
+                                <td>@Model.CourseCode - @Model.CourseName</td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.CourseId.HasValue)
+    {
+        <!-- Attendance Summary Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-@Model.StatusColor text-white">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="fas fa-chart-pie me-2"></i>Attendance Summary
+                    <span class="badge bg-light text-dark ms-2">
+                        @Model.FromDate.ToString("MMM dd, yyyy") - @Model.ToDate.ToString("MMM dd, yyyy")
+                    </span>
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-2">
+                        <div class="border rounded p-3 bg-light">
+                            <i class="fas fa-calendar-check fa-2x text-primary mb-2"></i>
+                            <h4 class="mb-0">@Model.TotalClasses</h4>
+                            <small class="text-muted">Total Classes</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded p-3 bg-light">
+                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                            <h4 class="mb-0 text-success">@Model.PresentCount</h4>
+                            <small class="text-muted">Present</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded p-3 bg-light">
+                            <i class="fas fa-times-circle fa-2x text-danger mb-2"></i>
+                            <h4 class="mb-0 text-danger">@Model.AbsentCount</h4>
+                            <small class="text-muted">Absent</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded p-3 bg-light">
+                            <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                            <h4 class="mb-0 text-warning">@Model.LateCount</h4>
+                            <small class="text-muted">Late</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded p-3 bg-@Model.StatusColor">
+                            <i class="fas fa-percentage fa-2x text-white mb-2"></i>
+                            <h4 class="mb-0 text-white">@Model.AttendancePercentage.ToString("F2")%</h4>
+                            <small class="text-white">Percentage</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border rounded p-3 bg-@Model.StatusColor">
+                            <i class="fas fa-signal fa-2x text-white mb-2"></i>
+                            <h4 class="mb-0 text-white">@Model.Status</h4>
+                            <small class="text-white">Status</small>
+                        </div>
+                    </div>
+                </div>
+
+                @if (Model.AttendancePercentage < 65)
+                {
+                    <div class="alert alert-danger mt-4 mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> This student has low attendance (&lt;65%) and may face attendance shortage issues.
+                    </div>
+                }
+                else if (Model.AttendancePercentage < 75)
+                {
+                    <div class="alert alert-warning mt-4 mb-0">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <strong>Notice:</strong> This student's attendance is below the recommended 75% threshold.
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-success mt-4 mb-0">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Good:</strong> This student has excellent attendance (≥75%).
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Attendance History Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-info text-white">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="fas fa-history me-2"></i>Attendance History
+                </h6>
+            </div>
+            <div class="card-body">
+                @if (Model.AttendanceHistory.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="historyTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="15%">Date</th>
+                                    <th width="30%">Course</th>
+                                    <th width="15%">Status</th>
+                                    <th width="25%">Remarks</th>
+                                    <th width="15%">Marked At</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.AttendanceHistory)
+                                {
+                                    <tr class="@(item.Status == AttendenceManagementSystem.Models.AttendanceStatus.Absent ? "table-danger" : 
+                                                 item.Status == AttendenceManagementSystem.Models.AttendanceStatus.Late ? "table-warning" : "")">
+                                        <td>
+                                            <strong>@item.Date.ToString("MMM dd, yyyy")</strong><br/>
+                                            <small class="text-muted">@item.Date.ToString("dddd")</small>
+                                        </td>
+                                        <td>
+                                            <strong>@item.CourseCode</strong><br/>
+                                            <small class="text-muted">@item.CourseName</small>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-@item.StatusColor fs-6">
+                                                @if (item.Status == AttendenceManagementSystem.Models.AttendanceStatus.Present)
+                                                {
+                                                    <i class="fas fa-check me-1"></i>
+                                                }
+                                                else if (item.Status == AttendenceManagementSystem.Models.AttendanceStatus.Absent)
+                                                {
+                                                    <i class="fas fa-times me-1"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-clock me-1"></i>
+                                                }
+                                                @item.StatusText
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(item.Remarks))
+                                            {
+                                                <span>@item.Remarks</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted fst-italic">No remarks</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (item.MarkedAt.HasValue)
+                                            {
+                                                <span>@item.MarkedAt.Value.ToString("MMM dd, yyyy")</span><br/>
+                                                <small class="text-muted">@item.MarkedAt.Value.ToString("hh:mm tt")</small>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No attendance records found</h5>
+                        <p class="text-muted">No attendance has been marked for this student in the selected date range.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-info-circle fa-3x text-info mb-3"></i>
+                <h5 class="text-info">No course selected</h5>
+                <p class="text-muted">Please select a course from the Student Summary page to view attendance details.</p>
+                <a asp-action="StudentSummary" class="btn btn-primary mt-3">
+                    <i class="fas fa-arrow-left me-2"></i>Go to Student Summary
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#historyTable').DataTable({
+                "pageLength": 25,
+                "order": [[0, "desc"]], // Sort by date descending
+                "language": {
+                    "emptyTable": "No attendance records found"
+                }
+            });
+        });
+    </script>
+}

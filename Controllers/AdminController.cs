@@ -2347,5 +2347,210 @@ namespace AttendenceManagementSystem.Controllers
         }
 
         #endregion
+
+        #region Student Summary
+
+        public async Task<IActionResult> StudentSummary(int? courseId, int? batchId, int? sectionId, DateTime? fromDate, DateTime? toDate)
+        {
+            var viewModel = new StudentSummaryListViewModel
+            {
+                FromDate = fromDate ?? DateTime.Now.AddMonths(-1),
+                ToDate = toDate ?? DateTime.Now,
+                CourseId = courseId,
+                BatchId = batchId,
+                SectionId = sectionId
+            };
+
+            // Load filters
+            viewModel.Courses = await _context.Courses
+                .OrderBy(c => c.Title)
+                .ToListAsync();
+
+            viewModel.Batches = await _context.Batches
+                .OrderBy(b => b.Year)
+                .ToListAsync();
+
+            if (batchId.HasValue)
+            {
+                viewModel.Sections = await _context.Sections
+                    .Where(s => s.BatchId == batchId.Value)
+                    .OrderBy(s => s.Name)
+                    .ToListAsync();
+            }
+
+            // If filters are applied, get student data
+            if (courseId.HasValue && batchId.HasValue && sectionId.HasValue)
+            {
+                var students = await _context.Students
+                    .Where(s => s.BatchId == batchId.Value && s.SectionId == sectionId.Value)
+                    .Include(s => s.Batch)
+                    .Include(s => s.Section)
+                    .ToListAsync();
+
+                foreach (var student in students)
+                {
+                    // Get attendance records for the student in the selected course and date range
+                    var fromDateOnly = DateOnly.FromDateTime(viewModel.FromDate);
+                    var toDateOnly = DateOnly.FromDateTime(viewModel.ToDate);
+                    
+                    var attendanceRecords = await _context.Attendances
+                        .Where(a => a.StudentId == student.Id 
+                                    && a.CourseId == courseId.Value 
+                                    && a.Date >= fromDateOnly 
+                                    && a.Date <= toDateOnly)
+                        .ToListAsync();
+
+                    var totalClasses = attendanceRecords.Count;
+                    var presentCount = attendanceRecords.Count(a => a.Status == AttendanceStatus.Present);
+                    var absentCount = attendanceRecords.Count(a => a.Status == AttendanceStatus.Absent);
+                    var percentage = totalClasses > 0 ? (double)presentCount / totalClasses * 100 : 0;
+
+                    string status;
+                    string statusColor;
+
+                    if (percentage >= 75)
+                    {
+                        status = "Good";
+                        statusColor = "success";
+                    }
+                    else if (percentage >= 65)
+                    {
+                        status = "Warning";
+                        statusColor = "warning";
+                    }
+                    else
+                    {
+                        status = "Shortage";
+                        statusColor = "danger";
+                    }
+
+                    viewModel.Students.Add(new StudentSummaryItem
+                    {
+                        StudentId = student.Id,
+                        RollNumber = student.RollNumber,
+                        StudentName = student.FullName,
+                        BatchYear = student.Batch?.Year ?? "",
+                        SectionName = student.Section?.Name ?? "",
+                        TotalClasses = totalClasses,
+                        PresentCount = presentCount,
+                        AbsentCount = absentCount,
+                        AttendancePercentage = Math.Round(percentage, 2),
+                        Status = status,
+                        StatusColor = statusColor
+                    });
+                }
+            }
+
+            return View(viewModel);
+        }
+
+        public async Task<IActionResult> StudentDetail(int id, int? courseId, DateTime? fromDate, DateTime? toDate)
+        {
+            var student = await _context.Students
+                .Include(s => s.Batch)
+                .Include(s => s.Section)
+                .Include(s => s.Department)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (student == null)
+            {
+                ShowErrorMessage("Student not found.");
+                return RedirectToAction(nameof(StudentSummary));
+            }
+
+            var viewModel = new StudentDetailViewModel
+            {
+                StudentId = student.Id,
+                RollNumber = student.RollNumber,
+                FullName = student.FullName,
+                Email = student.Email ?? "",
+                PhoneNumber = student.PhoneNumber ?? "",
+                BatchYear = student.Batch?.Year ?? "",
+                SectionName = student.Section?.Name ?? "",
+                DepartmentName = student.Department?.Name ?? "",
+                FromDate = fromDate ?? DateTime.Now.AddMonths(-1),
+                ToDate = toDate ?? DateTime.Now,
+                CourseId = courseId
+            };
+
+            // Get course info if courseId is provided
+            if (courseId.HasValue)
+            {
+                var course = await _context.Courses.FindAsync(courseId.Value);
+                if (course != null)
+                {
+                    viewModel.CourseName = course.Title;
+                    viewModel.CourseCode = course.Code;
+                }
+
+                // Get attendance records
+                var fromDateOnly = DateOnly.FromDateTime(viewModel.FromDate);
+                var toDateOnly = DateOnly.FromDateTime(viewModel.ToDate);
+                
+                var attendanceRecords = await _context.Attendances
+                    .Where(a => a.StudentId == id 
+                                && a.CourseId == courseId.Value 
+                                && a.Date >= fromDateOnly 
+                                && a.Date <= toDateOnly)
+                    .Include(a => a.Course)
+                    .OrderByDescending(a => a.Date)
+                    .ToListAsync();
+
+                viewModel.TotalClasses = attendanceRecords.Count;
+                viewModel.PresentCount = attendanceRecords.Count(a => a.Status == AttendanceStatus.Present);
+                viewModel.AbsentCount = attendanceRecords.Count(a => a.Status == AttendanceStatus.Absent);
+                viewModel.LateCount = attendanceRecords.Count(a => a.Status == AttendanceStatus.Late);
+                
+                if (viewModel.TotalClasses > 0)
+                {
+                    viewModel.AttendancePercentage = Math.Round((double)viewModel.PresentCount / viewModel.TotalClasses * 100, 2);
+                }
+
+                if (viewModel.AttendancePercentage >= 75)
+                {
+                    viewModel.Status = "Good";
+                    viewModel.StatusColor = "success";
+                }
+                else if (viewModel.AttendancePercentage >= 65)
+                {
+                    viewModel.Status = "Warning";
+                    viewModel.StatusColor = "warning";
+                }
+                else
+                {
+                    viewModel.Status = "Shortage";
+                    viewModel.StatusColor = "danger";
+                }
+
+                // Build attendance history
+                foreach (var record in attendanceRecords)
+                {
+                    string statusText = record.Status.ToString();
+                    string statusColor = record.Status switch
+                    {
+                        AttendanceStatus.Present => "success",
+                        AttendanceStatus.Absent => "danger",
+                        AttendanceStatus.Late => "warning",
+                        _ => "secondary"
+                    };
+
+                    viewModel.AttendanceHistory.Add(new AttendanceHistoryItem
+                    {
+                        Date = record.Date.ToDateTime(TimeOnly.MinValue),
+                        CourseName = record.Course?.Title ?? "",
+                        CourseCode = record.Course?.Code ?? "",
+                        Status = record.Status,
+                        StatusText = statusText,
+                        StatusColor = statusColor,
+                        Remarks = record.Remarks ?? "",
+                        MarkedAt = record.MarkedAt
+                    });
+                }
+            }
+
+            return View(viewModel);
+        }
+
+        #endregion
     }
 }

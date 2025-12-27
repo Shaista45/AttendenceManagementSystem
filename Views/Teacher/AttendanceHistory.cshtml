@@ -1,0 +1,185 @@
+@model List<AttendenceManagementSystem.Models.Attendance>
+@{
+    ViewData["Title"] = "Attendance History";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-history me-2"></i>Attendance History
+        </h1>
+        <a asp-action="MarkAttendance" class="btn btn-primary">
+            <i class="fas fa-edit me-2"></i>Mark Attendance
+        </a>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-filter me-2"></i>Filter Options
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="get" asp-action="AttendanceHistory">
+                <div class="row">
+                    <!-- Course Selection -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-book me-1"></i>Course
+                        </label>
+                        <select name="courseId" asp-items="@(ViewData["Courses"] as SelectList)"
+                                class="form-select" onchange="this.form.submit()">
+                        </select>
+                    </div>
+
+                    <!-- From Date -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-calendar me-1"></i>From Date
+                        </label>
+                        <input type="date" name="fromDate" value="@ViewData["FromDate"]" 
+                               class="form-control" />
+                    </div>
+
+                    <!-- To Date -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-calendar me-1"></i>To Date
+                        </label>
+                        <input type="date" name="toDate" value="@ViewData["ToDate"]" 
+                               class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                    </div>
+
+                    <!-- Filter Button -->
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-1"></i>Filter
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Attendance Records -->
+    <div class="card shadow">
+        <div class="card-header py-3 bg-primary text-white">
+            <h6 class="m-0 font-weight-bold">
+                <i class="fas fa-list me-2"></i>
+                Attendance Records (@Model.Count)
+            </h6>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Course</th>
+                                <th>Roll Number</th>
+                                <th>Student Name</th>
+                                <th>Status</th>
+                                <th>Marked At</th>
+                                <th>Source</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var attendance in Model)
+                            {
+                                <tr>
+                                    <td>@attendance.Date.ToString("dd MMM yyyy")</td>
+                                    <td>
+                                        <span class="badge bg-info">@attendance.Course.Code</span>
+                                        @attendance.Course.Title
+                                    </td>
+                                    <td>@attendance.Student.RollNumber</td>
+                                    <td>@attendance.Student.FullName</td>
+                                    <td>
+                                        @if (attendance.Status == AttendenceManagementSystem.Models.AttendanceStatus.Present)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>Present
+                                            </span>
+                                        }
+                                        else if (attendance.Status == AttendenceManagementSystem.Models.AttendanceStatus.Absent)
+                                        {
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times me-1"></i>Absent
+                                            </span>
+                                        }
+                                        else if (attendance.Status == AttendenceManagementSystem.Models.AttendanceStatus.Late)
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="fas fa-clock me-1"></i>Late
+                                            </span>
+                                        }
+
+                                    </td>
+                                    <td>
+                                        <small>@attendance.MarkedAt.ToString("dd MMM yyyy hh:mm tt")</small>
+                                    </td>
+                                    <td>
+                                        @if (attendance.Source == AttendenceManagementSystem.Models.AttendanceSource.Manual)
+                                        {
+                                            <span class="badge bg-primary">
+                                                <i class="fas fa-hand-pointer me-1"></i>Manual
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-file-excel me-1"></i>Excel
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Summary Statistics -->
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Summary:</strong>
+                            Total Records: @Model.Count |
+                            Present: @Model.Count(a => a.Status == AttendenceManagementSystem.Models.AttendanceStatus.Present) |
+                            Absent: @Model.Count(a => a.Status == AttendenceManagementSystem.Models.AttendanceStatus.Absent) |
+                            Late: @Model.Count(a => a.Status == AttendenceManagementSystem.Models.AttendanceStatus.Late)
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning text-center">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    No attendance records found for the selected criteria.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Initialize DataTables if available
+            if ($.fn.DataTable) {
+                $('table').DataTable({
+                    "order": [[0, "desc"]],
+                    "pageLength": 25,
+                    "language": {
+                        "emptyTable": "No attendance records available"
+                    }
+                });
+            }
+        });
+    </script>
+}

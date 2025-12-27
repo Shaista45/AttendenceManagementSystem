@@ -1,4 +1,4 @@
-﻿@model AttendenceManagementSystem.Controllers.MarkAttendanceViewModel
+﻿@model AttendenceManagementSystem.Controllers.TeacherController.MarkAttendanceViewModel
 @{
     ViewData["Title"] = "Mark Attendance";
 }
@@ -8,55 +8,110 @@
         <h1 class="h3 mb-0 text-gray-800">
             <i class="fas fa-edit me-2"></i>Mark Attendance
         </h1>
-        <div class="alert alert-warning mb-0">
+        <div class="alert alert-info mb-0 py-2">
             <i class="fas fa-info-circle me-2"></i>
-            Attendance can only be modified within @(DateTime.Now.AddDays(-2).ToString("dd MMM yyyy"))
+            Attendance can be modified within 2 days
+        </div>
+    </div>
+
+    <!-- Selection Form -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-primary text-white">
+            <h6 class="m-0 font-weight-bold">
+                <i class="fas fa-filter me-2"></i>Select Session, Section & Course
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="get" asp-action="MarkAttendance" id="filterForm">
+                <div class="row">
+                    <!-- Session/Batch Selection -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-calendar-alt me-1"></i>Session (Batch) *
+                        </label>
+                        <select name="batchId" asp-items="@(ViewData["Batches"] as SelectList)"
+                                class="form-select" onchange="this.form.submit()" required>
+                            <option value="">-- Select Session --</option>
+                        </select>
+                    </div>
+
+                    <!-- Section Selection -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-users me-1"></i>Section *
+                        </label>
+                        <select name="sectionId" asp-items="@(ViewData["Sections"] as SelectList)"
+                                class="form-select" onchange="this.form.submit()" required>
+                            <option value="">-- Select Section --</option>
+                        </select>
+                    </div>
+
+                    <!-- Course Selection -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-book me-1"></i>Course *
+                        </label>
+                        <select name="courseId" asp-items="@(ViewData["Courses"] as SelectList)"
+                                class="form-select" onchange="this.form.submit()" required>
+                            <option value="">-- Select Course --</option>
+                        </select>
+                    </div>
+
+                    <!-- Date Selection -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-calendar me-1"></i>Date *
+                        </label>
+                        <input type="date" name="date" value="@Model.Date.ToString("yyyy-MM-dd")" 
+                               class="form-control" onchange="this.form.submit()" 
+                               max="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 
     <!-- Attendance Form -->
-    <div class="card shadow">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Mark Attendance for @Model.Date.ToString("dd MMM yyyy")</h6>
-        </div>
-        <div class="card-body">
-            <form method="post" asp-action="MarkAttendance">
-                <input type="hidden" asp-for="CourseId" />
-                <input type="hidden" asp-for="Date" />
+    @if (Model.Students.Any())
+    {
+        <div class="card shadow">
+            <div class="card-header py-3 bg-success text-white">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Mark Attendance - @Model.Students.Count Students
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post" asp-action="MarkAttendance">
+                    <input type="hidden" asp-for="BatchId" />
+                    <input type="hidden" asp-for="SectionId" />
+                    <input type="hidden" asp-for="CourseId" />
+                    <input type="hidden" asp-for="Date" />
 
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <label class="form-label">Select Course</label>
-                        <select asp-for="CourseId" asp-items="@(ViewData["Courses"] as SelectList)"
-                                class="form-control" onchange="this.form.submit()">
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Date</label>
-                        <input type="date" asp-for="Date" class="form-control" onchange="this.form.submit()" />
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">&nbsp;</label>
-                        @if (!Model.CanEdit)
-                        {
-                            <div class="alert alert-danger p-2 text-center">
-                                <small>Locked</small>
-                            </div>
-                        }
-                    </div>
-                </div>
+                    @if (Model.CanEdit)
+                    {
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-success btn-sm me-2" onclick="markAll('0')">
+                                <i class="fas fa-check-double me-1"></i>Mark All Present
+                            </button>
+                            <button type="button" class="btn btn-danger btn-sm me-2" onclick="markAll('1')">
+                                <i class="fas fa-times-circle me-1"></i>Mark All Absent
+                            </button>
+                            <button type="button" class="btn btn-warning btn-sm" onclick="markAll('2')">
+                                <i class="fas fa-clock me-1"></i>Mark All Late
+                            </button>
+                        </div>
+                    }
 
-                @if (Model.Students.Any())
-                {
                     <div class="table-responsive">
                         <table class="table table-bordered table-hover">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Roll No</th>
-                                    <th>Student Name</th>
-                                    <th>Batch</th>
-                                    <th>Section</th>
-                                    <th>Status</th>
+                                    <th width="10%">Roll No</th>
+                                    <th width="30%">Student Name</th>
+                                    <th width="15%">Batch</th>
+                                    <th width="15%">Section</th>
+                                    <th width="30%">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -76,11 +131,11 @@
                                         <td>@Model.Students[i].Batch</td>
                                         <td>@Model.Students[i].Section</td>
                                         <td>
-                                            <select asp-for="@Model.Students[i].Status" class="form-control form-control-sm"
+                                            <select asp-for="@Model.Students[i].Status" class="form-select form-select-sm attendance-select"
                                                     disabled="@(!Model.CanEdit)">
-                                                <option value="0">Present</option>
-                                                <option value="1">Absent</option>
-                                                <option value="2">Late</option>
+                                                <option value="0" class="text-success">✓ Present</option>
+                                                <option value="1" class="text-danger">✗ Absent</option>
+                                                <option value="2" class="text-warning">⏰ Late</option>
                                             </select>
                                         </td>
                                     </tr>
@@ -99,21 +154,60 @@
                     }
                     else
                     {
-                        <div class="alert alert-info text-center">
+                        <div class="alert alert-danger mt-3">
                             <i class="fas fa-lock me-2"></i>
                             This attendance record is locked and cannot be modified.
                         </div>
                     }
-                }
-                else
-                {
-                    <div class="text-center py-4">
-                        <i class="fas fa-users fa-3x text-gray-300 mb-3"></i>
-                        <h5 class="text-gray-500">No Students Found</h5>
-                        <p class="text-muted">No students are enrolled in the selected course for your assigned batches.</p>
-                    </div>
-                }
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
+    }
+    else if (Model.CourseId > 0)
+    {
+        <div class="card shadow">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No students found for the selected criteria</h5>
+                <p class="text-muted">Please check if students are enrolled in this course and section.</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-hand-pointer fa-3x text-primary mb-3"></i>
+                <h5 class="text-primary">Please select Session, Section, and Course</h5>
+                <p class="text-muted">Use the dropdowns above to filter and mark attendance.</p>
+            </div>
+        </div>
+    }
 </div>
+
+@section Scripts {
+    <script>
+        function markAll(status) {
+            $('.attendance-select').val(status);
+        }
+
+        // Style select options based on value
+        $('.attendance-select').each(function() {
+            updateSelectColor(this);
+        }).on('change', function() {
+            updateSelectColor(this);
+        });
+
+        function updateSelectColor(selectElement) {
+            var value = $(selectElement).val();
+            $(selectElement).removeClass('bg-success bg-danger bg-warning text-white');
+            if (value == '0') {
+                $(selectElement).addClass('bg-success text-white');
+            } else if (value == '1') {
+                $(selectElement).addClass('bg-danger text-white');
+            } else if (value == '2') {
+                $(selectElement).addClass('bg-warning text-dark');
+            }
+        }
+    </script>
+}
