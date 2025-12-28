@@ -2,132 +2,178 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="hero-section bg-primary text-white py-5 rounded-3 mb-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h1 class="display-4 fw-bold mb-4"> 
-                    <i class="fas fa-calendar-check me-3"></i>Attendance Management System
+<div class="hero-section text-white py-5 mb-5 position-relative" style="background: linear-gradient(135deg, var(--uet-royal-blue) 0%, #000033 100%); border-radius: 0 0 50px 50px; margin-top: -1.5rem; padding-top: 5rem !important; overflow: hidden;">
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background-image: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.05) 0%, transparent 50%); pointer-events: none;"></div>
+    
+    <div class="container position-relative z-1">
+        <div class="row align-items-center min-vh-50">
+            <div class="col-lg-7 py-5">
+                <div class="d-inline-flex align-items-center bg-white bg-opacity-10 rounded-pill px-3 py-1 mb-4 border border-white border-opacity-25">
+                    <span class="badge bg-warning text-dark me-2">New</span>
+                    <small class="fw-bold">Real-time Attendance Tracking v2.0</small>
+                </div>
+                
+                <h1 class="display-4 fw-bold mb-4 lh-tight">
+                    Smart Attendance for <br/>
+                    <span class="text-warning">Future-Ready Universities</span>
                 </h1>
-                <p class="lead mb-4">
-                    Streamline your university attendance tracking with our comprehensive management system. 
-                    Designed for administrators, teachers, and students with role-based access and real-time reporting.
+                
+                <p class="lead mb-5 opacity-90" style="max-width: 600px; font-weight: 300;">
+                    Eliminate paperwork and streamline academic management. Empower faculty and students with our secure, role-based, and real-time attendance platform.
                 </p>
                 
                 @if (!User.Identity.IsAuthenticated)
                 {
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-                        <a class="btn btn-light btn-lg px-4 me-md-2" asp-controller="Account" asp-action="Login">
-                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                    <div class="d-flex flex-wrap gap-3">
+                        <a class="btn btn-warning btn-lg px-5 py-3 fw-bold shadow-lg" asp-controller="Account" asp-action="Login">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login Portal
                         </a>
-                        <a class="btn btn-outline-light btn-lg px-4" asp-controller="Account" asp-action="Register">
-                            <i class="fas fa-user-plus me-2"></i>Register
+                        <a class="btn btn-outline-light btn-lg px-5 py-3 fw-bold" asp-controller="Account" asp-action="Register">
+                            <i class="fas fa-user-plus me-2"></i>Register Now
                         </a>
                     </div>
                 }
                 else
                 {
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                    <div class="d-flex flex-wrap gap-3">
                         @if (User.IsInRole("Admin"))
                         {
-                            <a class="btn btn-light btn-lg px-4 me-md-2" asp-controller="Admin" asp-action="Dashboard">
-                                <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+                            <a class="btn btn-warning btn-lg px-4 py-3 fw-bold shadow-lg" asp-controller="Admin" asp-action="Dashboard">
+                                <i class="fas fa-tachometer-alt me-2"></i>Go to Admin Console
                             </a>
                         }
                         else if (User.IsInRole("Teacher"))
                         {
-                            <a class="btn btn-light btn-lg px-4 me-md-2" asp-controller="Teacher" asp-action="Dashboard">
-                                <i class="fas fa-tachometer-alt me-2"></i>Teacher Dashboard
+                            <a class="btn btn-warning btn-lg px-4 py-3 fw-bold shadow-lg" asp-controller="Teacher" asp-action="Dashboard">
+                                <i class="fas fa-chalkboard-teacher me-2"></i>Go to Faculty Console
                             </a>
                         }
                         else if (User.IsInRole("Student"))
                         {
-                            <a class="btn btn-light btn-lg px-4 me-md-2" asp-controller="Student" asp-action="Dashboard">
-                                <i class="fas fa-tachometer-alt me-2"></i>Student Dashboard
+                            <a class="btn btn-warning btn-lg px-4 py-3 fw-bold shadow-lg" asp-controller="Student" asp-action="Dashboard">
+                                <i class="fas fa-user-graduate me-2"></i>Go to Student Portal
                             </a>
                         }
                     </div>
                 }
             </div>
-            <div class="col-lg-6 text-center">
-                <img src="https://via.placeholder.com/500x300/ffffff/667eea?text=Attendance+System" 
-                     alt="Attendance System" class="img-fluid rounded shadow">
+            
+            <div class="col-lg-5 d-none d-lg-block">
+                <div class="position-relative" style="transform: perspective(1000px) rotateY(-10deg) rotateX(5deg);">
+                     <div class="card shadow-lg border-0 p-2 mb-3 bg-white" style="transform: translateX(20px); z-index: 2;">
+                        <div class="card-body">
+                             <div class="d-flex align-items-center mb-3">
+                                 <div class="bg-primary bg-opacity-10 rounded-circle p-3 text-primary me-3">
+                                     <i class="fas fa-chart-pie fa-lg"></i>
+                                 </div>
+                                 <div>
+                                     <h6 class="fw-bold mb-0 text-dark">Attendance Rate</h6>
+                                     <small class="text-muted">Department Average</small>
+                                 </div>
+                                 <h4 class="ms-auto fw-bold text-primary mb-0">94%</h4>
+                             </div>
+                             <div class="progress" style="height: 6px;">
+                                 <div class="progress-bar bg-primary" role="progressbar" style="width: 94%"></div>
+                             </div>
+                        </div>
+                     </div>
+                     
+                     <div class="card shadow-lg border-0 p-2 bg-light" style="transform: scale(0.95) translateX(-10px); z-index: 1; opacity: 0.9;">
+                         <div class="card-body">
+                             <div class="d-flex align-items-center">
+                                 <div class="bg-success bg-opacity-10 rounded-circle p-3 text-success me-3">
+                                     <i class="fas fa-check-circle fa-lg"></i>
+                                 </div>
+                                 <div>
+                                     <h6 class="fw-bold mb-0 text-dark">System Status</h6>
+                                     <small class="text-success fw-bold">All Services Online</small>
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="container">
-    <div class="row mb-5">
-        <div class="col-12 text-center">
-            <h2 class="fw-bold mb-4">Why Choose Our System?</h2>
+<div class="container py-5" style="margin-top: -2rem;">
+    <div class="row text-center mb-5">
+        <div class="col-lg-8 mx-auto">
+            <h6 class="text-primary fw-bold text-uppercase letter-spacing-2">Why Choose Us</h6>
+            <h2 class="fw-bold mb-3">Comprehensive Management Solutions</h2>
+            <p class="text-muted">Designed to meet the rigorous demands of modern academic institutions with security, efficiency, and professional style.</p>
         </div>
     </div>
 
     <div class="row g-4">
         <div class="col-md-4">
             <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center p-4">
-                    <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mx-auto mb-4" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                <div class="card-body p-4 text-center">
+                    <div class="mb-4 d-inline-flex p-3 rounded-circle bg-primary bg-opacity-10 text-primary">
                         <i class="fas fa-user-shield fa-2x"></i>
                     </div>
-                    <h5 class="card-title fw-bold">Admin Access</h5>
+                    <h5 class="card-title fw-bold text-dark">Admin Control</h5>
                     <p class="card-text text-muted">
-                        Manage departments, courses, teachers, and students. Generate comprehensive reports and maintain complete control over the system.
+                        Complete oversight of departments, courses, and user roles. Generate detailed institutional reports with a single click.
                     </p>
                 </div>
             </div>
         </div>
+
         <div class="col-md-4">
             <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center p-4">
-                    <div class="feature-icon bg-success bg-gradient text-white rounded-circle mx-auto mb-4" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                <div class="card-body p-4 text-center">
+                    <div class="mb-4 d-inline-flex p-3 rounded-circle bg-warning bg-opacity-10 text-dark">
                         <i class="fas fa-chalkboard-teacher fa-2x"></i>
                     </div>
-                    <h5 class="card-title fw-bold">Teacher Portal</h5>
+                    <h5 class="card-title fw-bold text-dark">Faculty Tools</h5>
                     <p class="card-text text-muted">
-                        Mark attendance, view student records, track class performance, and generate attendance reports with ease.
+                        Effortless attendance marking, real-time student history access, and automated shortage alerts for efficient class management.
                     </p>
                 </div>
             </div>
         </div>
+
         <div class="col-md-4">
             <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center p-4">
-                    <div class="feature-icon bg-info bg-gradient text-white rounded-circle mx-auto mb-4" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                <div class="card-body p-4 text-center">
+                    <div class="mb-4 d-inline-flex p-3 rounded-circle bg-info bg-opacity-10 text-info">
                         <i class="fas fa-user-graduate fa-2x"></i>
                     </div>
-                    <h5 class="card-title fw-bold">Student Dashboard</h5>
+                    <h5 class="card-title fw-bold text-dark">Student Portal</h5>
                     <p class="card-text text-muted">
-                        View attendance history, check timetable, download reports, and track your academic progress in real-time.
+                        Transparency in academic progress. View personal attendance records, timetables, and eligibility status instantly.
                     </p>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <div class="row mt-5">
-        <div class="col-12">
-            <div class="card border-0 shadow">
-                <div class="card-body p-5">
-                    <div class="row align-items-center">
-                        <div class="col-lg-8">
-                            <h3 class="fw-bold mb-3">Ready to Get Started?</h3>
-                            <p class="text-muted mb-4">
-                                Join thousands of educational institutions that trust our Attendance Management System 
-                                to streamline their academic processes and improve student engagement.
-                            </p>
-                            @if (!User.Identity.IsAuthenticated)
-                            {
-                                <a class="btn btn-primary btn-lg" asp-controller="Account" asp-action="Register">
-                                    <i class="fas fa-rocket me-2"></i>Get Started Today
-                                </a>
-                            }
-                        </div>
-                        <div class="col-lg-4 text-center">
-                            <i class="fas fa-graduation-cap fa-6x text-primary opacity-25"></i>
-                        </div>
+<div class="container pb-5 mb-5">
+    <div class="card border-0 shadow-lg overflow-hidden bg-white rounded-4">
+        <div class="row g-0">
+            <div class="col-lg-7 p-5 d-flex flex-column justify-content-center">
+                <h3 class="fw-bold text-primary mb-3">Ready to Transform Your Campus?</h3>
+                <p class="text-muted mb-4 lead">
+                    Join the digital revolution in academic management. Secure, fast, and reliable attendance tracking is just a click away.
+                </p>
+                @if (!User.Identity.IsAuthenticated)
+                {
+                    <div>
+                        <a class="btn btn-primary btn-lg shadow-sm px-4" asp-controller="Account" asp-action="Register">
+                            Get Started Now <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
                     </div>
+                }
+            </div>
+            <div class="col-lg-5 bg-light d-none d-lg-flex align-items-center justify-content-center p-5 position-relative overflow-hidden">
+                <i class="fas fa-university fa-10x text-primary position-absolute" style="opacity: 0.05; transform: rotate(-15deg) scale(1.5);"></i>
+                
+                <div class="text-center position-relative z-1">
+                    <div class="display-1 fw-bold text-primary mb-0">10k+</div>
+                    <div class="text-muted fw-bold">Students Managed</div>
                 </div>
             </div>
         </div>

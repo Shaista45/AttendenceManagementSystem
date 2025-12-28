@@ -2,179 +2,165 @@
     ViewData["Title"] = "Reports Dashboard";
 }
 
-<div class="container-fluid mt-4">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="mb-3">
-                <i class="bi bi-file-earmark-bar-graph"></i> Reports Dashboard
-            </h2>
-            <p class="text-muted">Generate and export various attendance reports with custom filters</p>
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h1 class="h3 mb-0 fw-bold text-primary">
+                <i class="fas fa-chart-line me-2"></i>Reports Center
+            </h1>
+            <p class="text-muted small mb-0">Generate comprehensive analytics and attendance records</p>
         </div>
+        <a asp-action="Dashboard" class="btn btn-outline-secondary btn-sm shadow-sm bg-white">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
     </div>
 
-    <div class="row g-4">
-        <!-- Student Attendance Report -->
+    <div class="row g-4 mb-4">
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 border-primary shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="flex-shrink-0">
-                            <i class="bi bi-person-check fs-1 text-primary"></i>
+            <div class="card h-100 border-0 shadow-hover transition-all">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary me-3">
+                            <i class="fas fa-user-check fa-2x"></i>
                         </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h5 class="card-title mb-0">Student Attendance Report</h5>
-                        </div>
+                        <h5 class="fw-bold text-dark mb-0">Student Attendance</h5>
                     </div>
-                    <p class="card-text">View detailed attendance records for students including present/absent counts and percentage. Highlights students below 75% attendance.</p>
-                    <a asp-action="StudentAttendanceReport" class="btn btn-primary w-100">
-                        <i class="bi bi-arrow-right-circle"></i> Generate Report
+                    <p class="text-muted small mb-4" style="min-height: 40px;">
+                        Detailed individual records with present/absent counts and percentage breakdowns.
+                    </p>
+                    <a asp-action="StudentAttendanceReport" class="btn btn-outline-primary w-100 fw-bold shadow-sm">
+                        View Report <i class="fas fa-arrow-right ms-2"></i>
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Course-wise Report -->
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 border-success shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="flex-shrink-0">
-                            <i class="bi bi-book fs-1 text-success"></i>
+            <div class="card h-100 border-0 shadow-hover transition-all">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success me-3">
+                            <i class="fas fa-book-reader fa-2x"></i>
                         </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h5 class="card-title mb-0">Course-wise Report</h5>
-                        </div>
+                        <h5 class="fw-bold text-dark mb-0">Course Analysis</h5>
                     </div>
-                    <p class="card-text">Analyze attendance statistics by course including total lectures, average attendance, and number of defaulters per course.</p>
-                    <a asp-action="CourseReport" class="btn btn-success w-100">
-                        <i class="bi bi-arrow-right-circle"></i> Generate Report
+                    <p class="text-muted small mb-4" style="min-height: 40px;">
+                        Course performance metrics including lecture counts and average class attendance.
+                    </p>
+                    <a asp-action="CourseReport" class="btn btn-outline-success w-100 fw-bold shadow-sm">
+                        View Report <i class="fas fa-arrow-right ms-2"></i>
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Teacher Report -->
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 border-info shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="flex-shrink-0">
-                            <i class="bi bi-person-badge fs-1 text-info"></i>
+            <div class="card h-100 border-0 shadow-hover transition-all">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-info bg-opacity-10 p-3 rounded-circle text-info me-3">
+                            <i class="fas fa-chalkboard-teacher fa-2x"></i>
                         </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h5 class="card-title mb-0">Teacher Report</h5>
-                        </div>
+                        <h5 class="fw-bold text-dark mb-0">Faculty Activity</h5>
                     </div>
-                    <p class="card-text">View teacher performance including assigned courses, total classes taken, and attendance marking status.</p>
-                    <a asp-action="TeacherReport" class="btn btn-info w-100">
-                        <i class="bi bi-arrow-right-circle"></i> Generate Report
+                    <p class="text-muted small mb-4" style="min-height: 40px;">
+                        Track teacher engagement, assigned courses, and class completion rates.
+                    </p>
+                    <a asp-action="TeacherReport" class="btn btn-outline-info w-100 fw-bold shadow-sm">
+                        View Report <i class="fas fa-arrow-right ms-2"></i>
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Daily Attendance Report -->
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 border-warning shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="flex-shrink-0">
-                            <i class="bi bi-calendar-check fs-1 text-warning"></i>
+            <div class="card h-100 border-0 shadow-hover transition-all">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-dark me-3">
+                            <i class="fas fa-calendar-day fa-2x"></i>
                         </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h5 class="card-title mb-0">Daily Attendance Report</h5>
-                        </div>
+                        <h5 class="fw-bold text-dark mb-0">Daily Log</h5>
                     </div>
-                    <p class="card-text">Track daily attendance records showing class-wise attendance for specific dates with present/absent counts.</p>
-                    <a asp-action="DailyAttendanceReport" class="btn btn-warning w-100">
-                        <i class="bi bi-arrow-right-circle"></i> Generate Report
+                    <p class="text-muted small mb-4" style="min-height: 40px;">
+                        Day-by-day attendance tracking across all departments and sections.
+                    </p>
+                    <a asp-action="DailyAttendanceReport" class="btn btn-outline-warning w-100 fw-bold shadow-sm text-dark">
+                        View Report <i class="fas fa-arrow-right ms-2"></i>
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Low Attendance (Defaulter) Report -->
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 border-danger shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="flex-shrink-0">
-                            <i class="bi bi-exclamation-triangle fs-1 text-danger"></i>
+            <div class="card h-100 border-0 shadow-hover transition-all">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-danger bg-opacity-10 p-3 rounded-circle text-danger me-3">
+                            <i class="fas fa-exclamation-triangle fa-2x"></i>
                         </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h5 class="card-title mb-0">Low Attendance Report</h5>
-                        </div>
+                        <h5 class="fw-bold text-dark mb-0">Shortage List</h5>
                     </div>
-                    <p class="card-text">Identify students with attendance below 75% threshold (defaulters) with shortfall details and required classes.</p>
-                    <a asp-action="LowAttendanceReport" class="btn btn-danger w-100">
-                        <i class="bi bi-arrow-right-circle"></i> Generate Report
+                    <p class="text-muted small mb-4" style="min-height: 40px;">
+                        Identify students below the 75% attendance threshold with shortfall details.
+                    </p>
+                    <a asp-action="LowAttendanceReport" class="btn btn-outline-danger w-100 fw-bold shadow-sm">
+                        View Report <i class="fas fa-arrow-right ms-2"></i>
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Summary Analytics -->
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 border-dark shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="flex-shrink-0">
-                            <i class="bi bi-bar-chart fs-1 text-dark"></i>
+            <div class="card h-100 border-0 shadow-hover transition-all">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-dark bg-opacity-10 p-3 rounded-circle text-dark me-3">
+                            <i class="fas fa-chart-pie fa-2x"></i>
                         </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h5 class="card-title mb-0">Summary Analytics</h5>
-                        </div>
+                        <h5 class="fw-bold text-dark mb-0">Analytics Hub</h5>
                     </div>
-                    <p class="card-text">View comprehensive dashboard with overall statistics, department-wise performance, and key attendance metrics.</p>
-                    <a asp-action="SummaryAnalytics" class="btn btn-dark w-100">
-                        <i class="bi bi-arrow-right-circle"></i> View Analytics
+                    <p class="text-muted small mb-4" style="min-height: 40px;">
+                        Visual dashboard with graphs and high-level institutional metrics.
+                    </p>
+                    <a asp-action="SummaryAnalytics" class="btn btn-outline-dark w-100 fw-bold shadow-sm">
+                        View Dashboard <i class="fas fa-arrow-right ms-2"></i>
                     </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card bg-light">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-info-circle"></i> Report Features
-                    </h5>
-                    <ul class="mb-0">
-                        <li>Apply custom filters: Department, Batch, Section, Course, and Date Range</li>
-                        <li>Export reports to PDF and Excel formats</li>
-                        <li>Print reports directly from browser</li>
-                        <li>Real-time data with automatic calculations</li>
-                        <li>Visual indicators for low attendance and defaulters</li>
+    <div class="card bg-light border-0 mb-4">
+        <div class="card-body p-4">
+            <h6 class="fw-bold text-primary mb-3">
+                <i class="fas fa-info-circle me-2"></i>Capabilities
+            </h6>
+            <div class="row g-3 small text-muted">
+                <div class="col-md-6">
+                    <ul class="mb-0 ps-3">
+                        <li class="mb-2">Apply granular filters: Department, Batch, Section, & Date Range</li>
+                        <li class="mb-2">Export data to Excel (.xlsx) and PDF formats</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="mb-0 ps-3">
+                        <li class="mb-2">Real-time calculation of attendance percentages</li>
+                        <li>Automatic flagging of defaulters and low-attendance cases</li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
-
-    <div class="row mt-3">
-        <div class="col-12">
-            <a asp-action="Dashboard" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Dashboard
-            </a>
-        </div>
-    </div>
 </div>
 
-@section Styles {
-    <style>
-        .card {
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-        }
-
-        .bi {
-            vertical-align: middle;
-        }
-    </style>
-}
+<style>
+    .shadow-hover:hover { 
+        transform: translateY(-5px); 
+        box-shadow: 0 1rem 3rem rgba(0,0,0,.1) !important; 
+        z-index: 10;
+    }
+    .transition-all { 
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+    }
+</style>

@@ -4,111 +4,150 @@
     ViewData["Title"] = "Manage Teachers";
 }
 
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0">
-            <i class="fas fa-chalkboard-teacher me-2"></i>Manage Teachers
-        </h2>
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
         <div>
-            <a asp-action="CreateTeacher" class="btn btn-primary me-2">
-                <i class="fas fa-plus me-2"></i>Add Teacher
+            <h1 class="h3 mb-0 fw-bold text-primary">
+                <i class="fas fa-chalkboard-teacher me-2"></i>Faculty Management
+            </h1>
+            <p class="text-muted small mb-0">Manage teacher profiles, account approvals, and course assignments</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="CreateTeacher" class="btn btn-primary shadow-sm">
+                <i class="fas fa-user-plus me-2"></i>Add Faculty
             </a>
-            <a asp-action="UploadTeachers" class="btn btn-success">
-                <i class="fas fa-file-excel me-2"></i>Upload Excel
+            <a asp-action="UploadTeachers" class="btn btn-success shadow-sm text-white">
+                <i class="fas fa-file-excel me-2"></i>Import Excel
             </a>
         </div>
     </div>
 
     @if (TempData["Message"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle me-2"></i>@TempData["Message"]
+        <div class="alert alert-success alert-dismissible fade show shadow-sm border-start border-4 border-success" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-check-circle me-2 fa-lg"></i>
+                <span>@TempData["Message"]</span>
+            </div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-start border-4 border-danger" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-circle me-2 fa-lg"></i>
+                <span>@TempData["ErrorMessage"]</span>
+            </div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
-    <div class="card shadow-sm">
-        <div class="card-body">
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <h6 class="m-0 fw-bold text-primary">
+                <i class="fas fa-list-ul me-2"></i>Faculty Directory
+            </h6>
+            <span class="badge bg-light text-primary border">@Model.Count Teachers</span>
+        </div>
+        
+        <div class="card-body p-0">
             @if (Model.Any())
             {
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light text-uppercase x-small text-muted">
                             <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Employee ID</th>
+                                <th class="ps-4">Name / ID</th>
+                                <th>Contact</th>
                                 <th>Department</th>
-                                <th>Assigned Courses</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th class="text-center">Workload</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-end pe-4">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="border-top-0">
                             @foreach (var teacher in Model)
                             {
                                 <tr>
-                                    <td>
-                                        <strong>@teacher.FullName</strong>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <span class="fw-bold">@teacher.FullName.Substring(0, 1).ToUpper()</span>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark">@teacher.FullName</div>
+                                                <small class="text-muted">ID: @(teacher.EmployeeId ?? "N/A")</small>
+                                            </div>
+                                        </div>
                                     </td>
-                                    <td>@teacher.Email</td>
-                                    <td>@(teacher.EmployeeId ?? "N/A")</td>
-                                    <td>@teacher.DepartmentName</td>
                                     <td>
-                                        <span class="badge bg-info">
+                                        <div class="d-flex flex-column small">
+                                            <span class="text-dark"><i class="fas fa-envelope text-muted me-2"></i>@teacher.Email</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">@teacher.DepartmentName</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-3">
                                             @teacher.AssignedCoursesCount @(teacher.AssignedCoursesCount == 1 ? "Course" : "Courses")
                                         </span>
                                     </td>
-                                    <td>
+                                    <td class="text-center">
                                         @if (teacher.IsApproved)
                                         {
-                                            <span class="badge bg-success">
-                                                <i class="fas fa-check-circle me-1"></i>Approved
-                                            </span>
+                                            @if(teacher.IsActive)
+                                            {
+                                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">
+                                                    <i class="fas fa-check-circle me-1"></i>Active
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2">
+                                                    <i class="fas fa-ban me-1"></i>Disabled
+                                                </span>
+                                            }
                                         }
                                         else
                                         {
-                                            <span class="badge bg-warning text-dark">
+                                            <span class="badge bg-warning bg-opacity-10 text-warning text-dark rounded-pill px-2">
                                                 <i class="fas fa-clock me-1"></i>Pending
                                             </span>
                                         }
                                     </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
+                                    <td class="text-end pe-4">
+                                        <div class="btn-group shadow-sm" role="group">
                                             <a asp-action="TeacherDetails" asp-route-id="@teacher.Id" 
-                                               class="btn btn-sm btn-info" title="View Details">
-                                                <i class="fas fa-eye"></i> View
+                                               class="btn btn-sm btn-light border" title="View Profile">
+                                                <i class="fas fa-eye text-primary"></i>
                                             </a>
                                             <a asp-action="EditTeacherInfo" asp-route-id="@teacher.Id" 
-                                               class="btn btn-sm btn-primary" title="Edit">
-                                                <i class="fas fa-edit"></i> Edit
+                                               class="btn btn-sm btn-light border" title="Edit Profile">
+                                                <i class="fas fa-edit text-info"></i>
                                             </a>
+                                            
                                             @if (!teacher.IsApproved)
                                             {
                                                 <form asp-action="ApproveTeacher" asp-route-id="@teacher.Id" method="post" class="d-inline">
                                                     @Html.AntiForgeryToken()
-                                                    <button type="submit" class="btn btn-sm btn-success" 
+                                                    <button type="submit" class="btn btn-sm btn-success rounded-0" 
                                                             title="Approve Teacher"
-                                                            onclick="return confirm('Approve @teacher.FullName? This will allow them to log in.');">
-                                                        <i class="fas fa-check"></i> Approve
+                                                            onclick="return confirm('Approve @teacher.FullName? This will grant system access.');">
+                                                        <i class="fas fa-check"></i>
                                                     </button>
                                                 </form>
                                             }
+                                            
                                             <form asp-action="DisableTeacher" asp-route-id="@teacher.Id" method="post" class="d-inline">
                                                 @Html.AntiForgeryToken()
                                                 <button type="submit" 
-                                                        class="btn btn-sm @(teacher.IsActive ? "btn-warning" : "btn-success")" 
-                                                        title="@(teacher.IsActive ? "Disable" : "Enable")"
+                                                        class="btn btn-sm btn-light border @(teacher.IsActive ? "text-danger hover-danger" : "text-success hover-success")" 
+                                                        title="@(teacher.IsActive ? "Disable Account" : "Enable Account")"
                                                         onclick="return confirm('@(teacher.IsActive ? "Disable" : "Enable") @teacher.FullName?');">
-                                                    <i class="fas fa-@(teacher.IsActive ? "ban" : "check-circle")"></i> @(teacher.IsActive ? "Disable" : "Enable")
+                                                    <i class="fas fa-@(teacher.IsActive ? "user-slash" : "user-check")"></i>
                                                 </button>
                                             </form>
                                         </div>
@@ -122,16 +161,24 @@
             else
             {
                 <div class="text-center py-5">
-                    <i class="fas fa-chalkboard-teacher fa-3x text-muted mb-3"></i>
-                    <p class="text-muted">No teachers found. Click "Add Teacher" to create one.</p>
+                    <div class="mb-3">
+                        <span class="bg-light p-3 rounded-circle text-muted">
+                            <i class="fas fa-chalkboard-teacher fa-3x opacity-50"></i>
+                        </span>
+                    </div>
+                    <h6 class="text-muted fw-bold">No Faculty Found</h6>
+                    <p class="text-muted small mb-3">Get started by adding a new teacher or importing a list.</p>
+                    <a asp-action="CreateTeacher" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i> Add First Teacher
+                    </a>
                 </div>
             }
         </div>
     </div>
-
-    <div class="mt-3">
-        <a asp-action="Dashboard" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
-        </a>
-    </div>
 </div>
+
+<style>
+    .x-small { font-size: 0.75rem; letter-spacing: 0.05em; }
+    .hover-danger:hover { background-color: #dc3545 !important; color: white !important; border-color: #dc3545 !important; }
+    .hover-success:hover { background-color: #198754 !important; color: white !important; border-color: #198754 !important; }
+</style>

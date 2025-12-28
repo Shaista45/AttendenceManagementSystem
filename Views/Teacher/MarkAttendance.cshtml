@@ -3,67 +3,65 @@
     ViewData["Title"] = "Mark Attendance";
 }
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-edit me-2"></i>Mark Attendance
-        </h1>
-        <div class="alert alert-info mb-0 py-2">
-            <i class="fas fa-info-circle me-2"></i>
-            Attendance can be modified within 2 days
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h1 class="h3 mb-0 fw-bold text-primary">
+                <i class="fas fa-edit me-2"></i>Mark Attendance
+            </h1>
+            <p class="text-muted small mb-0">Manage daily class attendance records</p>
+        </div>
+        <div class="alert alert-soft-primary mb-0 py-2 px-3 border-start border-4 border-info shadow-sm d-flex align-items-center">
+            <i class="fas fa-info-circle me-2 text-info"></i>
+            <span class="small fw-semibold text-primary">Attendance modification window: <strong>2 days</strong></span>
         </div>
     </div>
 
-    <!-- Selection Form -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 bg-primary text-white">
-            <h6 class="m-0 font-weight-bold">
-                <i class="fas fa-filter me-2"></i>Select Session, Section & Course
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h6 class="m-0 fw-bold text-primary">
+                <i class="fas fa-filter me-2"></i>Class Configuration
             </h6>
         </div>
-        <div class="card-body">
+        <div class="card-body bg-light bg-opacity-10">
             <form method="get" asp-action="MarkAttendance" id="filterForm">
-                <div class="row">
-                    <!-- Session/Batch Selection -->
+                <div class="row g-3">
                     <div class="col-md-3">
-                        <label class="form-label fw-bold">
-                            <i class="fas fa-calendar-alt me-1"></i>Session (Batch) *
+                        <label class="form-label text-uppercase x-small fw-bold text-muted">
+                            Session (Batch)
                         </label>
                         <select name="batchId" asp-items="@(ViewData["Batches"] as SelectList)"
-                                class="form-select" onchange="this.form.submit()" required>
-                            <option value="">-- Select Session --</option>
+                                class="form-select border-0 shadow-sm" onchange="this.form.submit()" required>
+                            <option value="">-- Select Batch --</option>
                         </select>
                     </div>
 
-                    <!-- Section Selection -->
                     <div class="col-md-3">
-                        <label class="form-label fw-bold">
-                            <i class="fas fa-users me-1"></i>Section *
+                        <label class="form-label text-uppercase x-small fw-bold text-muted">
+                            Section
                         </label>
                         <select name="sectionId" asp-items="@(ViewData["Sections"] as SelectList)"
-                                class="form-select" onchange="this.form.submit()" required>
+                                class="form-select border-0 shadow-sm" onchange="this.form.submit()" required>
                             <option value="">-- Select Section --</option>
                         </select>
                     </div>
 
-                    <!-- Course Selection -->
                     <div class="col-md-3">
-                        <label class="form-label fw-bold">
-                            <i class="fas fa-book me-1"></i>Course *
+                        <label class="form-label text-uppercase x-small fw-bold text-muted">
+                            Course
                         </label>
                         <select name="courseId" asp-items="@(ViewData["Courses"] as SelectList)"
-                                class="form-select" onchange="this.form.submit()" required>
+                                class="form-select border-0 shadow-sm" onchange="this.form.submit()" required>
                             <option value="">-- Select Course --</option>
                         </select>
                     </div>
 
-                    <!-- Date Selection -->
                     <div class="col-md-3">
-                        <label class="form-label fw-bold">
-                            <i class="fas fa-calendar me-1"></i>Date *
+                        <label class="form-label text-uppercase x-small fw-bold text-muted">
+                            Date
                         </label>
                         <input type="date" name="date" value="@Model.Date.ToString("yyyy-MM-dd")" 
-                               class="form-control" onchange="this.form.submit()" 
+                               class="form-control border-0 shadow-sm" onchange="this.form.submit()" 
                                max="@DateTime.Now.ToString("yyyy-MM-dd")" required />
                     </div>
                 </div>
@@ -71,66 +69,61 @@
         </div>
     </div>
 
-    <!-- Attendance Form -->
     @if (Model.Students.Any())
     {
-        <div class="card shadow">
-            <div class="card-header py-3 bg-success text-white">
-                <h6 class="m-0 font-weight-bold">
-                    <i class="fas fa-check-circle me-2"></i>
-                    Mark Attendance - @Model.Students.Count Students
+        <div class="card shadow border-0 mb-5">
+            <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 fw-bold">
+                    <i class="fas fa-list-ol me-2"></i>Student List
                 </h6>
+                <span class="badge bg-white text-primary rounded-pill px-3">
+                    @Model.Students.Count Students
+                </span>
             </div>
-            <div class="card-body">
+            
+            <div class="card-body p-0">
                 <form method="post" asp-action="MarkAttendance">
                     <input type="hidden" asp-for="BatchId" />
                     <input type="hidden" asp-for="SectionId" />
                     <input type="hidden" asp-for="CourseId" />
                     <input type="hidden" asp-for="Date" />
 
-                    <!-- Quick Actions Section - UPDATED STYLING -->
-                    <div class="card mb-4 border-0 shadow-sm">
-                        <div class="card-body p-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
-                            <h5 class="fw-bold mb-3 text-gray-700">
-                                <i class="fas fa-bolt me-2 text-primary"></i>Quick Actions
-                            </h5>
-                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div class="bg-light p-4 border-bottom">
+                        <div class="row align-items-center g-3">
+                            <div class="col-xl-7">
+                                <label class="text-muted fw-bold small text-uppercase mb-2 d-block">Bulk Actions</label>
                                 <div class="d-flex flex-wrap gap-2">
-                                    <button type="button" class="btn btn-lg btn-success px-4 py-2 shadow-sm" onclick="markAll('0')" style="min-width: 180px;">
-                                        <i class="fas fa-check me-2"></i>Mark All Present
-                                        <small class="d-block fw-normal mt-1">(Ctrl+P)</small>
+                                    <button type="button" class="btn btn-outline-success shadow-sm flex-grow-1" onclick="markAll('0')">
+                                        <i class="fas fa-check-double me-2"></i>Mark All Present <small class="ms-1 opacity-75">(Ctrl+P)</small>
                                     </button>
-                                    <button type="button" class="btn btn-lg btn-danger px-4 py-2 shadow-sm" onclick="markAll('1')" style="min-width: 180px;">
-                                        <i class="fas fa-times me-2"></i>Mark All Absent
-                                        <small class="d-block fw-normal mt-1">(Ctrl+Shift+A)</small>
+                                    <button type="button" class="btn btn-outline-danger shadow-sm flex-grow-1" onclick="markAll('1')">
+                                        <i class="fas fa-times-circle me-2"></i>Mark All Absent <small class="ms-1 opacity-75">(Ctrl+A)</small>
                                     </button>
-                                    <button type="button" class="btn btn-lg btn-warning px-4 py-2 shadow-sm" onclick="markAll('2')" style="min-width: 180px;">
-                                        <i class="fas fa-clock me-2"></i>Mark All Late
-                                        <small class="d-block fw-normal mt-1">(Ctrl+L)</small>
+                                    <button type="button" class="btn btn-outline-warning text-dark shadow-sm flex-grow-1" onclick="markAll('2')">
+                                        <i class="fas fa-clock me-2"></i>Mark All Late <small class="ms-1 opacity-75">(Ctrl+L)</small>
                                     </button>
                                 </div>
-                                <div id="attendanceStats" class="bg-white p-3 rounded shadow-sm">
-                                    <div class="d-flex gap-3">
-                                        <div class="text-center">
-                                            <div class="badge bg-success bg-opacity-10 text-success p-2 rounded-circle mb-1" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
-                                                <i class="fas fa-check fa-lg"></i>
-                                            </div>
-                                            <div class="fw-bold fs-5" id="presentCount">0</div>
-                                            <small class="text-muted">Present</small>
+                            </div>
+                            
+                            <div class="col-xl-5">
+                                <label class="text-muted fw-bold small text-uppercase mb-2 d-block">Live Summary</label>
+                                <div class="d-flex gap-2">
+                                    <div class="card flex-grow-1 border-0 shadow-sm bg-success bg-opacity-10">
+                                        <div class="card-body p-2 text-center">
+                                            <div class="h4 mb-0 fw-bold text-success" id="presentCount">0</div>
+                                            <small class="text-success fw-bold x-small text-uppercase">Present</small>
                                         </div>
-                                        <div class="text-center">
-                                            <div class="badge bg-danger bg-opacity-10 text-danger p-2 rounded-circle mb-1" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
-                                                <i class="fas fa-times fa-lg"></i>
-                                            </div>
-                                            <div class="fw-bold fs-5" id="absentCount">0</div>
-                                            <small class="text-muted">Absent</small>
+                                    </div>
+                                    <div class="card flex-grow-1 border-0 shadow-sm bg-danger bg-opacity-10">
+                                        <div class="card-body p-2 text-center">
+                                            <div class="h4 mb-0 fw-bold text-danger" id="absentCount">0</div>
+                                            <small class="text-danger fw-bold x-small text-uppercase">Absent</small>
                                         </div>
-                                        <div class="text-center">
-                                            <div class="badge bg-warning bg-opacity-10 text-warning p-2 rounded-circle mb-1" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
-                                                <i class="fas fa-clock fa-lg"></i>
-                                            </div>
-                                            <div class="fw-bold fs-5" id="lateCount">0</div>
-                                            <small class="text-muted">Late</small>
+                                    </div>
+                                    <div class="card flex-grow-1 border-0 shadow-sm bg-warning bg-opacity-10">
+                                        <div class="card-body p-2 text-center">
+                                            <div class="h4 mb-0 fw-bold text-warning text-dark" id="lateCount">0</div>
+                                            <small class="text-warning text-dark fw-bold x-small text-uppercase">Late</small>
                                         </div>
                                     </div>
                                 </div>
@@ -138,50 +131,43 @@
                         </div>
                     </div>
 
-                    <!-- Students Table -->
-                    <div class="table-responsive mt-4">
-                        <table class="table table-bordered table-hover">
-                            <thead class="table-light">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light text-uppercase small text-muted">
                                 <tr>
-                                    <th width="8%" class="py-3">Roll No</th>
-                                    <th width="25%" class="py-3">Student Name</th>
-                                    <th width="12%" class="py-3">Batch</th>
-                                    <th width="12%" class="py-3">Section</th>
-                                    <th width="25%" class="py-3">Status</th>
+                                    <th class="ps-4" style="width: 15%;">Roll No</th>
+                                    <th style="width: 25%;">Student Name</th>
+                                    <th style="width: 15%;">Batch</th>
+                                    <th style="width: 10%;">Section</th>
+                                    <th class="text-center" style="width: 35%;">Attendance Status</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="border-top-0">
                                 @for (int i = 0; i < Model.Students.Count; i++)
                                 {
-                                    <tr class="align-middle">
+                                    <tr>
                                         <input type="hidden" asp-for="@Model.Students[i].StudentId" />
                                         <input type="hidden" asp-for="@Model.Students[i].RollNumber" />
                                         <input type="hidden" asp-for="@Model.Students[i].FullName" />
                                         <input type="hidden" asp-for="@Model.Students[i].Batch" />
                                         <input type="hidden" asp-for="@Model.Students[i].Section" />
 
-                                        <td class="py-3">
-                                            <span class="badge bg-primary bg-opacity-10 text-primary fs-6 px-3 py-2">
+                                        <td class="ps-4">
+                                            <span class="font-monospace fw-bold text-primary bg-primary bg-opacity-10 px-2 py-1 rounded small">
                                                 @Model.Students[i].RollNumber
                                             </span>
                                         </td>
-                                        <td class="py-3 fw-semibold">@Model.Students[i].FullName</td>
-                                        <td class="py-3">
-                                            <span class="badge bg-info bg-opacity-10 text-info px-3 py-2">
-                                                @Model.Students[i].Batch
-                                            </span>
+                                        <td>
+                                            <div class="fw-bold text-dark">@Model.Students[i].FullName</div>
                                         </td>
-                                        <td class="py-3">
-                                            <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2">
-                                                @Model.Students[i].Section
-                                            </span>
-                                        </td>
-                                        <td class="py-3">
-                                            <select asp-for="@Model.Students[i].Status" class="form-select form-select-lg py-2 attendance-select"
+                                        <td><span class="badge bg-light text-dark border">@Model.Students[i].Batch</span></td>
+                                        <td><span class="badge bg-light text-dark border">@Model.Students[i].Section</span></td>
+                                        <td class="py-3 px-4">
+                                            <select asp-for="@Model.Students[i].Status" class="form-select form-select-lg attendance-select shadow-none border-2"
                                                     disabled="@(!Model.CanEdit)">
-                                                <option value="0" class="text-success">✓ Present</option>
-                                                <option value="1" class="text-danger">✗ Absent</option>
-                                                <option value="2" class="text-warning">⏰ Late</option>
+                                                <option value="0">✓ Present</option>
+                                                <option value="1">✗ Absent</option>
+                                                <option value="2">⏰ Late</option>
                                             </select>
                                         </td>
                                     </tr>
@@ -192,19 +178,21 @@
 
                     @if (Model.CanEdit)
                     {
-                        <div class="text-end mt-4 pt-4 border-top">
-                            <button type="submit" class="btn btn-primary btn-lg px-5 py-3 shadow">
-                                <i class="fas fa-save me-2"></i>Save Attendance
+                        <div class="card-footer bg-white p-4 border-top text-end sticky-bottom shadow-lg">
+                            <button type="submit" class="btn btn-primary btn-lg px-5 shadow-sm">
+                                <i class="fas fa-save me-2"></i>Submit Attendance
                             </button>
                         </div>
                     }
                     else
                     {
-                        <div class="alert alert-danger mt-3 d-flex align-items-center">
-                            <i class="fas fa-lock fa-2x me-3"></i>
+                        <div class="alert alert-danger m-4 d-flex align-items-center shadow-sm">
+                            <div class="bg-danger text-white rounded-circle p-2 me-3">
+                                <i class="fas fa-lock fa-lg"></i>
+                            </div>
                             <div>
-                                <h5 class="alert-heading mb-1">Attendance Locked</h5>
-                                <p class="mb-0">This attendance record is locked and cannot be modified.</p>
+                                <h5 class="alert-heading h6 fw-bold mb-1">Record Locked</h5>
+                                <p class="mb-0 small">This attendance record is finalized and cannot be modified.</p>
                             </div>
                         </div>
                     }
@@ -214,22 +202,24 @@
     }
     else if (Model.CourseId > 0)
     {
-        <div class="card shadow">
-            <div class="card-body text-center py-5">
-                <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">No students found for the selected criteria</h5>
-                <p class="text-muted">Please check if students are enrolled in this course and section.</p>
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <i class="fas fa-user-slash fa-4x text-muted opacity-25"></i>
             </div>
+            <h5 class="text-muted fw-bold">No Students Found</h5>
+            <p class="text-muted small">Check the enrollment records for this course and section.</p>
         </div>
     }
     else
     {
-        <div class="card shadow">
-            <div class="card-body text-center py-5">
-                <i class="fas fa-hand-pointer fa-3x text-primary mb-3"></i>
-                <h5 class="text-primary">Please select Session, Section, and Course</h5>
-                <p class="text-muted">Use the dropdowns above to filter and mark attendance.</p>
+        <div class="text-center py-5 mt-5">
+            <div class="mb-4">
+                <span class="bg-primary bg-opacity-10 p-4 rounded-circle text-primary">
+                    <i class="fas fa-chalkboard-teacher fa-3x"></i>
+                </span>
             </div>
+            <h4 class="text-primary fw-bold">Ready to Mark Attendance?</h4>
+            <p class="text-muted">Select the <strong>Batch</strong>, <strong>Section</strong>, and <strong>Course</strong> from the top bar to begin.</p>
         </div>
     }
 </div>
@@ -237,39 +227,24 @@
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        function setStatus(index, status) {
-            // Set the status for a specific student
-            $('select[name="Students[' + index + '].Status"]').val(status);
-            updateSelectColor($('select[name="Students[' + index + '].Status"]')[0]);
-            updateStats();
-        }
-
-        function markAll(status) {
-            // Update all attendance select dropdowns
-            $('.attendance-select').val(status);
+        // Update color of select box based on value
+        function updateSelectColor(selectElement) {
+            var value = $(selectElement).val();
+            var $el = $(selectElement);
             
-            // Update colors for all selects
-            $('.attendance-select').each(function() {
-                updateSelectColor(this);
-            });
-
-            // Update statistics
-            updateStats();
-
-            // Show confirmation toast
-            let statusText = status == '0' ? 'Present' : (status == '1' ? 'Absent' : 'Late');
-            let icon = status == '0' ? 'check-circle' : (status == '1' ? 'times-circle' : 'clock');
-            let bgClass = status == '0' ? 'bg-success' : (status == '1' ? 'bg-danger' : 'bg-warning');
+            // Reset classes
+            $el.removeClass('bg-success bg-danger bg-warning text-white text-dark border-success border-danger border-warning');
             
-            // Create toast notification
-            let toast = `<div class="toast-notification ${bgClass} text-white" style="position: fixed; top: 80px; right: 20px; padding: 15px 20px; border-radius: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; animation: slideIn 0.3s ease-out;">
-                <i class="fas fa-${icon} me-2"></i>All students marked as ${statusText}
-            </div>`;
-            
-            $('body').append(toast);
-            setTimeout(function() {
-                $('.toast-notification').fadeOut(300, function() { $(this).remove(); });
-            }, 2000);
+            // Apply new style
+            if (value == '0') { // Present
+                $el.addClass('bg-success text-white border-success');
+            } else if (value == '1') { // Absent
+                $el.addClass('bg-danger text-white border-danger');
+            } else if (value == '2') { // Late
+                $el.addClass('bg-warning text-dark border-warning');
+            } else {
+                $el.addClass('text-dark');
+            }
         }
 
         function updateStats() {
@@ -277,82 +252,102 @@
             var absentCount = $('.attendance-select option[value="1"]:selected').length;
             var lateCount = $('.attendance-select option[value="2"]:selected').length;
             
-            $('#presentCount').text(presentCount);
-            $('#absentCount').text(absentCount);
-            $('#lateCount').text(lateCount);
+            // Animate numbers
+            animateValue("presentCount", parseInt($('#presentCount').text()), presentCount, 300);
+            animateValue("absentCount", parseInt($('#absentCount').text()), absentCount, 300);
+            animateValue("lateCount", parseInt($('#lateCount').text()), lateCount, 300);
+        }
+        
+        // Number animation utility
+        function animateValue(id, start, end, duration) {
+            if (start === end) return;
+            var range = end - start;
+            var current = start;
+            var increment = end > start ? 1 : -1;
+            var stepTime = Math.abs(Math.floor(duration / range));
+            var obj = document.getElementById(id);
+            var timer = setInterval(function() {
+                current += increment;
+                obj.innerHTML = current;
+                if (current == end) {
+                    clearInterval(timer);
+                }
+            }, stepTime);
         }
 
-        // Style select options based on value
-        $('.attendance-select').each(function() {
-            updateSelectColor(this);
-        }).on('change', function() {
-            updateSelectColor(this);
+        function markAll(status) {
+            $('.attendance-select').val(status).each(function() {
+                updateSelectColor(this);
+            });
             updateStats();
-        });
-
-        function updateSelectColor(selectElement) {
-            var value = $(selectElement).val();
-            $(selectElement).removeClass('bg-success bg-danger bg-warning text-white text-dark');
-            if (value == '0') {
-                $(selectElement).addClass('bg-success text-white');
-            } else if (value == '1') {
-                $(selectElement).addClass('bg-danger text-white');
-            } else if (value == '2') {
-                $(selectElement).addClass('bg-warning text-dark');
-            }
+            
+            // Toast Notification
+            let statusText = status == '0' ? 'Present' : (status == '1' ? 'Absent' : 'Late');
+            let bgClass = status == '0' ? 'bg-success' : (status == '1' ? 'bg-danger' : 'bg-warning');
+            let textClass = status == '2' ? 'text-dark' : 'text-white';
+            
+            // Remove existing toasts
+            $('.toast-notification').remove();
+            
+            let toast = `
+                <div class="toast-notification ${bgClass} ${textClass} shadow-lg" 
+                     style="position: fixed; top: 90px; right: 20px; z-index: 1050; border-radius: 8px; overflow: hidden; animation: slideInRight 0.3s ease-out;">
+                    <div class="d-flex align-items-center p-3">
+                        <i class="fas fa-check-circle fa-lg me-3"></i>
+                        <div>
+                            <h6 class="mb-0 fw-bold">Success</h6>
+                            <small>All students marked as ${statusText}</small>
+                        </div>
+                    </div>
+                </div>`;
+            
+            $('body').append(toast);
+            setTimeout(() => $('.toast-notification').fadeOut(500, function() { $(this).remove(); }), 2500);
         }
 
-        // Initialize stats on page load
+        // Initialization
         $(document).ready(function() {
-            updateStats();
-        });
-
-        // Add keyboard shortcuts
-        $(document).on('keydown', function(e) {
-            // Ctrl+P for Present
-            if (e.ctrlKey && e.key === 'p') {
-                e.preventDefault();
-                markAll('0');
-            }
-            // Ctrl+A for Absent (but not Ctrl+A for Select All)
-            if (e.ctrlKey && e.shiftKey && e.key === 'A') {
-                e.preventDefault();
-                markAll('1');
-            }
-            // Ctrl+L for Late
-            if (e.ctrlKey && e.key === 'l') {
-                e.preventDefault();
-                markAll('2');
-            }
-        });
-
-        // Confirm before submitting
-        $('form[method="post"]').on('submit', function(e) {
+            // Apply initial colors
+            $('.attendance-select').each(function() {
+                updateSelectColor(this);
+            });
+            
+            // Initial stats calculation without animation
             var presentCount = $('.attendance-select option[value="0"]:selected').length;
             var absentCount = $('.attendance-select option[value="1"]:selected').length;
             var lateCount = $('.attendance-select option[value="2"]:selected').length;
-            var totalCount = presentCount + absentCount + lateCount;
+            $('#presentCount').text(presentCount);
+            $('#absentCount').text(absentCount);
+            $('#lateCount').text(lateCount);
             
-            if (!confirm(`Are you sure you want to save attendance for ${totalCount} students?\n\nPresent: ${presentCount}\nAbsent: ${absentCount}\nLate: ${lateCount}`)) {
+            // Bind change event
+            $('.attendance-select').on('change', function() {
+                updateSelectColor(this);
+                updateStats();
+            });
+        });
+
+        // Keyboard Shortcuts
+        $(document).on('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'p') { e.preventDefault(); markAll('0'); }
+            if (e.ctrlKey && e.shiftKey && (e.key === 'a' || e.key === 'A')) { e.preventDefault(); markAll('1'); }
+            if (e.ctrlKey && e.key === 'l') { e.preventDefault(); markAll('2'); }
+        });
+
+        // Form Submit Confirmation
+        $('form[method="post"]').on('submit', function(e) {
+            var p = $('.attendance-select option[value="0"]:selected').length;
+            var a = $('.attendance-select option[value="1"]:selected').length;
+            var l = $('.attendance-select option[value="2"]:selected').length;
+            var t = p + a + l;
+            
+            if (!confirm(`Confirm Attendance Submission?\n\nTotal Students: ${t}\n\n✅ Present: ${p}\n❌ Absent: ${a}\n⏰ Late: ${l}`)) {
                 e.preventDefault();
                 return false;
             }
         });
-
-        // Add animation for toast
-        $('<style>')
-            .text(`
-                @@keyframes slideIn {
-                    from {
-                        transform: translateX(100%);
-                        opacity: 0;
-                    }
-                    to {
-                        transform: translateX(0);
-                        opacity: 1;
-                    }
-                }
-            `)
-            .appendTo('head');
+        
+        // Add CSS for animations
+        $('<style>@@keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }</style>').appendTo('head');
     </script>
 }

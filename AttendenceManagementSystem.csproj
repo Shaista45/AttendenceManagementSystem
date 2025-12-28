@@ -22,4 +22,8 @@
 		<PackageReference Include="ClosedXML" Version="0.102.2" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="wwwroot\images\" />
+	</ItemGroup>
+
 </Project>

@@ -1,407 +1,235 @@
-@model AttendenceManagementSystem.Models.Department
+@model dynamic
 @{
-    ViewData["Title"] = "Create Department";
-    ViewData["ActivePage"] = "Departments";
+    ViewData["Title"] = "Admin Dashboard";
 }
 
-@section Styles {
-    <style>
-        .mode-selector {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 30px;
-        }
-        .mode-btn {
-            padding: 15px 25px;
-            border: 2px solid #dee2e6;
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-        .mode-btn:hover, .mode-btn.active {
-            border-color: #0d6efd;
-            background: #e7f1ff;
-        }
-        .batch-container, .section-container {
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            background: #f8f9fa;
-        }
-        .section-container {
-            background: #fff;
-            margin-left: 20px;
-        }
-        .card {
-            border: 1px solid #e3e6f0;
-            border-radius: 0.5rem;
-        }
-        .card-header {
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            border-radius: 0.5rem 0.5rem 0 0 !important;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: #86b7fe;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-        }
-    </style>
-}
-
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
         <div>
-            <h2><i class="fas fa-building me-2"></i>Create Department</h2>
-            <p class="text-muted mb-0">Add a new department to your institution</p>
+            <h1 class="h3 mb-0 fw-bold text-primary">
+                <i class="fas fa-user-shield me-2"></i>Administration Console
+            </h1>
+            <p class="text-muted small mb-0">System overview and institutional management</p>
         </div>
-        <a asp-action="Departments" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Back to List
+        <a href="javascript:location.reload()" class="btn btn-outline-primary btn-sm shadow-sm bg-white">
+            <i class="fas fa-sync-alt me-2"></i>Refresh Data
         </a>
     </div>
 
-    <!-- Mode Selector -->
-    <div class="mode-selector">
-        <div class="row text-center">
-            <div class="col-md-6 mb-2">
-                <button type="button" class="mode-btn w-100 active" id="simpleMode" onclick="switchMode('simple')">
-                    <i class="fas fa-bolt fa-2x d-block mb-2"></i>
-                    <h5>Quick Create</h5>
-                    <p class="mb-0 small">Create department only - add details later</p>
-                </button>
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 border-start border-4 border-primary shadow-sm py-2">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col me-2">
+                            <div class="text-uppercase text-primary fw-bold x-small mb-1">Total Students</div>
+                            <div class="h4 mb-0 fw-bold text-gray-800">@Model.TotalStudents</div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                                <i class="fas fa-user-graduate fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-6 mb-2">
-                <button type="button" class="mode-btn w-100" id="advancedMode" onclick="switchMode('advanced')">
-                    <i class="fas fa-cogs fa-2x d-block mb-2"></i>
-                    <h5>Advanced Setup</h5>
-                    <p class="mb-0 small">Create with batches, sections & teachers</p>
-                </button>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 border-start border-4 border-success shadow-sm py-2">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col me-2">
+                            <div class="text-uppercase text-success fw-bold x-small mb-1">Total Faculty</div>
+                            <div class="h4 mb-0 fw-bold text-gray-800">@Model.TotalTeachers</div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
+                                <i class="fas fa-chalkboard-teacher fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 border-start border-4 border-info shadow-sm py-2">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col me-2">
+                            <div class="text-uppercase text-info fw-bold x-small mb-1">Active Courses</div>
+                            <div class="h4 mb-0 fw-bold text-gray-800">@Model.TotalCourses</div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="bg-info bg-opacity-10 p-3 rounded-circle text-info">
+                                <i class="fas fa-book fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 border-start border-4 border-warning shadow-sm py-2">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col me-2">
+                            <div class="text-uppercase text-warning text-dark fw-bold x-small mb-1">Departments</div>
+                            <div class="h4 mb-0 fw-bold text-gray-800">@Model.TotalDepartments</div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning text-dark">
+                                <i class="fas fa-building fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Simple Mode Form -->
-    <div id="simpleForm">
-        <div class="row">
-            <div class="col-lg-6 mx-auto">
-                <div class="card shadow">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="fas fa-building me-2"></i>Department Information</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="alert alert-info mb-3">
-                            <small><i class="fas fa-info-circle me-1"></i> Create your department here. You can add batches, sections, and teachers later.</small>
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="m-0 fw-bold text-primary">
+                        <i class="fas fa-cogs me-2"></i>Management Hub
+                    </h6>
+                </div>
+                <div class="card-body bg-light bg-opacity-50">
+                    <div class="row g-3">
+                        <div class="col-md-4 col-sm-6">
+                            <a class="card h-100 border-0 shadow-hover text-decoration-none action-tile"
+                               asp-controller="Admin" asp-action="Departments">
+                                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center p-4">
+                                    <div class="mb-3 p-3 rounded-circle bg-warning bg-opacity-10 text-dark">
+                                        <i class="fas fa-building fa-2x"></i>
+                                    </div>
+                                    <span class="fw-bold text-dark small">Departments</span>
+                                    <span class="text-muted x-small mt-1">Structure & Organization</span>
+                                </div>
+                            </a>
                         </div>
                         
-                        <form asp-action="CreateDepartment" method="post">
-                            @Html.AntiForgeryToken()
-                            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                        <div class="col-md-4 col-sm-6">
+                            <a class="card h-100 border-0 shadow-hover text-decoration-none action-tile"
+                               asp-controller="Admin" asp-action="Students">
+                                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center p-4">
+                                    <div class="mb-3 p-3 rounded-circle bg-primary bg-opacity-10 text-primary">
+                                        <i class="fas fa-user-graduate fa-2x"></i>
+                                    </div>
+                                    <span class="fw-bold text-dark small">Students</span>
+                                    <span class="text-muted x-small mt-1">Enrollment & Records</span>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-4 col-sm-6">
+                            <a class="card h-100 border-0 shadow-hover text-decoration-none action-tile"
+                               asp-controller="Admin" asp-action="Teachers">
+                                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center p-4">
+                                    <div class="mb-3 p-3 rounded-circle bg-success bg-opacity-10 text-success">
+                                        <i class="fas fa-chalkboard-teacher fa-2x"></i>
+                                    </div>
+                                    <span class="fw-bold text-dark small">Faculty</span>
+                                    <span class="text-muted x-small mt-1">Staff Management</span>
+                                </div>
+                            </a>
+                        </div>
 
-                            <div class="mb-3">
-                                <label asp-for="Name" class="form-label fw-bold">Department Name <span class="text-danger">*</span></label>
-                                <input asp-for="Name" class="form-control" placeholder="e.g., Computer Science" required />
-                                <span asp-validation-for="Name" class="text-danger small"></span>
-                                <div class="form-text">Full department name</div>
-                            </div>
+                        <div class="col-md-4 col-sm-6">
+                            <a class="card h-100 border-0 shadow-hover text-decoration-none action-tile"
+                               asp-controller="Admin" asp-action="Courses">
+                                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center p-4">
+                                    <div class="mb-3 p-3 rounded-circle bg-info bg-opacity-10 text-info">
+                                        <i class="fas fa-book-open fa-2x"></i>
+                                    </div>
+                                    <span class="fw-bold text-dark small">Courses</span>
+                                    <span class="text-muted x-small mt-1">Curriculum & Classes</span>
+                                </div>
+                            </a>
+                        </div>
 
-                            <div class="mb-3">
-                                <label asp-for="Code" class="form-label fw-bold">Department Code <span class="text-danger">*</span></label>
-                                <input asp-for="Code" class="form-control text-uppercase" placeholder="e.g., CS, EE" maxlength="10" required />
-                                <span asp-validation-for="Code" class="text-danger small"></span>
-                                <div class="form-text">Short code (2-10 characters)</div>
-                            </div>
+                        <div class="col-md-4 col-sm-6">
+                            <a class="card h-100 border-0 shadow-hover text-decoration-none action-tile"
+                               asp-controller="Admin" asp-action="ManageTimetable">
+                                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center p-4">
+                                    <div class="mb-3 p-3 rounded-circle bg-dark bg-opacity-10 text-dark">
+                                        <i class="fas fa-calendar-alt fa-2x"></i>
+                                    </div>
+                                    <span class="fw-bold text-dark small">Timetable</span>
+                                    <span class="text-muted x-small mt-1">Scheduling</span>
+                                </div>
+                            </a>
+                        </div>
 
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-save me-2"></i>Create Department
-                                </button>
-                                <a asp-action="Departments" class="btn btn-secondary">
-                                    <i class="fas fa-times me-2"></i>Cancel
-                                </a>
-                            </div>
-                        </form>
+                        <div class="col-md-4 col-sm-6">
+                            <a class="card h-100 border-0 shadow-hover text-decoration-none action-tile"
+                               asp-controller="Admin" asp-action="Reports">
+                                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center p-4">
+                                    <div class="mb-3 p-3 rounded-circle bg-danger bg-opacity-10 text-danger">
+                                        <i class="fas fa-chart-bar fa-2x"></i>
+                                    </div>
+                                    <span class="fw-bold text-dark small">Reports</span>
+                                    <span class="text-muted x-small mt-1">Analytics & Data</span>
+                                </div>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Advanced Mode Form -->
-    <div id="advancedForm" style="display: none;">
-        <form id="departmentForm" asp-action="CreateAdvanced" method="post">
-            @Html.AntiForgeryToken()
-            <div class="row">
-                <!-- Basic Information -->
-                <div class="col-md-12">
-                    <div class="card mb-4 shadow">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Basic Information</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label asp-for="Name" class="form-label">Department Name <span class="text-danger">*</span></label>
-                                        <input asp-for="Name" class="form-control" placeholder="e.g., Computer Science" required id="advName" />
-                                        <span asp-validation-for="Name" class="text-danger"></span>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label asp-for="Code" class="form-label">Department Code <span class="text-danger">*</span></label>
-                                        <input asp-for="Code" class="form-control" placeholder="e.g., CS" required maxlength="10" id="advCode" />
-                                        <span asp-validation-for="Code" class="text-danger"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="m-0 fw-bold text-primary">
+                        <i class="fas fa-server me-2"></i>System Status
+                    </h6>
                 </div>
-
-                <!-- Batches Section -->
-                <div class="col-md-12">
-                    <div class="card mb-4 shadow">
-                        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Batches & Sections</h5>
-                            <button type="button" class="btn btn-light btn-sm" onclick="addBatch()">
-                                <i class="fas fa-plus me-1"></i>Add Batch
-                            </button>
+                <div class="card-body">
+                    <div class="text-center py-4">
+                        <div class="mb-3 position-relative d-inline-block">
+                             <div class="spinner-grow text-success opacity-50" style="width: 3rem; height: 3rem;" role="status"></div>
+                             <i class="fas fa-check-circle fa-2x text-success position-absolute top-50 start-50 translate-middle"></i>
                         </div>
-                        <div class="card-body">
-                            <div id="batchesContainer">
-                                <div class="alert alert-info">
-                                    <i class="fas fa-info-circle me-2"></i>Click "Add Batch" to start adding batches and sections. This is optional.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Teachers List (Hidden, for reference) -->
-                <input type="hidden" id="availableTeachers" value='@Html.Raw(Json.Serialize(ViewBag.Teachers ?? new List<object>()))' />
-
-                <!-- Submit Button -->
-                <div class="col-md-12">
-                    <div class="card shadow">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between">
-                                <button type="button" class="btn btn-secondary" onclick="window.location.href='@Url.Action("Departments")'">
-                                    <i class="fas fa-times me-2"></i>Cancel
-                                </button>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save me-2"></i>Create Department
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    
-    <script>
-        let batchIndex = 0;
-        let sectionIndex = 0;
-        let teachers = [];
-        let currentMode = 'simple';
-
-        $(document).ready(function() {
-            // Load available teachers
-            try {
-                const teachersData = $('#availableTeachers').val();
-                teachers = teachersData ? JSON.parse(teachersData) : [];
-            } catch (e) {
-                console.error('Error parsing teachers data:', e);
-                teachers = [];
-            }
-
-            // Form validation for advanced mode
-            $('#departmentForm').on('submit', function(e) {
-                if (currentMode === 'advanced' && !validateForm()) {
-                    e.preventDefault();
-                    return false;
-                }
-            });
-        });
-
-        function switchMode(mode) {
-            currentMode = mode;
-            if (mode === 'simple') {
-                $('#simpleForm').show();
-                $('#advancedForm').hide();
-                $('#simpleMode').addClass('active');
-                $('#advancedMode').removeClass('active');
-            } else {
-                $('#simpleForm').hide();
-                $('#advancedForm').show();
-                $('#simpleMode').removeClass('active');
-                $('#advancedMode').addClass('active');
-            }
-        }
-
-        function addBatch() {
-            const batchHtml = `
-                <div class="batch-container" data-batch-index="${batchIndex}">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6><i class="fas fa-calendar me-2"></i>Batch ${batchIndex + 1}</h6>
-                        <button type="button" class="btn btn-sm btn-danger" onclick="removeBatch(this)">
-                            <i class="fas fa-trash"></i> Remove Batch
-                        </button>
+                        <h6 class="fw-bold text-dark">Operational</h6>
+                        <p class="text-muted small mb-0">All systems functioning normally</p>
                     </div>
                     
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Batch Year <span class="text-danger">*</span></label>
-                            <input type="text" name="Batches[${batchIndex}].Year" class="form-control batch-year" 
-                                   placeholder="e.g., 2025" required maxlength="4" pattern="[0-9]{4}" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Description</label>
-                            <input type="text" name="Batches[${batchIndex}].Description" class="form-control" 
-                                   placeholder="Optional description" />
-                        </div>
-                    </div>
-
-                    <div class="sections-area">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="form-label mb-0"><strong>Sections</strong></label>
-                            <button type="button" class="btn btn-sm btn-outline-success" onclick="addSection(this, ${batchIndex})">
-                                <i class="fas fa-plus me-1"></i>Add Section
-                            </button>
-                        </div>
-                        <div class="sections-container" data-batch="${batchIndex}">
-                            <div class="alert alert-warning alert-sm">
-                                <i class="fas fa-exclamation-triangle me-2"></i>No sections added. Click "Add Section" to add sections.
-                            </div>
-                        </div>
-                    </div>
+                    <ul class="list-group list-group-flush small">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span><i class="fas fa-database me-2 text-info"></i>Database</span>
+                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill">Connected</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span><i class="fas fa-shield-alt me-2 text-primary"></i>Security</span>
+                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill">Active</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span><i class="fas fa-clock me-2 text-warning text-dark"></i>Last Backup</span>
+                            <span class="text-muted">2 hours ago</span>
+                        </li>
+                    </ul>
                 </div>
-            `;
-            
-            $('#batchesContainer .alert-info').remove();
-            $('#batchesContainer').append(batchHtml);
-            batchIndex++;
-        }
+            </div>
 
-        function addSection(btn, batchIdx) {
-            const sectionsContainer = $(btn).closest('.batch-container').find('.sections-container');
-            sectionsContainer.find('.alert-warning').remove();
-            
-            const teacherOptions = teachers.map(t => 
-                `<option value="${t.id}">${t.fullName} (${t.employeeId})</option>`
-            ).join('');
-
-            const sectionHtml = `
-                <div class="section-container" data-section-index="${sectionIndex}">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="mb-0"><i class="fas fa-users me-2"></i>Section ${sectionsContainer.children('.section-container').length + 1}</h6>
-                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSection(this)">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-4">
-                            <label class="form-label">Section Name <span class="text-danger">*</span></label>
-                            <input type="text" name="Batches[${batchIdx}].Sections[${sectionIndex}].Name" 
-                                   class="form-control" placeholder="e.g., A" required maxlength="10" />
-                        </div>
-                        <div class="col-md-8">
-                            <label class="form-label">Assigned Teachers (Optional)</label>
-                            <select name="Batches[${batchIdx}].Sections[${sectionIndex}].TeacherIds" 
-                                    class="form-select" multiple size="2">
-                                ${teacherOptions || '<option disabled>No teachers available</option>'}
-                            </select>
-                            <small class="text-muted">Hold Ctrl/Cmd to select multiple teachers</small>
-                        </div>
-                    </div>
+            <div class="alert alert-info border-0 shadow-sm d-flex" role="alert">
+                <i class="fas fa-lightbulb fa-2x me-3 mt-1"></i>
+                <div>
+                    <h6 class="alert-heading fw-bold">Admin Tip</h6>
+                    <p class="small mb-0">Use the <strong>Reports</strong> module to identify students with low attendance before the semester ends.</p>
                 </div>
-            `;
-            
-            sectionsContainer.append(sectionHtml);
-            sectionIndex++;
-        }
-
-        function removeBatch(btn) {
-            if (confirm('Are you sure you want to remove this batch and all its sections?')) {
-                $(btn).closest('.batch-container').remove();
-                
-                if ($('.batch-container').length === 0) {
-                    $('#batchesContainer').html(`
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>Click "Add Batch" to start adding batches and sections. This is optional.
-                        </div>
-                    `);
-                }
-            }
-        }
-
-        function removeSection(btn) {
-            const container = $(btn).closest('.sections-container');
-            $(btn).closest('.section-container').remove();
-            
-            if (container.children('.section-container').length === 0) {
-                container.html(`
-                    <div class="alert alert-warning alert-sm">
-                        <i class="fas fa-exclamation-triangle me-2"></i>No sections added. Click "Add Section" to add sections.
-                    </div>
-                `);
-            }
-        }
-
-        function validateForm() {
-            let isValid = true;
-            let errors = [];
-
-            // Check if department name and code are filled
-            if (!$('#advName').val().trim()) {
-                errors.push('Department Name is required');
-                isValid = false;
-            }
-            if (!$('#advCode').val().trim()) {
-                errors.push('Department Code is required');
-                isValid = false;
-            }
-
-            // Batches are optional now
-            const batches = $('.batch-container');
-            if (batches.length > 0) {
-                batches.each(function() {
-                    const batchYear = $(this).find('.batch-year').val();
-                    if (!batchYear || !/^\d{4}$/.test(batchYear)) {
-                        errors.push('All batches must have a valid 4-digit year');
-                        isValid = false;
-                    }
-                });
-            }
-
-            if (!isValid) {
-                alert('Please fix the following errors:\n\n' + errors.join('\n'));
-            }
-
-            return isValid;
-        }
-    </script>
-}
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title text-danger"><i class="fas fa-trash-alt me-2"></i>Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="deleteModalBody">
-                <!-- Content will be loaded here -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .x-small { font-size: 0.75rem; letter-spacing: 0.05em; }
+    .action-tile { transition: transform 0.2s ease, box-shadow 0.2s ease; background: #fff; }
+    .action-tile:hover { transform: translateY(-5px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.1) !important; z-index: 5; }
+    .shadow-hover { box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); }
+</style>

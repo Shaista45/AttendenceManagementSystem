@@ -3,69 +3,86 @@
     ViewData["Title"] = "Students";
 }
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-users me-2"></i>Students
-        </h1>
-        <div class="btn-group">
-            <a class="btn btn-primary" asp-action="CreateStudent">
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h1 class="h3 mb-0 fw-bold text-primary">
+                <i class="fas fa-user-graduate me-2"></i>Student Directory
+            </h1>
+            <p class="text-muted small mb-0">Manage student enrollment and academic records</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="CreateStudent" class="btn btn-primary shadow-sm">
                 <i class="fas fa-plus me-2"></i>Add Student
             </a>
-            <a class="btn btn-success" asp-action="UploadStudents">
-                <i class="fas fa-upload me-2"></i>Upload Excel
+            <a asp-action="UploadStudents" class="btn btn-success shadow-sm text-white">
+                <i class="fas fa-file-excel me-2"></i>Import Excel
             </a>
         </div>
     </div>
 
-    <div class="card shadow">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-primary">All Students</h6>
-            <div class="form-group mb-0">
-                <input type="text" class="form-control form-control-sm" placeholder="Search students..." id="searchInput">
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3 border-bottom d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <h6 class="m-0 fw-bold text-primary">
+                <i class="fas fa-list-ul me-2"></i>All Students
+            </h6>
+            <div class="input-group shadow-sm" style="max-width: 300px;">
+                <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                <input type="text" class="form-control border-start-0 ps-0" placeholder="Search students..." id="searchInput">
             </div>
         </div>
-        <div class="card-body">
+        
+        <div class="card-body p-0">
             @if (Model.Any())
             {
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
-                        <thead class="table-light">
+                    <table class="table table-hover align-middle mb-0" id="dataTable">
+                        <thead class="bg-light text-uppercase x-small text-muted">
                             <tr>
-                                <th>Roll Number</th>
+                                <th class="ps-4">Roll Number</th>
                                 <th>Full Name</th>
-                                <th>Email</th>
+                                <th>Contact</th>
                                 <th>Department</th>
                                 <th>Batch</th>
                                 <th>Section</th>
-                                <th>Actions</th>
+                                <th class="text-end pe-4">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="border-top-0">
                             @foreach (var student in Model)
                             {
                                 <tr>
-                                    <td>
-                                        <strong>@student.RollNumber</strong>
+                                    <td class="ps-4">
+                                        <span class="font-monospace fw-bold text-primary bg-primary bg-opacity-10 px-2 py-1 rounded small">
+                                            @student.RollNumber
+                                        </span>
                                     </td>
-                                    <td>@student.FullName</td>
-                                    <td>@student.Email</td>
-                                    <td>@student.Department?.Name</td>
-                                    <td>@student.Batch?.Year</td>
-                                    <td>@student.Section?.Name</td>
                                     <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <a class="btn btn-outline-info" asp-action="StudentDetails" asp-route-id="@student.Id" title="View Details">
-                                                <i class="fas fa-eye"></i>
+                                        <div class="fw-bold text-dark">@student.FullName</div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-column small">
+                                            <span class="text-muted"><i class="fas fa-envelope me-1"></i>@student.Email</span>
+                                        </div>
+                                    </td>
+                                    <td>@student.Department?.Name</td>
+                                    <td><span class="badge bg-light text-dark border">@student.Batch?.Year</span></td>
+                                    <td><span class="badge bg-light text-dark border">@student.Section?.Name</span></td>
+                                    <td class="text-end pe-4">
+                                        <div class="btn-group shadow-sm">
+                                            <a class="btn btn-sm btn-light border" asp-action="StudentDetails" asp-route-id="@student.Id" 
+                                               data-bs-toggle="tooltip" title="View Profile">
+                                                <i class="fas fa-eye text-primary"></i>
                                             </a>
-                                            <a class="btn btn-outline-warning" asp-action="EditStudent" asp-route-id="@student.Id" title="Edit">
-                                                <i class="fas fa-edit"></i>
+                                            <a class="btn btn-sm btn-light border" asp-action="EditStudent" asp-route-id="@student.Id" 
+                                               data-bs-toggle="tooltip" title="Edit Info">
+                                                <i class="fas fa-edit text-warning"></i>
                                             </a>
-                                            <a class="btn btn-outline-primary" asp-controller="Student" asp-action="RegisterSubjects" asp-route-id="@student.Id" title="Register Subjects">
-                                                <i class="fas fa-book"></i> Register Subjects
-                                            </a>
-                                            <button type="button" class="btn btn-outline-danger delete-student" data-id="@student.Id" data-name="@student.FullName" title="Delete">
-                                                <i class="fas fa-trash"></i>
+                                            
+                                            <button type="button" class="btn btn-sm btn-light border delete-student" 
+                                                    data-id="@student.Id" data-name="@student.FullName" 
+                                                    data-bs-toggle="tooltip" title="Delete Record">
+                                                <i class="fas fa-trash text-danger"></i>
                                             </button>
                                         </div>
                                     </td>
@@ -77,27 +94,41 @@
             }
             else
             {
-                <div class="text-center py-4">
-                    <i class="fas fa-users fa-3x text-gray-300 mb-3"></i>
-                    <h5 class="text-gray-500">No Students Found</h5>
-                    <p class="text-muted">Add students manually or upload via Excel.</p>
-                    <div class="btn-group">
+                <div class="text-center py-5">
+                    <div class="mb-3">
+                        <span class="bg-light p-4 rounded-circle text-muted d-inline-block">
+                            <i class="fas fa-user-graduate fa-3x opacity-50"></i>
+                        </span>
+                    </div>
+                    <h5 class="text-muted fw-bold">No Students Found</h5>
+                    <p class="text-muted small mb-4">Get started by adding a new student record.</p>
+                    <div class="d-flex justify-content-center gap-2">
                         <a class="btn btn-primary" asp-action="CreateStudent">
                             <i class="fas fa-plus me-2"></i>Add Student
                         </a>
-                        <a class="btn btn-success" asp-action="UploadStudents">
-                            <i class="fas fa-upload me-2"></i>Upload Excel
+                        <a class="btn btn-success text-white" asp-action="UploadStudents">
+                            <i class="fas fa-file-excel me-2"></i>Upload Excel
                         </a>
                     </div>
                 </div>
             }
         </div>
     </div>
+    
+    <div style="display:none;">
+        @Html.AntiForgeryToken()
+    </div>
 </div>
 
 @section Scripts {
     <script>
         $(document).ready(function() {
+            // Initialize Tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+
             // Search functionality
             $('#searchInput').on('keyup', function() {
                 var value = $(this).val().toLowerCase();
@@ -110,10 +141,10 @@
             $('.delete-student').on('click', function() {
                 var studentId = $(this).data('id');
                 var studentName = $(this).data('name');
+                var btn = $(this);
+                var token = $('input[name="__RequestVerificationToken"]').val();
                 
                 if (confirm('Are you sure you want to delete student "' + studentName + '"? This action cannot be undone.')) {
-                    var token = $('input[name="__RequestVerificationToken"]').val();
-                    
                     $.ajax({
                         url: '@Url.Action("DeleteStudent", "Admin")',
                         type: 'POST',
@@ -122,11 +153,12 @@
                             __RequestVerificationToken: token
                         },
                         success: function(response) {
-                            if (response.success) {
-                                alert(response.message);
-                                location.reload();
+                            // If response is boolean true/false or JSON object
+                            if (response.success === true || response === true) {
+                                btn.closest('tr').fadeOut(300, function() { $(this).remove(); });
                             } else {
-                                alert(response.message);
+                                alert(response.message || 'Student deleted successfully.');
+                                location.reload();
                             }
                         },
                         error: function() {
@@ -137,4 +169,10 @@
             });
         });
     </script>
+    <style>
+        .x-small { font-size: 0.75rem; letter-spacing: 0.05em; }
+        .input-group-text { border-color: #d1d3e2; }
+        .form-control:focus { box-shadow: none; border-color: var(--uet-royal-blue); }
+        .form-control:focus + .input-group-text { border-color: var(--uet-royal-blue); }
+    </style>
 }

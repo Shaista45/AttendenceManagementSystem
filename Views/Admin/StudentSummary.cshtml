@@ -3,32 +3,31 @@
     ViewData["Title"] = "Student Summary";
 }
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-users me-2"></i>Student Attendance Summary
-        </h1>
-        <a asp-action="Dashboard" class="btn btn-secondary">
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h1 class="h3 mb-0 fw-bold text-primary">
+                <i class="fas fa-users me-2"></i>Class Performance
+            </h1>
+            <p class="text-muted small mb-0">Attendance analytics and student status reports</p>
+        </div>
+        <a asp-action="Dashboard" class="btn btn-outline-secondary btn-sm shadow-sm bg-white">
             <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
         </a>
     </div>
 
-    <!-- Filters Card -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 bg-primary text-white">
-            <h6 class="m-0 font-weight-bold">
-                <i class="fas fa-filter me-2"></i>Filters
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h6 class="m-0 fw-bold text-primary">
+                <i class="fas fa-filter me-2"></i>Report Filters
             </h6>
         </div>
-        <div class="card-body">
+        <div class="card-body bg-light bg-opacity-50">
             <form method="get" asp-action="StudentSummary" id="filterForm">
-                <div class="row">
-                    <!-- Course Selection -->
+                <div class="row g-3">
                     <div class="col-md-3">
-                        <label class="form-label fw-bold">
-                            <i class="fas fa-book me-1"></i>Course *
-                        </label>
-                        <select name="courseId" class="form-select" onchange="this.form.submit()" required>
+                        <label class="form-label text-uppercase x-small fw-bold text-muted">Course *</label>
+                        <select name="courseId" class="form-select border-0 shadow-sm" onchange="this.form.submit()" required>
                             <option value="">-- Select Course --</option>
                             @foreach (var course in Model.Courses)
                             {
@@ -39,13 +38,10 @@
                         </select>
                     </div>
 
-                    <!-- Batch Selection -->
                     <div class="col-md-2">
-                        <label class="form-label fw-bold">
-                            <i class="fas fa-calendar-alt me-1"></i>Batch *
-                        </label>
-                        <select name="batchId" class="form-select" onchange="this.form.submit()" required>
-                            <option value="">-- Select Batch --</option>
+                        <label class="form-label text-uppercase x-small fw-bold text-muted">Batch *</label>
+                        <select name="batchId" class="form-select border-0 shadow-sm" onchange="this.form.submit()" required>
+                            <option value="">-- Batch --</option>
                             @foreach (var batch in Model.Batches)
                             {
                                 <option value="@batch.Id" selected="@(Model.BatchId == batch.Id)">
@@ -55,13 +51,10 @@
                         </select>
                     </div>
 
-                    <!-- Section Selection -->
                     <div class="col-md-2">
-                        <label class="form-label fw-bold">
-                            <i class="fas fa-users me-1"></i>Section *
-                        </label>
-                        <select name="sectionId" class="form-select" onchange="this.form.submit()" required>
-                            <option value="">-- Select Section --</option>
+                        <label class="form-label text-uppercase x-small fw-bold text-muted">Section *</label>
+                        <select name="sectionId" class="form-select border-0 shadow-sm" onchange="this.form.submit()" required>
+                            <option value="">-- Section --</option>
                             @foreach (var sec in Model.Sections)
                             {
                                 <option value="@sec.Id" selected="@(Model.SectionId == sec.Id)">
@@ -71,28 +64,20 @@
                         </select>
                     </div>
 
-                    <!-- From Date -->
                     <div class="col-md-2">
-                        <label class="form-label fw-bold">
-                            <i class="fas fa-calendar me-1"></i>From Date
-                        </label>
+                        <label class="form-label text-uppercase x-small fw-bold text-muted">From</label>
                         <input type="date" name="fromDate" value="@Model.FromDate.ToString("yyyy-MM-dd")" 
-                               class="form-control" onchange="this.form.submit()" />
+                               class="form-control border-0 shadow-sm" onchange="this.form.submit()" />
                     </div>
-
-                    <!-- To Date -->
                     <div class="col-md-2">
-                        <label class="form-label fw-bold">
-                            <i class="fas fa-calendar me-1"></i>To Date
-                        </label>
+                        <label class="form-label text-uppercase x-small fw-bold text-muted">To</label>
                         <input type="date" name="toDate" value="@Model.ToDate.ToString("yyyy-MM-dd")" 
-                               class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")" 
+                               class="form-control border-0 shadow-sm" max="@DateTime.Now.ToString("yyyy-MM-dd")" 
                                onchange="this.form.submit()" />
                     </div>
 
-                    <!-- Submit Button -->
                     <div class="col-md-1 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">
+                        <button type="submit" class="btn btn-primary w-100 shadow-sm" title="Refresh Report">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
@@ -101,61 +86,72 @@
         </div>
     </div>
 
-    <!-- Results Card -->
     @if (Model.Students.Any())
     {
-        <div class="card shadow">
-            <div class="card-header py-3 bg-success text-white">
-                <h6 class="m-0 font-weight-bold">
-                    <i class="fas fa-list me-2"></i>
-                    Student List - @Model.Students.Count Students
+        <div class="card shadow border-0 mb-4">
+            <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 fw-bold">
+                    <i class="fas fa-list-ul me-2"></i>Student Records
                 </h6>
+                <span class="badge bg-white text-primary rounded-pill px-3">
+                    @Model.Students.Count Students
+                </span>
             </div>
-            <div class="card-body">
+            
+            <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover" id="studentsTable">
-                        <thead class="table-light">
+                    <table class="table table-hover align-middle mb-0" id="studentsTable">
+                        <thead class="bg-light text-uppercase x-small text-muted">
                             <tr>
-                                <th width="10%">Roll No</th>
-                                <th width="25%">Student Name</th>
-                                <th width="10%">Batch</th>
-                                <th width="10%">Section</th>
-                                <th width="10%">Total Classes</th>
-                                <th width="10%">Present</th>
-                                <th width="10%">Percentage</th>
-                                <th width="10%">Status</th>
-                                <th width="5%">Action</th>
+                                <th class="ps-4">Roll No</th>
+                                <th>Student Name</th>
+                                <th>Batch / Section</th>
+                                <th class="text-center">Classes</th>
+                                <th class="text-center">Present</th>
+                                <th class="text-center" style="min-width: 140px;">Percentage</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center pe-4">Action</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="border-top-0">
                             @foreach (var student in Model.Students.OrderBy(s => s.RollNumber))
                             {
-                                <tr class="@(student.AttendancePercentage < 65 ? "table-danger" : "")">
-                                    <td><strong>@student.RollNumber</strong></td>
-                                    <td>@student.StudentName</td>
-                                    <td>@student.BatchYear</td>
-                                    <td>@student.SectionName</td>
+                                var isShortage = student.AttendancePercentage < 65;
+                                <tr class="@(isShortage ? "bg-danger bg-opacity-10" : "")">
+                                    <td class="ps-4">
+                                        <span class="font-monospace fw-bold text-primary">@student.RollNumber</span>
+                                    </td>
+                                    <td class="fw-bold text-dark">@student.StudentName</td>
+                                    <td class="text-muted small">@student.BatchYear (@student.SectionName)</td>
                                     <td class="text-center">@student.TotalClasses</td>
-                                    <td class="text-center">@student.PresentCount</td>
+                                    <td class="text-center fw-bold text-success">@student.PresentCount</td>
                                     <td class="text-center">
-                                        <strong class="text-@student.StatusColor">
-                                            @student.AttendancePercentage.ToString("F2")%
-                                        </strong>
+                                        <div class="d-flex flex-column align-items-center">
+                                            <span class="fw-bold small mb-1 @(isShortage ? "text-danger" : "text-dark")">
+                                                @student.AttendancePercentage.ToString("F1")%
+                                            </span>
+                                            <div class="progress w-100 shadow-sm" style="height: 6px;">
+                                                <div class="progress-bar @(student.AttendancePercentage >= 75 ? "bg-success" : (isShortage ? "bg-danger" : "bg-warning"))" 
+                                                     role="progressbar" 
+                                                     style="width: @student.AttendancePercentage%"></div>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge bg-@student.StatusColor">
+                                        <span class="badge rounded-pill @(student.AttendancePercentage >= 75 ? "bg-success" : (isShortage ? "bg-danger" : "bg-warning text-dark")) px-3">
                                             @student.Status
                                         </span>
                                     </td>
-                                    <td class="text-center">
+                                    <td class="text-center pe-4">
                                         <a asp-action="StudentDetail" 
                                            asp-route-id="@student.StudentId"
                                            asp-route-courseId="@Model.CourseId"
                                            asp-route-fromDate="@Model.FromDate.ToString("yyyy-MM-dd")"
                                            asp-route-toDate="@Model.ToDate.ToString("yyyy-MM-dd")"
-                                           class="btn btn-sm btn-info" 
+                                           class="btn btn-sm btn-outline-primary rounded-circle shadow-sm" 
+                                           data-bs-toggle="tooltip" 
                                            title="View Details">
-                                            <i class="fas fa-eye"></i>
+                                            <i class="fas fa-chevron-right"></i>
                                         </a>
                                     </td>
                                 </tr>
@@ -163,38 +159,51 @@
                         </tbody>
                     </table>
                 </div>
-                
-                <!-- Summary Statistics -->
-                <div class="row mt-4">
+            </div>
+
+            <div class="card-footer bg-light p-4">
+                <div class="row g-3">
                     <div class="col-md-3">
-                        <div class="card bg-light">
-                            <div class="card-body text-center">
-                                <h6 class="text-muted">Total Students</h6>
-                                <h3 class="text-primary">@Model.Students.Count</h3>
+                        <div class="d-flex align-items-center p-3 bg-white rounded border shadow-sm h-100">
+                            <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3 text-primary">
+                                <i class="fas fa-users fa-lg"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0">@Model.Students.Count</h5>
+                                <small class="text-muted text-uppercase x-small">Total Students</small>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="card bg-light">
-                            <div class="card-body text-center">
-                                <h6 class="text-muted">Good Attendance (≥75%)</h6>
-                                <h3 class="text-success">@Model.Students.Count(s => s.AttendancePercentage >= 75)</h3>
+                        <div class="d-flex align-items-center p-3 bg-white rounded border shadow-sm h-100 border-start border-success border-3">
+                            <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3 text-success">
+                                <i class="fas fa-check-circle fa-lg"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0 text-success">@Model.Students.Count(s => s.AttendancePercentage >= 75)</h5>
+                                <small class="text-muted text-uppercase x-small">Good (≥75%)</small>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="card bg-light">
-                            <div class="card-body text-center">
-                                <h6 class="text-muted">Warning (65-74%)</h6>
-                                <h3 class="text-warning">@Model.Students.Count(s => s.AttendancePercentage >= 65 && s.AttendancePercentage < 75)</h3>
+                        <div class="d-flex align-items-center p-3 bg-white rounded border shadow-sm h-100 border-start border-warning border-3">
+                            <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3 text-warning text-dark">
+                                <i class="fas fa-exclamation-circle fa-lg"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0 text-warning text-dark">@Model.Students.Count(s => s.AttendancePercentage >= 65 && s.AttendancePercentage < 75)</h5>
+                                <small class="text-muted text-uppercase x-small">Warning (65-74%)</small>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="card bg-light">
-                            <div class="card-body text-center">
-                                <h6 class="text-muted">Shortage (&lt;65%)</h6>
-                                <h3 class="text-danger">@Model.Students.Count(s => s.AttendancePercentage < 65)</h3>
+                        <div class="d-flex align-items-center p-3 bg-white rounded border shadow-sm h-100 border-start border-danger border-3">
+                            <div class="rounded-circle bg-danger bg-opacity-10 p-3 me-3 text-danger">
+                                <i class="fas fa-times-circle fa-lg"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0 text-danger">@Model.Students.Count(s => s.AttendancePercentage < 65)</h5>
+                                <small class="text-muted text-uppercase x-small">Shortage (&lt;65%)</small>
                             </div>
                         </div>
                     </div>
@@ -204,22 +213,24 @@
     }
     else if (Model.CourseId.HasValue && Model.BatchId.HasValue && Model.SectionId.HasValue)
     {
-        <div class="card shadow">
-            <div class="card-body text-center py-5">
-                <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">No students found for the selected criteria</h5>
-                <p class="text-muted">Please adjust your filters and try again.</p>
+        <div class="text-center py-5">
+            <div class="mb-3 text-muted opacity-25">
+                <i class="fas fa-user-slash fa-4x"></i>
             </div>
+            <h5 class="text-muted fw-bold">No Students Found</h5>
+            <p class="text-muted small">Please verify the selected batch and section configuration.</p>
         </div>
     }
     else
     {
-        <div class="card shadow">
-            <div class="card-body text-center py-5">
-                <i class="fas fa-hand-pointer fa-3x text-primary mb-3"></i>
-                <h5 class="text-primary">Please select filters to view student summary</h5>
-                <p class="text-muted">Use the filters above to search for students.</p>
+        <div class="text-center py-5 mt-5">
+            <div class="mb-4">
+                <span class="bg-primary bg-opacity-10 p-4 rounded-circle text-primary">
+                    <i class="fas fa-search fa-3x"></i>
+                </span>
             </div>
+            <h4 class="text-primary fw-bold">Select Filters</h4>
+            <p class="text-muted">Choose a <strong>Course</strong>, <strong>Batch</strong>, and <strong>Section</strong> to view attendance analytics.</p>
         </div>
     }
 </div>
@@ -227,13 +238,27 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
-            $('#studentsTable').DataTable({
+            var table = $('#studentsTable').DataTable({
                 "pageLength": 25,
-                "order": [[6, "asc"]], // Sort by percentage ascending to show shortage first
+                "order": [[6, "asc"]], // Sort by status/percentage
+                "dom": '<"d-flex justify-content-between align-items-center mx-3 my-3"f>t<"d-flex justify-content-between align-items-center mx-3 my-3"ip>',
                 "language": {
-                    "emptyTable": "No students found"
+                    "search": "",
+                    "searchPlaceholder": "Search students...",
+                    "emptyTable": "No student records found"
                 }
             });
+            
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
         });
     </script>
+    <style>
+        .x-small { font-size: 0.75rem; letter-spacing: 0.05em; }
+        .dataTables_filter input { border-radius: 20px; padding: 5px 15px; border: 1px solid #d1d3e2; outline: none; }
+        .dataTables_filter input:focus { border-color: var(--uet-royal-blue); }
+    </style>
 }

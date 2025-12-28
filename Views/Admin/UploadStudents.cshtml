@@ -2,193 +2,128 @@
     ViewData["Title"] = "Upload Students";
 }
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-file-upload me-2"></i>Upload Students from Excel
-        </h1>
-        <a class="btn btn-secondary" asp-action="Dashboard">
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h1 class="h3 mb-0 fw-bold text-primary">
+                <i class="fas fa-file-import me-2"></i>Import Students
+            </h1>
+            <p class="text-muted small mb-0">Bulk add student records via Excel (.xlsx)</p>
+        </div>
+        <a class="btn btn-outline-secondary btn-sm shadow-sm bg-white" asp-action="Dashboard">
             <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
         </a>
     </div>
 
-    <div class="row">
-        <div class="col-lg-8 mx-auto">
-            <!-- Upload Form Card -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-cloud-upload-alt me-2"></i>Upload Excel File
+    <div class="row justify-content-center">
+        <div class="col-xl-10">
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h6 class="m-0 fw-bold">
+                        <i class="fas fa-cloud-upload-alt me-2"></i>File Upload
                     </h6>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-5 bg-light bg-opacity-10">
                     <form asp-action="UploadStudents" method="post" enctype="multipart/form-data" id="uploadForm">
                         @Html.AntiForgeryToken()
                         
-                        <div class="mb-4">
-                            <label for="file" class="form-label">Select Excel File (.xlsx) <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <input type="file" 
-                                       class="form-control" 
-                                       id="file" 
-                                       name="file" 
-                                       accept=".xlsx" 
-                                       required />
-                                <button class="btn btn-primary" type="submit" id="uploadBtn">
-                                    <i class="fas fa-upload me-2"></i>Upload
-                                </button>
+                        <div class="upload-zone text-center p-5 border-2 border-dashed rounded-3 bg-white position-relative transition-all" id="dropZone" style="border-color: #e3e6f0; cursor: pointer;">
+                            <div class="mb-3">
+                                <span class="fa-stack fa-2x">
+                                    <i class="fas fa-circle fa-stack-2x text-success opacity-10"></i>
+                                    <i class="fas fa-file-excel fa-stack-1x text-success"></i>
+                                </span>
                             </div>
-                            <small class="form-text text-muted mt-2">
-                                <i class="fas fa-info-circle me-1"></i>Only .xlsx files are supported. Maximum file size: 10MB
-                            </small>
+                            <h5 class="fw-bold text-dark mb-1">Drag and drop your Excel file here</h5>
+                            <p class="text-muted small mb-0">or click to browse</p>
+                            <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" 
+                                   id="file" name="file" accept=".xlsx" required style="cursor: pointer;" />
                         </div>
 
-                        <div id="uploadProgress" class="progress mb-3" style="display: none;">
-                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                                 role="progressbar" 
-                                 aria-valuenow="100" 
-                                 aria-valuemin="0" 
-                                 aria-valuemax="100" 
-                                 style="width: 100%">
-                                Uploading...
+                        <div id="fileInfo" class="mt-4 text-center d-none fade-in">
+                            <div class="d-inline-flex align-items-center bg-white border px-4 py-2 rounded-pill shadow-sm">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span class="fw-bold text-dark me-2" id="fileName">filename.xlsx</span>
+                                <button type="button" class="btn btn-link btn-sm text-danger p-0 ms-2" id="clearFile" title="Remove">
+                                    <i class="fas fa-times"></i>
+                                </button>
                             </div>
+                        </div>
+
+                        <div id="uploadProgress" class="progress mt-4 mb-2" style="height: 8px; display: none;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
+                                 role="progressbar" style="width: 100%"></div>
+                        </div>
+                        <div id="progressText" class="text-center small text-muted mt-1" style="display: none;">Processing file...</div>
+
+                        <div class="text-center mt-4">
+                            <button class="btn btn-primary px-5 py-2 shadow-sm" type="submit" id="uploadBtn" disabled>
+                                <i class="fas fa-upload me-2"></i>Start Import
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- Excel Format Instructions Card -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 bg-info text-white">
-                    <h6 class="m-0 font-weight-bold">
-                        <i class="fas fa-table me-2"></i>Required Excel Format
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <p class="mb-3">Your Excel file must have the following columns in order:</p>
-                    
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-sm">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Column</th>
-                                    <th>Name</th>
-                                    <th>Type</th>
-                                    <th>Example</th>
-                                    <th>Required</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>A</strong></td>
-                                    <td>Roll Number</td>
-                                    <td>Text</td>
-                                    <td>2024001</td>
-                                    <td><span class="badge bg-danger">Yes</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>B</strong></td>
-                                    <td>Full Name</td>
-                                    <td>Text</td>
-                                    <td>John Smith</td>
-                                    <td><span class="badge bg-danger">Yes</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>C</strong></td>
-                                    <td>Email</td>
-                                    <td>Email</td>
-                                    <td>john.smith@university.com</td>
-                                    <td><span class="badge bg-danger">Yes</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>D</strong></td>
-                                    <td>Phone Number</td>
-                                    <td>Text</td>
-                                    <td>+1234567890</td>
-                                    <td><span class="badge bg-secondary">Optional</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>E</strong></td>
-                                    <td>Department Name</td>
-                                    <td>Text</td>
-                                    <td>Computer Science</td>
-                                    <td><span class="badge bg-danger">Yes</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>F</strong></td>
-                                    <td>Batch Year</td>
-                                    <td>Text</td>
-                                    <td>2024</td>
-                                    <td><span class="badge bg-danger">Yes</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>G</strong></td>
-                                    <td>Section Name</td>
-                                    <td>Text</td>
-                                    <td>A</td>
-                                    <td><span class="badge bg-danger">Yes</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="alert alert-warning mt-3">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <strong>Important Notes:</strong>
-                        <ul class="mb-0 mt-2">
-                            <li>The first row should contain column headers (they will be skipped)</li>
-                            <li>All required fields must be filled</li>
-                            <li>Email addresses must be unique across all students</li>
-                            <li>Roll numbers must be unique</li>
-                            <li>Departments, batches, and sections will be created automatically if they don't exist</li>
-                        </ul>
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white py-3 border-bottom">
+                            <h6 class="m-0 fw-bold text-primary">
+                                <i class="fas fa-table me-2"></i>Excel Format Guidelines
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-sm mb-0 small align-middle">
+                                    <thead class="bg-light text-uppercase text-muted">
+                                        <tr>
+                                            <th class="text-center" width="50">Col</th>
+                                            <th>Field Name</th>
+                                            <th>Required</th>
+                                            <th>Sample Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="text-center fw-bold">A</td><td>Roll Number</td><td class="text-center"><span class="badge bg-danger">Yes</span></td><td>2023-CS-101</td></tr>
+                                        <tr><td class="text-center fw-bold">B</td><td>Full Name</td><td class="text-center"><span class="badge bg-danger">Yes</span></td><td>John Smith</td></tr>
+                                        <tr><td class="text-center fw-bold">C</td><td>Email</td><td class="text-center"><span class="badge bg-danger">Yes</span></td><td>john@univ.edu</td></tr>
+                                        <tr><td class="text-center fw-bold">D</td><td>Phone</td><td class="text-center"><span class="badge bg-secondary">No</span></td><td>+92 300 1234567</td></tr>
+                                        <tr><td class="text-center fw-bold">E</td><td>Department</td><td class="text-center"><span class="badge bg-danger">Yes</span></td><td>Computer Science</td></tr>
+                                        <tr><td class="text-center fw-bold">F</td><td>Batch</td><td class="text-center"><span class="badge bg-danger">Yes</span></td><td>2023</td></tr>
+                                        <tr><td class="text-center fw-bold">G</td><td>Section</td><td class="text-center"><span class="badge bg-danger">Yes</span></td><td>A</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="alert alert-warning border-0 shadow-sm d-flex mt-3 mb-0">
+                                <i class="fas fa-lightbulb mt-1 me-3"></i>
+                                <small><strong>Note:</strong> The first row of your Excel file is considered a header row and will be skipped during import. Ensure unique Roll Numbers and Email addresses.</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Sample Excel Template Card -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 bg-success text-white">
-                    <h6 class="m-0 font-weight-bold">
-                        <i class="fas fa-download me-2"></i>Download Sample Template
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <p>Download a sample Excel template with the correct format:</p>
-                    <button type="button" class="btn btn-success" id="downloadTemplateBtn">
-                        <i class="fas fa-download me-2"></i>Download Sample Template
-                    </button>
-                </div>
-            </div>
-
-            <!-- Recent Upload Logs Card -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-history me-2"></i>Upload History
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Date</th>
-                                    <th>File Name</th>
-                                    <th>Records</th>
-                                    <th>Status</th>
-                                    <th>Uploaded By</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td colspan="5" class="text-center text-muted">
-                                        <i class="fas fa-info-circle me-2"></i>
-                                        Upload history will be displayed here after your first upload
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div class="col-lg-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white py-3 border-bottom">
+                            <h6 class="m-0 fw-bold text-primary">
+                                <i class="fas fa-tools me-2"></i>Tools
+                            </h6>
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <p class="text-muted small">Download a pre-formatted template to ensure accurate data import.</p>
+                            <button type="button" class="btn btn-success shadow-sm w-100 mb-3" id="downloadTemplateBtn">
+                                <i class="fas fa-file-excel me-2"></i>Download Template
+                            </button>
+                            
+                            <hr class="my-3">
+                            
+                            <h6 class="fw-bold small text-muted text-uppercase">Recent Status</h6>
+                            <div class="mt-auto text-center text-muted py-3">
+                                <i class="fas fa-history fa-2x mb-2 opacity-25"></i>
+                                <p class="small mb-0">No recent uploads</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -199,74 +134,108 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
-            // Handle form submission with progress indicator
-            $('#uploadForm').on('submit', function(e) {
-                const fileInput = $('#file')[0];
-                if (!fileInput.files || !fileInput.files[0]) {
-                    e.preventDefault();
-                    alert('Please select a file to upload.');
-                    return false;
-                }
+            var dropZone = $('#dropZone');
+            var fileInput = $('#file');
+            var uploadBtn = $('#uploadBtn');
+            var fileInfo = $('#fileInfo');
+            var fileNameDisplay = $('#fileName');
 
-                const file = fileInput.files[0];
-                const maxSize = 10 * 1024 * 1024; // 10MB
+            // Drag hover effects
+            dropZone.on('dragover', function(e) {
+                e.preventDefault();
+                $(this).addClass('bg-primary bg-opacity-10 border-primary');
+            });
+            
+            dropZone.on('dragleave drop', function(e) {
+                e.preventDefault();
+                $(this).removeClass('bg-primary bg-opacity-10 border-primary');
+            });
 
-                if (file.size > maxSize) {
-                    e.preventDefault();
-                    alert('File size exceeds 10MB. Please select a smaller file.');
-                    return false;
-                }
+            // File selection handler
+            fileInput.on('change', function() {
+                handleFile(this.files[0]);
+            });
+
+            function handleFile(file) {
+                if (!file) return;
 
                 if (!file.name.toLowerCase().endsWith('.xlsx')) {
+                    alert('Please select a valid Excel file (.xlsx)');
+                    resetForm();
+                    return;
+                }
+
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('File size exceeds 10MB limit');
+                    resetForm();
+                    return;
+                }
+
+                // Show file info
+                fileNameDisplay.text(file.name);
+                fileInfo.removeClass('d-none');
+                uploadBtn.prop('disabled', false);
+                dropZone.addClass('border-success').css('background-color', '#f8fff9');
+            }
+
+            // Clear file
+            $('#clearFile').on('click', function() {
+                resetForm();
+            });
+
+            function resetForm() {
+                fileInput.val('');
+                fileInfo.addClass('d-none');
+                uploadBtn.prop('disabled', true);
+                dropZone.removeClass('border-success').css('background-color', '');
+            }
+
+            // Form Submit
+            $('#uploadForm').on('submit', function(e) {
+                if (!fileInput.val()) {
                     e.preventDefault();
-                    alert('Please select an Excel file (.xlsx).');
-                    return false;
+                    return;
                 }
-
-                // Show progress indicator
+                
                 $('#uploadProgress').show();
-                $('#uploadBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Uploading...');
+                $('#progressText').show();
+                uploadBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Importing...');
             });
 
-            // Handle file input change
-            $('#file').on('change', function() {
-                const fileName = $(this).val().split('\\').pop();
-                if (fileName) {
-                    $(this).next('.btn').html('<i class="fas fa-upload me-2"></i>Upload ' + fileName);
-                } else {
-                    $(this).next('.btn').html('<i class="fas fa-upload me-2"></i>Upload');
-                }
-            });
-
-            // Download sample template
+            // Template Download (Generating CSV for demo, user should convert to XLSX)
             $('#downloadTemplateBtn').on('click', function() {
-                // Create a sample Excel data
-                const sampleData = [
-                    ['Roll Number', 'Full Name', 'Email', 'Phone Number', 'Department Name', 'Batch Year', 'Section Name'],
-                    ['2024001', 'John Smith', 'john.smith@university.com', '+1234567890', 'Computer Science', '2024', 'A'],
-                    ['2024002', 'Jane Doe', 'jane.doe@university.com', '+1234567891', 'Computer Science', '2024', 'A'],
-                    ['2024003', 'Mike Johnson', 'mike.johnson@university.com', '+1234567892', 'Electrical Engineering', '2024', 'B']
-                ];
-
-                // Create CSV content
-                let csvContent = sampleData.map(row => row.join(',')).join('\\n');
+                const headers = ['Roll Number', 'Full Name', 'Email', 'Phone Number', 'Department Name', 'Batch Year', 'Section Name'];
+                const sample = ['2023-CS-101', 'Jane Doe', 'jane@example.com', '923001234567', 'Computer Science', '2023', 'A'];
                 
-                // Create download link
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                const url = URL.createObjectURL(blob);
+                let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + sample.join(",");
                 
-                link.setAttribute('href', url);
-                link.setAttribute('download', 'students_template.csv');
-                link.style.visibility = 'hidden';
-                
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "Student_Import_Template.csv");
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-
-                // Show info message
-                alert('CSV template downloaded. Please convert it to .xlsx format using Excel or save it directly as .xlsx from Excel.');
+                
+                alert("Template downloaded as CSV. Please save as .xlsx in Excel before uploading.");
             });
         });
     </script>
+    <style>
+        .upload-zone { transition: all 0.2s ease-in-out; }
+        .upload-zone:hover { border-color: var(--uet-royal-blue) !important; background-color: rgba(0,0,102,0.02); }
+        .border-dashed { border-style: dashed !important; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+    </style>
 }
+
+<style>
+    @@keyframes slideIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .upload-card {
+        animation: slideIn 0.5s ease-out;
+    }
+</style>

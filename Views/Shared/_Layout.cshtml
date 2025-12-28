@@ -3,254 +3,177 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Attendance Management System</title>
+    <title>@ViewData["Title"] - UET Attendance System</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
-    <style>
-        .sidebar {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-        }
-        
-        .sidebar .nav-link {
-            color: #fff;
-            padding: 12px 20px;
-            margin: 4px 0;
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-        
-        .sidebar .nav-link:hover {
-            background: rgba(255,255,255,0.1);
-            transform: translateX(5px);
-        }
-        
-        .sidebar .nav-link.active {
-            background: rgba(255,255,255,0.2);
-            font-weight: 600;
-        }
-        
-        .navbar-brand {
-            font-weight: 700;
-            font-size: 1.5rem;
-        }
-        
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .stat-card {
-            border-left: 4px solid #007bff;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            border: none;
-            border-radius: 8px;
-            padding: 10px 20px;
-        }
-        
-        .table th {
-            border-top: none;
-            font-weight: 600;
-            color: #495057;
-        }
-        
-        .badge-attendance-present {
-            background-color: #28a745;
-        }
-        
-        .badge-attendance-absent {
-            background-color: #dc3545;
-        }
-        
-        .badge-attendance-late {
-            background-color: #ffc107;
-            color: #000;
-        }
-        
-        .btn-purple {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-        }
-        
-        .btn-purple:hover {
-            background: linear-gradient(45deg, #764ba2, #667eea);
-            color: white;
-        }
-    </style>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
+    <div class="container-fluid g-0">
+        <div class="row g-0">
             @if (User.Identity.IsAuthenticated)
             {
-                <div class="col-md-3 col-lg-2 d-md-block sidebar collapse">
-                    <div class="position-sticky pt-3">
-                        <div class="text-center mb-4">
-                            <h4 class="text-white">
-                                <i class="fas fa-calendar-check me-2"></i>
-                                Attendance System
-                            </h4>
-                            <small class="text-light">Welcome, @User.Identity.Name!</small>
+                <div class="col-md-3 col-lg-2 d-none d-md-block sidebar text-white">
+                    <div class="sidebar-brand">
+                        <div class="d-flex align-items-center justify-content-center mb-2">
+                            <i class="fas fa-university fa-2x text-warning me-2"></i>
+                            <h5 class="mb-0 fw-bold">UET AMS</h5>
                         </div>
-                        
-                        <ul class="nav flex-column">
-                            @if (User.IsInRole("Admin"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Dashboard" ? "active" : "")" 
-                                       asp-controller="Admin" asp-action="Dashboard">
-                                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Admin" && ViewContext.RouteData.Values["Action"]?.ToString() == "Departments" ? "active" : "")" 
-                                       asp-controller="Admin" asp-action="Departments">
-                                        <i class="fas fa-building me-2"></i>Departments
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Admin" && ViewContext.RouteData.Values["Action"]?.ToString() == "Students" ? "active" : "")" 
-                                       asp-controller="Admin" asp-action="Students">
-                                        <i class="fas fa-users me-2"></i>Students
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Admin" && ViewContext.RouteData.Values["Action"]?.ToString() == "Teachers" ? "active" : "")" 
-                                       asp-controller="Admin" asp-action="Teachers">
-                                        <i class="fas fa-chalkboard-teacher me-2"></i>Teachers
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Admin" && ViewContext.RouteData.Values["Action"]?.ToString() == "Reports" ? "active" : "")" 
-                                       asp-controller="Admin" asp-action="Reports">
-                                        <i class="fas fa-chart-bar me-2"></i>Reports
-                                    </a>
-                                </li>
-                            }
-                            else if (User.IsInRole("Teacher"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Dashboard" ? "active" : "")" 
-                                       asp-controller="Teacher" asp-action="Dashboard">
-                                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "MarkAttendance" ? "active" : "")" 
-                                       asp-controller="Teacher" asp-action="MarkAttendance">
-                                        <i class="fas fa-edit me-2"></i>Mark Attendance
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "AttendanceHistory" ? "active" : "")" 
-                                       asp-controller="Teacher" asp-action="AttendanceHistory">
-                                        <i class="fas fa-history me-2"></i>History
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "StudentSummary" ? "active" : "")" 
-                                       asp-controller="Teacher" asp-action="StudentSummary">
-                                        <i class="fas fa-chart-pie me-2"></i>Student Summary
-                                    </a>
-                                </li>
-                            }
-                            else if (User.IsInRole("Student"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Dashboard" ? "active" : "")" 
-                                       asp-controller="Student" asp-action="Dashboard">
-                                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "MyAttendance" ? "active" : "")" 
-                                       asp-controller="Student" asp-action="MyAttendance">
-                                        <i class="fas fa-calendar me-2"></i>My Attendance
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "RegisterSubjects" ? "active" : "")" 
-                                       asp-controller="Admin" asp-action="RegisterSubjects" asp-route-id="@((ViewBag.Student != null ? ViewBag.Student.Id : (ViewData["Student"] as dynamic)?.Id) ?? "")">
-                                        <i class="fas fa-book me-2"></i>Register Subjects
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "AttendanceSummary" ? "active" : "")" 
-                                       asp-controller="Student" asp-action="AttendanceSummary">
-                                        <i class="fas fa-chart-line me-2"></i>Summary
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "MyTimetable" ? "active" : "")" 
-                                       asp-controller="Student" asp-action="MyTimetable">
-                                        <i class="fas fa-clock me-2"></i>Timetable
-                                    </a>
-                                </li>
-                            }
-                        </ul>
+                        <small class="opacity-75 d-block">Attendance Portal</small>
                     </div>
+
+                    <div class="px-3 mb-4 text-center">
+                        <div class="p-3 rounded bg-white bg-opacity-10">
+                            <i class="fas fa-user-circle fa-2x mb-2 text-warning"></i>
+                            <div class="fw-bold text-truncate">@User.Identity.Name</div>
+                            <small class="text-white-50">
+                                @(User.IsInRole("Admin") ? "Administrator" : User.IsInRole("Teacher") ? "Faculty" : "Student")
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <ul class="nav flex-column px-2">
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Dashboard" ? "active" : "")" 
+                                   asp-controller="Admin" asp-action="Dashboard">
+                                    <i class="fas fa-tachometer-alt"></i>Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Departments" ? "active" : "")" 
+                                   asp-controller="Admin" asp-action="Departments">
+                                    <i class="fas fa-building"></i>Departments
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Students" ? "active" : "")" 
+                                   asp-controller="Admin" asp-action="Students">
+                                    <i class="fas fa-user-graduate"></i>Students
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Teachers" ? "active" : "")" 
+                                   asp-controller="Admin" asp-action="Teachers">
+                                    <i class="fas fa-chalkboard-teacher"></i>Teachers
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Reports" ? "active" : "")" 
+                                   asp-controller="Admin" asp-action="Reports">
+                                    <i class="fas fa-chart-pie"></i>Reports
+                                </a>
+                            </li>
+                        }
+                        else if (User.IsInRole("Teacher"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Dashboard" ? "active" : "")" 
+                                   asp-controller="Teacher" asp-action="Dashboard">
+                                    <i class="fas fa-home"></i>Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "MarkAttendance" ? "active" : "")" 
+                                   asp-controller="Teacher" asp-action="MarkAttendance">
+                                    <i class="fas fa-check-circle"></i>Mark Attendance
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "MyTimetable" ? "active" : "")" 
+                                   asp-controller="Teacher" asp-action="MyTimetable">
+                                    <i class="fas fa-calendar-alt"></i>My Timetable
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "StudentSummary" ? "active" : "")" 
+                                   asp-controller="Teacher" asp-action="StudentSummary">
+                                    <i class="fas fa-users"></i>Students
+                                </a>
+                            </li>
+                        }
+                        else if (User.IsInRole("Student"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Dashboard" ? "active" : "")" 
+                                   asp-controller="Student" asp-action="Dashboard">
+                                    <i class="fas fa-tachometer-alt"></i>Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "MyAttendance" ? "active" : "")" 
+                                   asp-controller="Student" asp-action="MyAttendance">
+                                    <i class="fas fa-clipboard-list"></i>Attendance
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "RegisterSubjects" ? "active" : "")" 
+                                   asp-controller="Student" asp-action="RegisterSubjects">
+                                    <i class="fas fa-book"></i>Subjects
+                                </a>
+                            </li>
+                             <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "MyTimetable" ? "active" : "")" 
+                                   asp-controller="Student" asp-action="MyTimetable">
+                                    <i class="fas fa-clock"></i>Timetable
+                                </a>
+                            </li>
+                        }
+                    </ul>
                 </div>
             }
 
-            <!-- Main content -->
-            <div class="@(User.Identity.IsAuthenticated ? "col-md-9 col-lg-10 ml-sm-auto" : "col-12")">
-                <!-- Navbar -->
-                <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
-                    <div class="container-fluid">
-                        @if (User.Identity.IsAuthenticated)
-                        {
-                            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar">
-                                <span class="navbar-toggler-icon"></span>
-                            </button>
-                        }
-                        <a class="navbar-brand" asp-controller="Home" asp-action="Index">
-                            <i class="fas fa-calendar-check text-primary me-2"></i>
-                            <span class="d-none d-sm-inline">Attendance Management System</span>
-                        </a>
-                        
+            <div class="@(User.Identity.IsAuthenticated ? "col-md-9 col-lg-10" : "col-12") d-flex flex-column min-vh-100">
+                
+                <nav class="navbar navbar-expand bg-white topbar mb-4 static-top shadow-sm px-4">
+                     @if (User.Identity.IsAuthenticated)
+                    {
+                        <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                    }
+
+                    <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
+                        <img src="~/images/logo.png" alt="Logo" style="height: 35px; width: auto;" class="me-2" />
+                        <span class="d-none d-sm-inline">Attendance System</span>
+                    </a>
+
+                    <div class="ms-auto">
                         <partial name="_LoginPartial" />
                     </div>
                 </nav>
 
-                <!-- Main content area -->
-                <!-- In the main content area, replace the existing code with: -->
-                <main class="px-4 py-4">
-                    <!-- Message Display -->
+                <main class="flex-grow-1 px-4 pb-5">
                     @if (TempData["Message"] != null)
                     {
-                        <div class="alert alert-@(TempData["MessageType"] ?? "success") alert-dismissible fade show" role="alert">
-                            <i class="fas @((TempData["MessageType"]?.ToString() == "error" ? "fa-exclamation-triangle" : "fa-check-circle")) me-2"></i>
-                            @TempData["Message"]
+                        <div class="alert alert-@(TempData["MessageType"] ?? "success") alert-dismissible fade show shadow-sm" role="alert">
+                            <div class="d-flex align-items-center">
+                                <i class="fas @((TempData["MessageType"]?.ToString() == "error" ? "fa-exclamation-triangle" : "fa-check-circle")) me-2 fa-lg"></i>
+                                <div>@TempData["Message"]</div>
+                            </div>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     }
 
                     @RenderBody()
                 </main>
+
+                <footer class="bg-white py-3 mt-auto border-top">
+                    <div class="container-fluid text-center">
+                        <span class="text-muted small">
+                            &copy; @DateTime.Now.Year - University of Engineering & Technology. All Rights Reserved.
+                        </span>
+                    </div>
+                </footer>
             </div>
         </div>
     </div>
-
-    <footer class="border-top footer text-muted mt-5">
-        <div class="container text-center py-3">
-            &copy; 2024 - Attendance Management System
-        </div>
-    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
