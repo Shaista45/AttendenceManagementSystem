@@ -22,16 +22,40 @@
     </div>
 
     <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white py-3 border-bottom d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-            <h6 class="m-0 fw-bold text-primary">
-                <i class="fas fa-list-ul me-2"></i>All Students
-            </h6>
-            <div class="input-group shadow-sm" style="max-width: 300px;">
-                <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
-                <input type="text" class="form-control border-start-0 ps-0" placeholder="Search students..." id="searchInput">
-            </div>
+        <div class="card-body bg-light bg-opacity-50 py-3">
+            <form method="get" asp-action="Students" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small text-muted text-uppercase fw-bold">Session (Batch)</label>
+                    <select name="batchId" class="form-select border-0 shadow-sm" asp-items="ViewBag.Batches" onchange="this.form.submit()">
+                        <option value="">All Batches</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label small text-muted text-uppercase fw-bold">Section</label>
+                    <select name="sectionId" class="form-select border-0 shadow-sm" asp-items="ViewBag.Sections" onchange="this.form.submit()">
+                        <option value="">All Sections</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4 ms-auto">
+                    <label class="form-label small text-muted text-uppercase fw-bold">Search</label>
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-white border-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" class="form-control border-0" placeholder="Name or Roll Number..." id="searchInput">
+                    </div>
+                </div>
+                
+                <div class="col-md-auto">
+                    <a asp-action="Students" class="btn btn-light border shadow-sm" title="Reset Filters">
+                        <i class="fas fa-undo text-muted"></i>
+                    </a>
+                </div>
+            </form>
         </div>
-        
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
         <div class="card-body p-0">
             @if (Model.Any())
             {
@@ -78,7 +102,10 @@
                                                data-bs-toggle="tooltip" title="Edit Info">
                                                 <i class="fas fa-edit text-warning"></i>
                                             </a>
-                                            
+                                            <a class="btn btn-sm btn-light border" asp-controller="Student" asp-action="RegisterSubjects" asp-route-id="@student.Id" 
+                                               data-bs-toggle="tooltip" title="Register Subjects">
+                                                <i class="fas fa-book text-info"></i>
+                                            </a>
                                             <button type="button" class="btn btn-sm btn-light border delete-student" 
                                                     data-id="@student.Id" data-name="@student.FullName" 
                                                     data-bs-toggle="tooltip" title="Delete Record">
@@ -101,34 +128,16 @@
                         </span>
                     </div>
                     <h5 class="text-muted fw-bold">No Students Found</h5>
-                    <p class="text-muted small mb-4">Get started by adding a new student record.</p>
-                    <div class="d-flex justify-content-center gap-2">
-                        <a class="btn btn-primary" asp-action="CreateStudent">
-                            <i class="fas fa-plus me-2"></i>Add Student
-                        </a>
-                        <a class="btn btn-success text-white" asp-action="UploadStudents">
-                            <i class="fas fa-file-excel me-2"></i>Upload Excel
-                        </a>
-                    </div>
+                    <p class="text-muted small mb-4">Try adjusting your filters or add a new student.</p>
                 </div>
             }
         </div>
-    </div>
-    
-    <div style="display:none;">
-        @Html.AntiForgeryToken()
     </div>
 </div>
 
 @section Scripts {
     <script>
         $(document).ready(function() {
-            // Initialize Tooltips
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl)
-            })
-
             // Search functionality
             $('#searchInput').on('keyup', function() {
                 var value = $(this).val().toLowerCase();
@@ -142,7 +151,6 @@
                 var studentId = $(this).data('id');
                 var studentName = $(this).data('name');
                 var btn = $(this);
-                var token = $('input[name="__RequestVerificationToken"]').val();
                 
                 if (confirm('Are you sure you want to delete student "' + studentName + '"? This action cannot be undone.')) {
                     $.ajax({
@@ -150,10 +158,9 @@
                         type: 'POST',
                         data: {
                             id: studentId,
-                            __RequestVerificationToken: token
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
                         },
                         success: function(response) {
-                            // If response is boolean true/false or JSON object
                             if (response.success === true || response === true) {
                                 btn.closest('tr').fadeOut(300, function() { $(this).remove(); });
                             } else {
@@ -171,8 +178,6 @@
     </script>
     <style>
         .x-small { font-size: 0.75rem; letter-spacing: 0.05em; }
-        .input-group-text { border-color: #d1d3e2; }
-        .form-control:focus { box-shadow: none; border-color: var(--uet-royal-blue); }
-        .form-control:focus + .input-group-text { border-color: var(--uet-royal-blue); }
+        .form-select:focus, .form-control:focus { border-color: var(--uet-royal-blue); box-shadow: 0 0 0 0.2rem rgba(0,0,102,0.15); }
     </style>
 }

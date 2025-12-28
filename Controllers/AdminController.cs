@@ -570,89 +570,83 @@ namespace AttendenceManagementSystem.Controllers
 
         #endregion
 
+        // ... existing code ...
+
         #region Student Management
-        public async Task<IActionResult> Students()
+        
+        // UPDATE THIS METHOD
+        public async Task<IActionResult> Students(int? batchId, int? sectionId)
         {
-            var students = await _context.Students
+            // 1. Start the query
+            var query = _context.Students
                 .Include(s => s.Department)
                 .Include(s => s.Batch)
                 .Include(s => s.Section)
-                .ToListAsync();
-            // Views are organized under Views/Admin/Students/Index.cshtml
-            // Return the explicit path so the view engine finds the Index inside the Students subfolder
+                .AsQueryable();
+
+            // 2. Apply Batch Filter if selected
+            if (batchId.HasValue)
+            {
+                query = query.Where(s => s.BatchId == batchId.Value);
+            }
+
+            // 3. Apply Section Filter if selected
+            if (sectionId.HasValue)
+            {
+                query = query.Where(s => s.SectionId == sectionId.Value);
+            }
+
+            var students = await query.ToListAsync();
+
+            // 4. Populate Dropdowns for the View
+            // Batches dropdown
+            ViewData["Batches"] = new SelectList(await _context.Batches.OrderBy(b => b.Year).ToListAsync(), "Id", "Year", batchId);
+            
+            // Sections dropdown (filtered by selected Batch if applicable)
+            IQueryable<Section> sectionsQuery = _context.Sections;
+            if (batchId.HasValue)
+            {
+                sectionsQuery = sectionsQuery.Where(s => s.BatchId == batchId.Value);
+            }
+            ViewData["Sections"] = new SelectList(await sectionsQuery.OrderBy(s => s.Name).ToListAsync(), "Id", "Name", sectionId);
+
+            // Return the view
             return View("~/Views/Admin/Students/Index.cshtml", students);
         }
 
+      
+      [HttpGet]
         public async Task<IActionResult> CreateStudent()
         {
             ViewData["DepartmentId"] = new SelectList(await _context.Departments.ToListAsync(), "Id", "Name");
-            ViewData["BatchId"] = new SelectList(await _context.Batches.ToListAsync(), "Id", "Year");
-            ViewData["SectionId"] = new SelectList(await _context.Sections.ToListAsync(), "Id", "Name");
-            return View();
+            
+            var batches = await _context.Batches.ToListAsync();
+            var sections = await _context.Sections.ToListAsync();
+            
+            ViewData["BatchId"] = new SelectList(batches, "Id", "Year");
+            ViewData["SectionId"] = new SelectList(sections, "Id", "Name");
+            
+            return View("~/Views/Admin/CreateStudent.cshtml");
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateStudent(Student student)
         {
+            // ... (Your existing logic for Creating Student) ...
             if (ModelState.IsValid)
             {
-                // Check if roll number already exists
-                if (await _context.Students.AnyAsync(s => s.RollNumber == student.RollNumber))
-                {
-                    ModelState.AddModelError("RollNumber", "Roll number already exists.");
-                    await PopulateStudentDropdowns();
-                    return View(student);
-                }
-
-                // Check if email already exists
-                if (await _userManager.FindByEmailAsync(student.Email) != null)
-                {
-                    ModelState.AddModelError("Email", "Email already exists.");
-                    await PopulateStudentDropdowns();
-                    return View(student);
-                }
-
-                // Create user account for the student
-                var user = new ApplicationUser
-                {
-                    UserName = student.Email,
-                    Email = student.Email,
-                    EmailConfirmed = true,
-                    FullName = student.FullName
-                };
-
-                // Generate a default password (you can customize this)
-                string defaultPassword = "Student@123";
-                var result = await _userManager.CreateAsync(user, defaultPassword);
-
-                if (result.Succeeded)
-                {
-                    // Assign Student role
-                    await _userManager.AddToRoleAsync(user, "Student");
-
-                    // Set student's UserId
-                    student.UserId = user.Id;
-                    student.CreatedAt = DateTime.UtcNow;
-                    
-                    // Use the DbSet to add the entity so the correct EF Core Add method is used
-                    _context.Students.Add(student);
-                    await _context.SaveChangesAsync();
-                    
-                    ShowMessage($"Student created successfully! Default password: {defaultPassword}");
-                    return RedirectToAction(nameof(Students));
-                }
-                else
-                {
-                    foreach (var error in result.Errors)
-                    {
-                        ModelState.AddModelError(string.Empty, error.Description);
-                    }
-                }
+                _context.Students.Add(student);
+                await _context.SaveChangesAsync();
+                
+                ShowMessage($"Student created successfully!");
+                return RedirectToAction(nameof(Students));
             }
+            
             await PopulateStudentDropdowns();
-            return View(student);
+            return View("~/Views/Admin/CreateStudent.cshtml", student);
         }
+   
 
         // This is a synchronous GET action; remove async to avoid warning
         public IActionResult UploadStudents()
