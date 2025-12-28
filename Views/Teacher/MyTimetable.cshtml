@@ -1,0 +1,82 @@
+@using AttendenceManagementSystem.Models
+@model Dictionary<DayOfWeek, List<Timetable>>
+
+@{
+    ViewData["Title"] = "My Timetable";
+    var days = new[] { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday };
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-calendar-alt me-2"></i>My Teaching Schedule
+        </h1>
+        <a asp-action="Dashboard" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Weekly Timetable</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                @foreach (var day in days)
+                {
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 border-left-info">
+                            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+                                <h6 class="font-weight-bold text-primary mb-0">@day</h6>
+                                @if (Model.ContainsKey(day))
+                                {
+                                    <span class="badge bg-info rounded-pill">@Model[day].Count Classes</span>
+                                }
+                            </div>
+                            <div class="card-body p-0">
+                                @if (Model.ContainsKey(day) && Model[day].Any())
+                                {
+                                    <ul class="list-group list-group-flush">
+                                        @foreach (var classSession in Model[day])
+                                        {
+                                            <li class="list-group-item">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    <h6 class="mb-1 font-weight-bold text-dark">@classSession.Course?.Code</h6>
+                                                    <small class="text-info font-weight-bold">
+                                                        @DateTime.Today.Add(classSession.StartTime).ToString("hh:mm tt") - 
+                                                        @DateTime.Today.Add(classSession.EndTime).ToString("hh:mm tt")
+                                                    </small>
+                                                </div>
+                                                <p class="mb-1 text-sm font-weight-bold">@classSession.Course?.Title</p>
+                                                <div class="small text-muted">
+                                                    <i class="fas fa-users me-1"></i>
+                                                    Batch @classSession.Batch?.Year (Section @classSession.Section?.Name)
+                                                </div>
+                                                <div class="mt-2 text-end">
+                                                    <a asp-action="MarkAttendance" 
+                                                       asp-route-batchId="@classSession.BatchId"
+                                                       asp-route-sectionId="@classSession.SectionId"
+                                                       asp-route-courseId="@classSession.CourseId"
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-check-circle me-1"></i> Mark
+                                                    </a>
+                                                </div>
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <div class="text-center py-4 text-muted">
+                                        <i class="fas fa-coffee mb-2"></i>
+                                        <p class="small mb-0">No classes scheduled</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

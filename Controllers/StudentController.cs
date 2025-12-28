@@ -1,6 +1,7 @@
 ﻿using AttendenceManagementSystem.Data;
 using AttendenceManagementSystem.Models;
 using AttendenceManagementSystem.Services;
+using AttendenceManagementSystem.ViewModels; // Added for explicit VM usage
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -23,6 +24,132 @@ namespace AttendenceManagementSystem.Controllers
             _timetableService = timetableService;
             _reportService = reportService;
         }
+
+        // GET: Register Subjects
+public async Task<IActionResult> RegisterSubjects(string? semester = null, int? sectionId = null)
+{
+    var student = await GetCurrentStudentAsync();
+    if (student == null)
+        return RedirectToAction("Error", "Home");
+
+    // FIX: Filter out null/empty strings and Order the semesters
+    var semesters = await _context.Courses
+        .Where(c => !string.IsNullOrEmpty(c.Semester))
+        .Select(c => c.Semester)
+        .Distinct()
+        .OrderByDescending(s => s) // Show newest semesters first (e.g., Spring 2026 before Fall 2025)
+        .ToListAsync();
+
+    // Fallback if no courses exist yet
+    if (!semesters.Any()) 
+    {
+        semesters = new List<string> { "FALL 2025", "SPRING 2026" }; 
+    }
+
+    // 2. Get Sections (available to the student's batch)
+    var sections = await _context.Sections
+        .Where(s => s.BatchId == student.BatchId)
+        .Select(s => new SelectListItem 
+        { 
+            Value = s.Id.ToString(), 
+            Text = s.Name,
+            Selected = s.Id == sectionId
+        })
+        .ToListAsync();
+
+    var vm = new RegisterSubjectsViewModel
+    {
+        SelectedSemester = semester,
+        Semesters = semesters,
+        SelectedSectionId = sectionId,
+        Sections = sections,
+        StudentId = student.Id
+    };
+
+    // 3. If Semester and Section are selected, fetch available courses
+    if (!string.IsNullOrEmpty(semester) && sectionId.HasValue)
+    {
+        // Fetch courses for the department and semester
+        var courses = await _context.Courses
+            .Where(c => c.DepartmentId == student.DepartmentId && c.Semester == semester)
+            .ToListAsync();
+
+        // Fetch current enrollments for the student
+        var enrollments = await _context.Enrollments
+            .Where(e => e.StudentId == student.Id)
+            .ToListAsync();
+
+        foreach (var course in courses)
+        {
+            // Find assigned teacher from Timetable for this specific Course + Section
+            var timetableEntry = await _context.Timetables
+                .Include(t => t.Teacher)
+                .FirstOrDefaultAsync(t => t.CourseId == course.Id && t.SectionId == sectionId.Value);
+
+            vm.AvailableCourses.Add(new CourseRegistrationItem
+            {
+                CourseId = course.Id,
+                CourseCode = course.Code,
+                CourseName = course.Title,
+                TeacherName = timetableEntry?.Teacher?.FullName ?? "Not Assigned",
+                IsRegistered = enrollments.Any(e => e.CourseId == course.Id)
+            });
+        }
+    }
+
+    return View(vm);
+}
+        // POST: Register for a specific Course
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RegisterCourse(int courseId, string semester, int sectionId)
+        {
+            var student = await GetCurrentStudentAsync();
+            if (student == null) return RedirectToAction("Error", "Home");
+
+            // Prevent duplicate registration
+            var exists = await _context.Enrollments.AnyAsync(e => e.StudentId == student.Id && e.CourseId == courseId);
+            if (!exists)
+            {
+                _context.Enrollments.Add(new Enrollment
+                {
+                    StudentId = student.Id,
+                    CourseId = courseId,
+                    EnrolledAt = DateTime.UtcNow
+                });
+                await _context.SaveChangesAsync();
+                ShowMessage("Successfully registered for the course.");
+            }
+            else
+            {
+                ShowMessage("You are already registered for this course.", "warning");
+            }
+
+            return RedirectToAction(nameof(RegisterSubjects), new { semester, sectionId });
+        }
+
+        // POST: Unregister from a Course
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UnregisterCourse(int courseId, string semester, int sectionId)
+        {
+            var student = await GetCurrentStudentAsync();
+            if (student == null) return RedirectToAction("Error", "Home");
+
+            var enrollment = await _context.Enrollments
+                .FirstOrDefaultAsync(e => e.StudentId == student.Id && e.CourseId == courseId);
+
+            if (enrollment != null)
+            {
+                _context.Enrollments.Remove(enrollment);
+                await _context.SaveChangesAsync();
+                ShowMessage("Successfully unregistered from the course.");
+            }
+
+            return RedirectToAction(nameof(RegisterSubjects), new { semester, sectionId });
+        }
+
+        // ... [Keep existing Dashboard, MyAttendance, etc. methods unchanged] ...
 
         public async Task<IActionResult> Dashboard()
         {
@@ -209,7 +336,6 @@ namespace AttendenceManagementSystem.Controllers
     }
 
     #region View Models
-
     public class CourseAttendanceSummary
     {
         public int CourseId { get; set; }
@@ -221,5 +347,4 @@ namespace AttendenceManagementSystem.Controllers
         public double Percentage { get; set; }
     }
     #endregion
-
 }

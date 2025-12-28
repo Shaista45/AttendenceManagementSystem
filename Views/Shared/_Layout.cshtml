@@ -184,6 +184,12 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
+                                    <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "RegisterSubjects" ? "active" : "")" 
+                                       asp-controller="Admin" asp-action="RegisterSubjects" asp-route-id="@((ViewBag.Student != null ? ViewBag.Student.Id : (ViewData["Student"] as dynamic)?.Id) ?? "")">
+                                        <i class="fas fa-book me-2"></i>Register Subjects
+                                    </a>
+                                </li>
+                                <li class="nav-item">
                                     <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "AttendanceSummary" ? "active" : "")" 
                                        asp-controller="Student" asp-action="AttendanceSummary">
                                         <i class="fas fa-chart-line me-2"></i>Summary

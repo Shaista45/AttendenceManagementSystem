@@ -13,10 +13,12 @@
             <a class="btn btn-primary" asp-controller="Student" asp-action="AutoMark">
                 <i class="fas fa-check-circle me-2"></i>Mark Current Attendance
             </a>
+            <a class="btn btn-success" asp-controller="Student" asp-action="RegisterSubjects">
+                <i class="fas fa-book me-2"></i>Register Subjects
+            </a>
         </div>
     </div>
 
-    <!-- Welcome Card -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card bg-primary text-white">
@@ -36,7 +38,6 @@
         </div>
     </div>
 
-    <!-- Statistics Cards -->
     <div class="row">
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-primary shadow h-100 py-2">
@@ -112,7 +113,6 @@
     </div>
 
     <div class="row">
-        <!-- Quick Actions -->
         <div class="col-lg-8">
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
@@ -134,7 +134,15 @@
                                 <span>View Summary</span>
                             </a>
                         </div>
+                          <!-- button to register subjects -->
                         <div class="col-md-4 mb-3">
+                            <a class="btn btn-warning w-100 h-100 p-3 d-flex
+                                flex-column align-items-center justify-content-center" 
+                                asp-controller="Student" asp-action="RegisterSubjects">
+                                    <i class="fas fa-book-open fa-2x mb-2"></i>
+                                    <span>Register Subjects</span>
+                            </a>
+                        </div>
                             <a class="btn btn-info w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center" 
                                asp-controller="Student" asp-action="MyTimetable">
                                 <i class="fas fa-clock fa-2x mb-2"></i>
@@ -145,7 +153,6 @@
                 </div>
             </div>
 
-            <!-- Today's Attendance -->
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">Today's Attendance</h6>
@@ -180,7 +187,6 @@
             </div>
         </div>
 
-        <!-- Course Performance -->
         <div class="col-lg-4">
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
@@ -217,7 +223,6 @@
                 </div>
             </div>
 
-            <!-- Current Class Info -->
             @if (ViewData["CurrentClass"] != null)
             {
                 var currentClass = ViewData["CurrentClass"] as dynamic;

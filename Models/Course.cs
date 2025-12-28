@@ -15,7 +15,12 @@ namespace AttendenceManagementSystem.Models
         [StringLength(100)]
         public string Title { get; set; } = string.Empty;
 
+
         public int Credits { get; set; } = 3;
+
+        [Required]
+        [StringLength(20)]
+        public string Semester { get; set; } = string.Empty;
 
         [Required]
         public int DepartmentId { get; set; }

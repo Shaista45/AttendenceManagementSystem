@@ -238,7 +238,25 @@ namespace AttendenceManagementSystem.Controllers
             ShowMessage($"Successfully updated attendance for {recordsUpdated} students.");
             return RedirectToAction(nameof(MarkAttendance), new { batchId = model.BatchId, sectionId = model.SectionId, courseId = model.CourseId, date = model.Date });
         }
+        // ... inside TeacherController class ...
 
+        public async Task<IActionResult> MyTimetable()
+        {
+            var teacher = await GetCurrentTeacherAsync();
+            if (teacher == null)
+                return RedirectToAction("Error", "Home");
+
+            var timetable = await _timetableService.GetTeacherTimetableAsync(teacher.Id);
+
+            // Group by DayOfWeek for the view
+            var groupedTimetable = timetable
+                .GroupBy(t => t.DayOfWeek)
+                .ToDictionary(g => g.Key, g => g.OrderBy(t => t.StartTime).ToList());
+
+            return View(groupedTimetable);
+        }
+
+        // ... existing methods ...
         public async Task<IActionResult> AttendanceHistory(int? courseId, DateOnly? fromDate, DateOnly? toDate)
         {
             var teacher = await GetCurrentTeacherAsync();

@@ -61,6 +61,9 @@
                                             <a class="btn btn-outline-warning" asp-action="EditStudent" asp-route-id="@student.Id" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
+                                            <a class="btn btn-outline-primary" asp-controller="Student" asp-action="RegisterSubjects" asp-route-id="@student.Id" title="Register Subjects">
+                                                <i class="fas fa-book"></i> Register Subjects
+                                            </a>
                                             <button type="button" class="btn btn-outline-danger delete-student" data-id="@student.Id" data-name="@student.FullName" title="Delete">
                                                 <i class="fas fa-trash"></i>
                                             </button>

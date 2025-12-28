@@ -1,6 +1,7 @@
 ﻿using AttendenceManagementSystem.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace AttendenceManagementSystem.Data
 {
@@ -12,21 +13,20 @@ namespace AttendenceManagementSystem.Data
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-            // Ensure database is created
+            // 1. Ensure database is created
             await context.Database.EnsureCreatedAsync();
 
-            // Seed roles
+            // 2. Seed roles
             string[] roleNames = { "Admin", "Teacher", "Student" };
             foreach (var roleName in roleNames)
             {
-                var roleExist = await roleManager.RoleExistsAsync(roleName);
-                if (!roleExist)
+                if (!await roleManager.RoleExistsAsync(roleName))
                 {
                     await roleManager.CreateAsync(new IdentityRole(roleName));
                 }
             }
 
-            // Create admin user
+            // 3. Seed Admin User
             var adminUser = await userManager.FindByEmailAsync("admin@university.com");
             if (adminUser == null)
             {
@@ -42,56 +42,117 @@ namespace AttendenceManagementSystem.Data
                 if (result.Succeeded)
                 {
                     await userManager.AddToRoleAsync(adminUser, "Admin");
-
-                    // Seed sample data
-                    await SeedSampleData(context);
                 }
             }
+
+            // 4. Seed Departments, Batches, Sections, Courses, Teachers, Timetables
+            await SeedSampleData(context, userManager);
         }
 
-        private static async Task SeedSampleData(ApplicationDbContext context)
+        private static async Task SeedSampleData(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
-            if (!await context.Departments.AnyAsync())
+            // --- Departments ---
+            var csDept = await context.Departments.FirstOrDefaultAsync(d => d.Code == "CS");
+            if (csDept == null)
             {
-                // Add departments
-                var departments = new[]
-                {
-                    new Department { Name = "Computer Science", Code = "CS" },
-                    new Department { Name = "Electrical Engineering", Code = "EE" },
-                    new Department { Name = "Business Administration", Code = "BA" }
-                };
-                await context.Departments.AddRangeAsync(departments);
+                csDept = new Department { Name = "Computer Science", Code = "CS" };
+                context.Departments.Add(csDept);
                 await context.SaveChangesAsync();
+            }
 
-                // Add batches
-                var batches = new[]
-                {
-                    new Batch { Year = "2024", DepartmentId = 1 },
-                    new Batch { Year = "2023", DepartmentId = 1 },
-                    new Batch { Year = "2024", DepartmentId = 2 }
-                };
-                await context.Batches.AddRangeAsync(batches);
+            // --- Batches ---
+            var batch2023 = await context.Batches.FirstOrDefaultAsync(b => b.Year == "2023" && b.DepartmentId == csDept.Id);
+            if (batch2023 == null)
+            {
+                batch2023 = new Batch { Year = "2023", DepartmentId = csDept.Id, Description = "CS Batch 2023" };
+                context.Batches.Add(batch2023);
                 await context.SaveChangesAsync();
+            }
 
-                // Add sections
-                var sections = new[]
-                {
-                    new Section { Name = "A", BatchId = 1 },
-                    new Section { Name = "B", BatchId = 1 },
-                    new Section { Name = "A", BatchId = 2 }
-                };
-                await context.Sections.AddRangeAsync(sections);
+            // --- Sections ---
+            var sectionA = await context.Sections.FirstOrDefaultAsync(s => s.Name == "A" && s.BatchId == batch2023.Id);
+            if (sectionA == null)
+            {
+                sectionA = new Section { Name = "A", BatchId = batch2023.Id };
+                context.Sections.Add(sectionA);
                 await context.SaveChangesAsync();
+            }
 
-                // Add courses
-                var courses = new[]
+            // --- Teacher User & Entity (Required for Timetable) ---
+            var teacherEmail = "teacher@university.com";
+            var teacherUser = await userManager.FindByEmailAsync(teacherEmail);
+            if (teacherUser == null)
+            {
+                teacherUser = new ApplicationUser
                 {
-                    new Course { Code = "CS101", Title = "Introduction to Programming", DepartmentId = 1, Credits = 3 },
-                    new Course { Code = "CS201", Title = "Data Structures", DepartmentId = 1, Credits = 4 },
-                    new Course { Code = "EE101", Title = "Circuit Analysis", DepartmentId = 2, Credits = 3 }
+                    UserName = teacherEmail,
+                    Email = teacherEmail,
+                    FullName = "Dr. Alan Turing",
+                    EmailConfirmed = true
                 };
-                await context.Courses.AddRangeAsync(courses);
+                var res = await userManager.CreateAsync(teacherUser, "Teacher123!");
+                if (res.Succeeded) await userManager.AddToRoleAsync(teacherUser, "Teacher");
+            }
+            
+            // Re-fetch to get the ID generated by DB
+            teacherUser = await userManager.FindByEmailAsync(teacherEmail);
+            
+            var teacherEntity = await context.Teachers.FirstOrDefaultAsync(t => t.UserId == teacherUser.Id);
+            if (teacherEntity == null)
+            {
+                teacherEntity = new Teacher
+                {
+                    UserId = teacherUser.Id,
+                    FullName = "Dr. Alan Turing",
+                    DepartmentId = csDept.Id,
+                    EmployeeId = "EMP001",
+                    IsApproved = true,
+                    IsActive = true
+                };
+                context.Teachers.Add(teacherEntity);
                 await context.SaveChangesAsync();
+            }
+
+            // --- Courses (WITH SEMESTERS) ---
+            if (!await context.Courses.AnyAsync(c => c.Code == "CS101"))
+            {
+                context.Courses.AddRange(
+                    new Course { Code = "CS101", Title = "Introduction to Programming", DepartmentId = csDept.Id, Credits = 3, Semester = "FALL 2025" },
+                    new Course { Code = "CS102", Title = "Data Structures", DepartmentId = csDept.Id, Credits = 4, Semester = "FALL 2025" },
+                    new Course { Code = "CS201", Title = "Database Systems", DepartmentId = csDept.Id, Credits = 3, Semester = "SPRING 2026" }
+                );
+                await context.SaveChangesAsync();
+            }
+            else
+            {
+                // Fix existing courses that might have empty semesters
+                var coursesToFix = await context.Courses.Where(c => c.Semester == null || c.Semester == "").ToListAsync();
+                foreach(var c in coursesToFix)
+                {
+                    c.Semester = "FALL 2025";
+                }
+                if (coursesToFix.Any()) await context.SaveChangesAsync();
+            }
+
+            // --- Timetable (Link Course + Section + Teacher) ---
+            var courseCS101 = await context.Courses.FirstOrDefaultAsync(c => c.Code == "CS101");
+            
+            if (courseCS101 != null && teacherEntity != null && sectionA != null && batch2023 != null)
+            {
+                if (!await context.Timetables.AnyAsync(t => t.CourseId == courseCS101.Id && t.SectionId == sectionA.Id))
+                {
+                    context.Timetables.Add(new Timetable
+                    {
+                        CourseId = courseCS101.Id,
+                        TeacherId = teacherEntity.Id,
+                        SectionId = sectionA.Id,
+                        BatchId = batch2023.Id,
+                        DayOfWeek = DayOfWeek.Monday,
+                        StartTime = new TimeSpan(9, 0, 0),
+                        EndTime = new TimeSpan(10, 30, 0)
+                    });
+                    await context.SaveChangesAsync();
+                }
             }
         }
     }

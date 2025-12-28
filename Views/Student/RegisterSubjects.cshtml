@@ -1,0 +1,158 @@
+@model AttendenceManagementSystem.ViewModels.RegisterSubjectsViewModel
+@{
+    ViewData["Title"] = "Register Subjects";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Register Subjects</h1>
+    </div>
+
+    @if (Model.AllCoursesRegistered)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <strong>All Set!</strong> You have already registered for all available courses.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Select Criteria</h6>
+        </div>
+        <div class="card-body">
+            <form asp-action="RegisterSubjects" method="get" class="row g-3">
+                <div class="col-md-5">
+    <label class="form-label fw-bold">Semester</label>
+    <select name="semester" class="form-select" onchange="this.form.submit()">
+        <option value="">-- Select Semester --</option>
+        @if (Model.Semesters != null && Model.Semesters.Any())
+        {
+            @foreach (var sem in Model.Semesters)
+            {
+                @if (sem == Model.SelectedSemester)
+                {
+                    <option value="@sem" selected>@sem</option>
+                }
+                else
+                {
+                    <option value="@sem">@sem</option>
+                }
+            }
+        }
+        else
+        {
+            <option disabled>No semesters found</option>
+        }
+    </select>
+</div>
+                <div class="col-md-5">
+                    <label class="form-label fw-bold">Section</label>
+                    <select name="sectionId" class="form-select" onchange="this.form.submit()">
+                        <option value="">-- Select Section --</option>
+                        @foreach (var sec in Model.Sections)
+                        {
+                            @if (Model.SelectedSectionId.ToString() == sec.Value)
+                            {
+                                <option value="@sec.Value" selected>@sec.Text</option>
+                            }
+                            else
+                            {
+                                <option value="@sec.Value">@sec.Text</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-1"></i> Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (Model.AvailableCourses.Any())
+    {
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Available Courses</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Course Code</th>
+                                <th>Course Name</th>
+                                <th>Assigned Teacher</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var course in Model.AvailableCourses)
+                            {
+                                <tr>
+                                    <td class="align-middle">@course.CourseCode</td>
+                                    <td class="align-middle fw-bold">@course.CourseName</td>
+                                    <td class="align-middle">
+                                        @if (course.TeacherName == "Not Assigned")
+                                        {
+                                            <span class="text-muted fst-italic">@course.TeacherName</span>
+                                        }
+                                        else
+                                        {
+                                            <span>@course.TeacherName</span>
+                                        }
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        @if (course.IsRegistered)
+                                        {
+                                            <span class="badge bg-success">Registered</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Not Registered</span>
+                                        }
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        @if (course.IsRegistered)
+                                        {
+                                            <form asp-action="UnregisterCourse" method="post">
+                                                <input type="hidden" name="courseId" value="@course.CourseId" />
+                                                <input type="hidden" name="semester" value="@Model.SelectedSemester" />
+                                                <input type="hidden" name="sectionId" value="@Model.SelectedSectionId" />
+                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                    <i class="fas fa-times me-1"></i> Unregister
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <form asp-action="RegisterCourse" method="post">
+                                                <input type="hidden" name="courseId" value="@course.CourseId" />
+                                                <input type="hidden" name="semester" value="@Model.SelectedSemester" />
+                                                <input type="hidden" name="sectionId" value="@Model.SelectedSectionId" />
+                                                <button type="submit" class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-plus me-1"></i> Register
+                                                </button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(Model.SelectedSemester) && Model.SelectedSectionId.HasValue)
+    {
+        <div class="alert alert-warning text-center">
+            No courses found for the selected Semester and Section.
+        </div>
+    }
+</div>
