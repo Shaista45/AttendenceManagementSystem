@@ -74,6 +74,70 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-calendar-day me-2"></i>Today's Schedule
+                </h6>
+                <span class="badge bg-info text-white">@DateTime.Now.DayOfWeek</span>
+            </div>
+            <div class="card-body p-0">
+                @if (ViewData["TodaySchedule"] is List<AttendenceManagementSystem.Models.Timetable> schedule && schedule.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var item in schedule)
+                        {
+                            // Highlight the class if it is currently happening
+                            var now = DateTime.Now.TimeOfDay;
+                            var isCurrent = now >= item.StartTime && now <= item.EndTime;
+                            var activeClass = isCurrent ? "bg-light border-left-primary" : "";
+                            var textClass = isCurrent ? "text-primary fw-bold" : "text-dark";
+
+                            <div class="list-group-item @activeClass">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div>
+                                        <div class="@textClass">
+                                            @DateTime.Today.Add(item.StartTime).ToString("hh:mm tt") - 
+                                            @DateTime.Today.Add(item.EndTime).ToString("hh:mm tt")
+                                        </div>
+                                        <h6 class="mb-0 mt-1 font-weight-bold">@item.Course?.Title</h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-chalkboard-teacher me-1"></i> 
+                                            @(item.Teacher?.FullName ?? "No Teacher")
+                                        </small>
+                                    </div>
+                                    @if (isCurrent)
+                                    {
+                                        <span class="badge bg-success">Now</span>
+                                    }
+                                    else if (now < item.StartTime)
+                                    {
+                                        <span class="badge bg-warning text-dark">Upcoming</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Finished</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-coffee fa-2x mb-2"></i>
+                        <p class="mb-0">No classes scheduled for today.</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        </div>
+
+    </div>
 
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-info shadow h-100 py-2">

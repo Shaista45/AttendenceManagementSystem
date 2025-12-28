@@ -1,7 +1,7 @@
 ﻿using AttendenceManagementSystem.Data;
 using AttendenceManagementSystem.Models;
 using AttendenceManagementSystem.Services;
-using AttendenceManagementSystem.ViewModels; // Added for explicit VM usage
+using AttendenceManagementSystem.ViewModels; // Added this
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -26,79 +26,76 @@ namespace AttendenceManagementSystem.Controllers
         }
 
         // GET: Register Subjects
-public async Task<IActionResult> RegisterSubjects(string? semester = null, int? sectionId = null)
-{
-    var student = await GetCurrentStudentAsync();
-    if (student == null)
-        return RedirectToAction("Error", "Home");
-
-    // FIX: Filter out null/empty strings and Order the semesters
-    var semesters = await _context.Courses
-        .Where(c => !string.IsNullOrEmpty(c.Semester))
-        .Select(c => c.Semester)
-        .Distinct()
-        .OrderByDescending(s => s) // Show newest semesters first (e.g., Spring 2026 before Fall 2025)
-        .ToListAsync();
-
-    // Fallback if no courses exist yet
-    if (!semesters.Any()) 
-    {
-        semesters = new List<string> { "FALL 2025", "SPRING 2026" }; 
-    }
-
-    // 2. Get Sections (available to the student's batch)
-    var sections = await _context.Sections
-        .Where(s => s.BatchId == student.BatchId)
-        .Select(s => new SelectListItem 
-        { 
-            Value = s.Id.ToString(), 
-            Text = s.Name,
-            Selected = s.Id == sectionId
-        })
-        .ToListAsync();
-
-    var vm = new RegisterSubjectsViewModel
-    {
-        SelectedSemester = semester,
-        Semesters = semesters,
-        SelectedSectionId = sectionId,
-        Sections = sections,
-        StudentId = student.Id
-    };
-
-    // 3. If Semester and Section are selected, fetch available courses
-    if (!string.IsNullOrEmpty(semester) && sectionId.HasValue)
-    {
-        // Fetch courses for the department and semester
-        var courses = await _context.Courses
-            .Where(c => c.DepartmentId == student.DepartmentId && c.Semester == semester)
-            .ToListAsync();
-
-        // Fetch current enrollments for the student
-        var enrollments = await _context.Enrollments
-            .Where(e => e.StudentId == student.Id)
-            .ToListAsync();
-
-        foreach (var course in courses)
+        public async Task<IActionResult> RegisterSubjects(string? semester = null, int? sectionId = null)
         {
-            // Find assigned teacher from Timetable for this specific Course + Section
-            var timetableEntry = await _context.Timetables
-                .Include(t => t.Teacher)
-                .FirstOrDefaultAsync(t => t.CourseId == course.Id && t.SectionId == sectionId.Value);
+            var student = await GetCurrentStudentAsync();
+            if (student == null)
+                return RedirectToAction("Error", "Home");
 
-            vm.AvailableCourses.Add(new CourseRegistrationItem
+            // 1. Get Semesters
+            var semesters = await _context.Courses
+                .Where(c => !string.IsNullOrEmpty(c.Semester))
+                .Select(c => c.Semester)
+                .Distinct()
+                .OrderByDescending(s => s)
+                .ToListAsync();
+
+            if (!semesters.Any()) 
             {
-                CourseId = course.Id,
-                CourseCode = course.Code,
-                CourseName = course.Title,
-                TeacherName = timetableEntry?.Teacher?.FullName ?? "Not Assigned",
-                IsRegistered = enrollments.Any(e => e.CourseId == course.Id)
-            });
-        }
-    }
+                semesters = new List<string> { "FALL 2025", "SPRING 2026" }; 
+            }
 
-    return View(vm);
-}
+            // 2. Get Sections
+            var sections = await _context.Sections
+                .Where(s => s.BatchId == student.BatchId)
+                .Select(s => new SelectListItem 
+                { 
+                    Value = s.Id.ToString(), 
+                    Text = s.Name,
+                    Selected = s.Id == sectionId
+                })
+                .ToListAsync();
+
+            var vm = new RegisterSubjectsViewModel
+            {
+                SelectedSemester = semester,
+                Semesters = semesters,
+                SelectedSectionId = sectionId,
+                Sections = sections,
+                StudentId = student.Id
+            };
+
+            // 3. Fetch courses if filtered
+            if (!string.IsNullOrEmpty(semester) && sectionId.HasValue)
+            {
+                var courses = await _context.Courses
+                    .Where(c => c.DepartmentId == student.DepartmentId && c.Semester == semester)
+                    .ToListAsync();
+
+                var enrollments = await _context.Enrollments
+                    .Where(e => e.StudentId == student.Id)
+                    .ToListAsync();
+
+                foreach (var course in courses)
+                {
+                    var timetableEntry = await _context.Timetables
+                        .Include(t => t.Teacher)
+                        .FirstOrDefaultAsync(t => t.CourseId == course.Id && t.SectionId == sectionId.Value);
+
+                    vm.AvailableCourses.Add(new CourseRegistrationItem
+                    {
+                        CourseId = course.Id,
+                        CourseCode = course.Code,
+                        CourseName = course.Title,
+                        TeacherName = timetableEntry?.Teacher?.FullName ?? "Not Assigned",
+                        IsRegistered = enrollments.Any(e => e.CourseId == course.Id)
+                    });
+                }
+            }
+
+            return View(vm);
+        }
+
         // POST: Register for a specific Course
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -107,7 +104,6 @@ public async Task<IActionResult> RegisterSubjects(string? semester = null, int? 
             var student = await GetCurrentStudentAsync();
             if (student == null) return RedirectToAction("Error", "Home");
 
-            // Prevent duplicate registration
             var exists = await _context.Enrollments.AnyAsync(e => e.StudentId == student.Id && e.CourseId == courseId);
             if (!exists)
             {
@@ -149,8 +145,7 @@ public async Task<IActionResult> RegisterSubjects(string? semester = null, int? 
             return RedirectToAction(nameof(RegisterSubjects), new { semester, sectionId });
         }
 
-        // ... [Keep existing Dashboard, MyAttendance, etc. methods unchanged] ...
-
+        // GET: Dashboard
         public async Task<IActionResult> Dashboard()
         {
             var student = await GetCurrentStudentAsync();
@@ -159,6 +154,18 @@ public async Task<IActionResult> RegisterSubjects(string? semester = null, int? 
 
             var attendancePercentage = await _attendanceService.GetStudentAttendancePercentageAsync(student.Id);
             var currentClass = await _timetableService.GetCurrentClassAsync(student.Id);
+            
+            // Fetch today's schedule
+            var today = DateTime.Today.DayOfWeek;
+            var todaySchedule = await _context.Timetables
+                .Include(t => t.Course)
+                .Include(t => t.Teacher)
+                .Where(t => t.BatchId == student.BatchId 
+                         && t.SectionId == student.SectionId 
+                         && t.DayOfWeek == today)
+                .OrderBy(t => t.StartTime)
+                .ToListAsync();
+
             var todayAttendance = await _context.Attendances
                 .Include(a => a.Course)
                 .Where(a => a.StudentId == student.Id && a.Date == DateOnly.FromDateTime(DateTime.UtcNow))
@@ -176,10 +183,104 @@ public async Task<IActionResult> RegisterSubjects(string? semester = null, int? 
             ViewData["CurrentClass"] = currentClass;
             ViewData["AttendancePercentage"] = attendancePercentage;
             ViewData["TodayAttendance"] = todayAttendance;
+            ViewData["TodaySchedule"] = todaySchedule;
 
             return View(stats);
         }
 
+        // GET: Attendance Summary (Detailed)
+        public async Task<IActionResult> AttendanceSummary()
+        {
+            var student = await GetCurrentStudentAsync();
+            if (student == null)
+                return RedirectToAction("Error", "Home");
+
+            // 1. Fetch all enrollments with course details
+            var enrollments = await _context.Enrollments
+                .Include(e => e.Course)
+                .Where(e => e.StudentId == student.Id)
+                .ToListAsync();
+
+            var vm = new StudentComprehensiveSummaryViewModel
+            {
+                StudentName = student.FullName,
+                RollNumber = student.RollNumber,
+                Department = student.Department?.Name ?? "",
+                Batch = student.Batch?.Year ?? "",
+                Section = student.Section?.Name ?? "",
+                TotalCourses = enrollments.Count
+            };
+
+            int grandTotalClasses = 0;
+            int grandTotalPresent = 0;
+
+            foreach (var enrollment in enrollments)
+            {
+                // Fetch attendance for this specific course
+                var attendances = await _context.Attendances
+                    .Where(a => a.StudentId == student.Id && a.CourseId == enrollment.CourseId)
+                    .ToListAsync();
+
+                // Get Teacher for this course (via Timetable)
+                var teacherEntry = await _context.Timetables
+                    .Include(t => t.Teacher)
+                    .FirstOrDefaultAsync(t => t.CourseId == enrollment.CourseId && t.SectionId == student.SectionId);
+
+                int total = attendances.Count;
+                int present = attendances.Count(a => a.Status == AttendanceStatus.Present || a.Status == AttendanceStatus.Late);
+                int absent = total - present;
+                double pct = total > 0 ? (double)present / total * 100 : 0;
+
+                // Logic for Status and Recovery
+                string status = "Good";
+                string color = "success";
+                int recovery = 0;
+
+                if (pct < 75)
+                {
+                    status = "Shortage";
+                    color = "danger";
+                    // Recovery formula: (Present + x) / (Total + x) = 0.75
+                    if(total > 0)
+                    {
+                        recovery = (int)Math.Ceiling((0.75 * total - present) / 0.25);
+                        if (recovery < 0) recovery = 0;
+                    }
+                }
+                else if (pct < 80)
+                {
+                    status = "Warning";
+                    color = "warning";
+                }
+
+                vm.CourseSummaries.Add(new DetailedCourseSummary
+                {
+                    CourseCode = enrollment.Course.Code,
+                    CourseTitle = enrollment.Course.Title,
+                    TeacherName = teacherEntry?.Teacher?.FullName ?? "N/A",
+                    TotalClasses = total,
+                    Present = present,
+                    Absent = absent,
+                    Percentage = Math.Round(pct, 1),
+                    Status = status,
+                    StatusColor = color,
+                    ClassesToRecover = recovery
+                });
+
+                grandTotalClasses += total;
+                grandTotalPresent += present;
+            }
+
+            vm.TotalClassesConducted = grandTotalClasses;
+            vm.TotalClassesAttended = grandTotalPresent;
+            vm.OverallPercentage = grandTotalClasses > 0 
+                ? Math.Round((double)grandTotalPresent / grandTotalClasses * 100, 1) 
+                : 0;
+
+            return View(vm);
+        }
+
+        // GET: My Attendance (Calendar View)
         public async Task<IActionResult> MyAttendance(int? courseId, DateOnly? fromDate, DateOnly? toDate)
         {
             var student = await GetCurrentStudentAsync();
@@ -213,42 +314,7 @@ public async Task<IActionResult> RegisterSubjects(string? semester = null, int? 
             return View(attendance);
         }
 
-        public async Task<IActionResult> AttendanceSummary()
-        {
-            var student = await GetCurrentStudentAsync();
-            if (student == null)
-                return RedirectToAction("Error", "Home");
-
-            var attendancePercentage = await _attendanceService.GetStudentAttendancePercentageAsync(student.Id);
-            var summary = new List<CourseAttendanceSummary>();
-
-            foreach (var (courseId, percentage) in attendancePercentage)
-            {
-                var course = await _context.Courses.FindAsync(courseId);
-                var attendances = await _context.Attendances
-                    .Where(a => a.StudentId == student.Id && a.CourseId == courseId)
-                    .ToListAsync();
-
-                var totalClasses = attendances.Count;
-                var presentClasses = attendances.Count(a => a.Status == AttendanceStatus.Present || a.Status == AttendanceStatus.Late);
-                var absentClasses = totalClasses - presentClasses;
-
-                summary.Add(new CourseAttendanceSummary
-                {
-                    CourseId = courseId,
-                    CourseCode = course?.Code ?? "Unknown",
-                    CourseTitle = course?.Title ?? "Unknown",
-                    TotalClasses = totalClasses,
-                    PresentClasses = presentClasses,
-                    AbsentClasses = absentClasses,
-                    Percentage = percentage
-                });
-            }
-
-            ViewData["Student"] = student;
-            return View(summary.OrderByDescending(s => s.Percentage).ToList());
-        }
-
+        // GET: Timetable
         public async Task<IActionResult> MyTimetable()
         {
             var student = await GetCurrentStudentAsync();
@@ -257,7 +323,6 @@ public async Task<IActionResult> RegisterSubjects(string? semester = null, int? 
 
             var timetable = await _timetableService.GetStudentTimetableAsync(student.Id);
 
-            // Group by day of week
             var groupedTimetable = timetable
                 .GroupBy(t => t.DayOfWeek)
                 .ToDictionary(g => g.Key, g => g.OrderBy(t => t.StartTime).ToList());
@@ -266,27 +331,7 @@ public async Task<IActionResult> RegisterSubjects(string? semester = null, int? 
             return View(groupedTimetable);
         }
 
-        public async Task<IActionResult> DownloadReport(DateOnly? fromDate, DateOnly? toDate)
-        {
-            var student = await GetCurrentStudentAsync();
-            if (student == null)
-                return RedirectToAction("Error", "Home");
-
-            try
-            {
-                var pdfBytes = await _reportService.GenerateStudentAttendanceReportAsync(
-                    student.Id, fromDate, toDate);
-
-                var fileName = $"Attendance_Report_{student.RollNumber}_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
-                return File(pdfBytes, "application/pdf", fileName);
-            }
-            catch (Exception ex)
-            {
-                ShowMessage($"Error generating report: {ex.Message}", "error");
-                return RedirectToAction(nameof(Dashboard));
-            }
-        }
-
+        // GET: AutoMark
         public async Task<IActionResult> AutoMark()
         {
             var student = await GetCurrentStudentAsync();
@@ -334,17 +379,5 @@ public async Task<IActionResult> RegisterSubjects(string? semester = null, int? 
         }
         #endregion
     }
-
-    #region View Models
-    public class CourseAttendanceSummary
-    {
-        public int CourseId { get; set; }
-        public string CourseCode { get; set; } = string.Empty;
-        public string CourseTitle { get; set; } = string.Empty;
-        public int TotalClasses { get; set; }
-        public int PresentClasses { get; set; }
-        public int AbsentClasses { get; set; }
-        public double Percentage { get; set; }
-    }
-    #endregion
 }
+    

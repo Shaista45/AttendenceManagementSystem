@@ -2605,7 +2605,6 @@ namespace AttendenceManagementSystem.Controllers
                 ViewData["Teachers"] = new SelectList(await _context.Teachers.Where(t => t.DepartmentId == departmentId && t.IsActive).ToListAsync(), "Id", "FullName");
             }
 
-            // Return the specific view for Timetable management
             return View("~/Views/Admin/Timetable/Index.cshtml", viewModel);
         }
 
@@ -2615,38 +2614,47 @@ namespace AttendenceManagementSystem.Controllers
         {
             try
             {
-                // Basic Validation
+                // 1. Basic Validation: Start Time < End Time
                 if (startTime >= endTime)
                 {
-                    ShowErrorMessage("Start time must be before end time.");
+                    ShowMessage("Start time must be before end time.", "error");
                     return RedirectToAction(nameof(ManageTimetable), new { departmentId, batchId, sectionId });
                 }
 
-                // 1. Check for Section Conflict (The section cannot have two classes at once)
-                var sectionConflict = await _context.Timetables.AnyAsync(t =>
-                    t.SectionId == sectionId &&
-                    t.DayOfWeek == dayOfWeek &&
-                    ((t.StartTime <= startTime && t.EndTime > startTime) || (t.StartTime < endTime && t.EndTime >= endTime)));
+                // 2. Validation: Teacher Conflict
+                // Check if the selected teacher is already teaching another class during this time slot
+                var teacherConflict = await _context.Timetables
+                    .Include(t => t.Course)
+                    .Include(t => t.Section)
+                    .Where(t => t.TeacherId == teacherId 
+                             && t.DayOfWeek == dayOfWeek
+                             && ((t.StartTime < endTime) && (t.EndTime > startTime))) // Overlap logic
+                    .FirstOrDefaultAsync();
 
-                if (sectionConflict)
+                if (teacherConflict != null)
                 {
-                    ShowErrorMessage("Conflict: This section already has a class scheduled at this time.");
+                    var teacher = await _context.Teachers.FindAsync(teacherId);
+                    ShowMessage($"Conflict: Teacher {teacher?.FullName} is already teaching {teacherConflict.Course?.Code} (Section {teacherConflict.Section?.Name}) at this time.", "error");
                     return RedirectToAction(nameof(ManageTimetable), new { departmentId, batchId, sectionId });
                 }
 
-                // 2. Check for Teacher Conflict (The teacher cannot be in two places at once)
-                var teacherConflict = await _context.Timetables.AnyAsync(t =>
-                    t.TeacherId == teacherId &&
-                    t.DayOfWeek == dayOfWeek &&
-                    ((t.StartTime <= startTime && t.EndTime > startTime) || (t.StartTime < endTime && t.EndTime >= endTime)));
+                // 3. Validation: Section (Class) Conflict
+                // Check if this specific section already has a lecture scheduled during this time slot
+                var sectionConflict = await _context.Timetables
+                    .Include(t => t.Course)
+                    .Where(t => t.BatchId == batchId 
+                             && t.SectionId == sectionId 
+                             && t.DayOfWeek == dayOfWeek
+                             && ((t.StartTime < endTime) && (t.EndTime > startTime))) // Overlap logic
+                    .FirstOrDefaultAsync();
 
-                if (teacherConflict)
+                if (sectionConflict != null)
                 {
-                    ShowErrorMessage("Conflict: The selected teacher is already teaching another class at this time.");
+                    ShowMessage($"Conflict: This section already has a class ({sectionConflict.Course?.Code}) scheduled at this time.", "error");
                     return RedirectToAction(nameof(ManageTimetable), new { departmentId, batchId, sectionId });
                 }
 
-                // Create Entry
+                // 4. No Conflicts: Create Entry
                 var timetable = new Timetable
                 {
                     CourseId = courseId,
@@ -2662,11 +2670,11 @@ namespace AttendenceManagementSystem.Controllers
                 _context.Timetables.Add(timetable);
                 await _context.SaveChangesAsync();
 
-                ShowMessage("Class scheduled successfully!");
+                ShowMessage("Class scheduled successfully!", "success");
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error scheduling class: {ex.Message}");
+                ShowMessage($"Error scheduling class: {ex.Message}", "error");
             }
 
             return RedirectToAction(nameof(ManageTimetable), new { departmentId, batchId, sectionId });
@@ -2685,7 +2693,7 @@ namespace AttendenceManagementSystem.Controllers
             }
             else
             {
-                ShowErrorMessage("Entry not found.");
+                ShowMessage("Entry not found.", "error");
             }
             return RedirectToAction(nameof(ManageTimetable), new { departmentId, batchId, sectionId });
         }

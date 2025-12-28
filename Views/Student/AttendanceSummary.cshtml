@@ -1,0 +1,200 @@
+@model AttendenceManagementSystem.ViewModels.StudentComprehensiveSummaryViewModel
+
+@{
+    ViewData["Title"] = "Academic Summary";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 text-gray-800">Academic Summary</h1>
+            <p class="mb-0 text-muted">Detailed report for @Model.StudentName (@Model.RollNumber)</p>
+        </div>
+        <button class="btn btn-primary" onclick="window.print()">
+            <i class="fas fa-print me-2"></i>Print Report
+        </button>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Overall Attendance</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.OverallPercentage%</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-pie fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Courses</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalCourses</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-book fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Classes Attended</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalClassesAttended / @Model.TotalClassesConducted</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Academic Status</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @if (Model.OverallPercentage >= 75)
+                                { <span class="text-success">Good Standing</span> }
+                                else
+                                { <span class="text-danger">Attendance Shortage</span> }
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Attendance Distribution</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="myPieChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-success"></i> Present
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-danger"></i> Absent
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Course-wise Breakdown</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Stats (P/T)</th>
+                                    <th>Percentage</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var course in Model.CourseSummaries)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@course.CourseCode</strong><br />
+                                            <span class="small text-muted">@course.CourseTitle</span><br/>
+                                            <span class="small text-info"><i class="fas fa-chalkboard-teacher"></i> @course.TeacherName</span>
+                                        </td>
+                                        <td>
+                                            @course.Present / @course.TotalClasses
+                                        </td>
+                                        <td style="width: 30%">
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span>@course.Percentage%</span>
+                                            </div>
+                                            <div class="progress" style="height: 10px;">
+                                                <div class="progress-bar bg-@course.StatusColor" role="progressbar" style="width: @course.Percentage%"
+                                                     aria-valuenow="@course.Percentage" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-@course.StatusColor">@course.Status</span>
+                                            @if(course.Status == "Shortage" && course.ClassesToRecover > 0)
+                                            {
+                                                <div class="text-danger small mt-1">
+                                                    Need <strong>@course.ClassesToRecover</strong> more classes to reach 75%
+                                                </div>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var ctx = document.getElementById("myPieChart");
+    var myPieChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ["Present", "Absent"],
+            datasets: [{
+                data: [@Model.TotalClassesAttended, @(Model.TotalClassesConducted - Model.TotalClassesAttended)],
+                backgroundColor: ['#1cc88a', '#e74a3b'],
+                hoverBackgroundColor: ['#17a673', '#e02d1b'],
+                hoverBorderColor: "rgba(234, 236, 244, 1)",
+            }],
+        },
+        options: {
+            maintainAspectRatio: false,
+            tooltips: {
+                backgroundColor: "rgb(255,255,255)",
+                bodyFontColor: "#858796",
+                borderColor: '#dddfeb',
+                borderWidth: 1,
+                xPadding: 15,
+                yPadding: 15,
+                displayColors: false,
+                caretPadding: 10,
+            },
+            legend: {
+                display: false
+            },
+            cutoutPercentage: 80,
+        },
+    });
+</script>
