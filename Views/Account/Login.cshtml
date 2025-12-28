@@ -29,14 +29,15 @@
                             <span asp-validation-for="Password" class="text-danger"></span>
                         </div>
 
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" asp-for="RememberMe" />
-                            <label class="form-check-label" asp-for="RememberMe">
-                                Remember me
-                            </label>
+                        <div class="d-flex align-items-center justify-content-between mt-4 mb-0">
+                            <div class="form-check">
+                                <input class="form-check-input" asp-for="RememberMe" />
+                                <label class="form-check-label" asp-for="RememberMe">Remember me</label>
+                            </div>
+                            <a class="small" asp-action="ForgotPassword">Forgot Password?</a>
                         </div>
 
-                        <div class="d-grid gap-2">
+                        <div class="d-grid gap-2 mt-4">
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="fas fa-sign-in-alt me-2"></i>Login
                             </button>
@@ -50,7 +51,6 @@
                 </div>
             </div>
 
-            <!-- Demo Accounts -->
             <div class="card mt-4">
                 <div class="card-body">
                     <h6 class="card-title">Demo Accounts</h6>
