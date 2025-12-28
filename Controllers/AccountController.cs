@@ -1,5 +1,6 @@
 using AttendenceManagementSystem.Models;
 using Microsoft.AspNetCore.Identity;
+using AttendenceManagementSystem.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
@@ -117,28 +118,38 @@ namespace AttendenceManagementSystem.Controllers
             return View();
         }
 
-        [HttpPost]
+       [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByEmailAsync(model.Email);
-                if (user != null)
+                if (user == null)
                 {
-                    // Generate Token
-                    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-
-                    // Create URL
-                    var callbackUrl = Url.Action("ResetPassword", "Account", 
-                        new { token, email = user.Email }, Request.Scheme);
-
-                    // LOG THE URL FOR TESTING (Check your Output window in Visual Studio)
-                    _logger.LogInformation("Password Reset Token for {Email}: {Url}", model.Email, callbackUrl);
+                    // For security, standard apps don't reveal if a user exists.
+                    // But for this direct flow, we need to tell the user.
+                    ModelState.AddModelError(string.Empty, "User with this email was not found.");
+                    return View(model);
                 }
 
-                // Don't reveal that the user does not exist or is not confirmed
-                return RedirectToAction("ForgotPasswordConfirmation");
+                // 1. Generate a password reset token manually
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+                // 2. Immediately use that token to reset the password
+                var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
+
+                if (result.Succeeded)
+                {
+                    // Success! Redirect to login with a success message
+                    TempData["Message"] = "Success! Your password has been updated.";
+                    return RedirectToAction("Login");
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
             }
 
             return View(model);
@@ -403,6 +414,12 @@ namespace AttendenceManagementSystem.Controllers
         [Required]
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        [Display(Name = "New Password")]
+        public string NewPassword { get; set; } = string.Empty;
     }
 
     public class ResetPasswordViewModel
