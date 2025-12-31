@@ -51,6 +51,7 @@ namespace AttendenceManagementSystem.Controllers
                 .Include(d => d.Batches)
                 .Include(d => d.Courses)
                 .Include(d => d.Teachers)
+                .Include(d => d.Students)
                 .ToListAsync();
             // Views are organized under Views/Admin/Departments/Index.cshtml
             // Return the explicit path so the view engine finds the Index inside the Departments subfolder
@@ -146,11 +147,13 @@ namespace AttendenceManagementSystem.Controllers
                 .Include(d => d.Batches)
                 .Include(d => d.Courses)
                 .Include(d => d.Teachers)
-                .Include(d => d.Students)
+                .Include(d => d.Students!)
+                    .ThenInclude(s => s.Section)
+                .Include(d => d.Students!)
+                    .ThenInclude(s => s.Batch)
                 .FirstOrDefaultAsync(m => m.Id == id);
             
-            if (department == null)
-                return NotFound();
+            if (department == null) return NotFound();
 
             return View("~/Views/Admin/Departments/ViewDepartment.cshtml", department);
         }
@@ -1491,18 +1494,16 @@ namespace AttendenceManagementSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> ViewBatch(int? id)
         {
-            if (id == null)
-                return NotFound();
-
             var batch = await _context.Batches
                 .Include(b => b.Department)
-                .Include(b => b.Sections!)
-                    .ThenInclude(s => s.Students)
-                .Include(b => b.Students)
+                .Include(b => b.Sections)
+                .Include(b => b.Timetables)
+                // Fix: Add '!' after Students here as well if needed
+                .Include(b => b.Students!)
+                    .ThenInclude(s => s.Section)
                 .FirstOrDefaultAsync(b => b.Id == id);
 
-            if (batch == null)
-                return NotFound();
+            if (batch == null) return NotFound();
 
             return View("~/Views/Admin/Batches/ViewBatch.cshtml", batch);
         }

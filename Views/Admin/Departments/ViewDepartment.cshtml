@@ -3,82 +3,83 @@
     ViewData["Title"] = "Department Details";
 }
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-building me-2"></i>Department Details
-        </h1>
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
         <div>
-            <a class="btn btn-primary" asp-action="EditDepartment" asp-route-id="@Model.Id">
-                <i class="fas fa-edit me-2"></i>Edit
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a asp-action="Dashboard" class="text-decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Departments" class="text-decoration-none">Departments</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">@Model.Code</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0 fw-bold text-primary">
+                <i class="fas fa-building me-2"></i>@Model.Name
+            </h1>
+            <p class="text-muted small mb-0">Department Profile and Statistics</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-primary shadow-sm" asp-action="EditDepartment" asp-route-id="@Model.Id">
+                <i class="fas fa-edit me-2"></i>Edit Department
             </a>
-            <a class="btn btn-secondary" asp-action="Departments">
+            <a class="btn btn-outline-secondary shadow-sm bg-white" asp-action="Departments">
                 <i class="fas fa-arrow-left me-2"></i>Back to List
             </a>
         </div>
     </div>
 
-    <div class="row">
-        <!-- Department Basic Info -->
-        <div class="col-md-6">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Basic Information</h6>
+    <div class="row g-4 mb-4">
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="m-0 fw-bold text-primary">
+                        <i class="fas fa-info-circle me-2"></i>Overview
+                    </h6>
                 </div>
                 <div class="card-body">
-                    <dl class="row mb-0">
-                        <dt class="col-sm-4">Department Name:</dt>
-                        <dd class="col-sm-8">@Model.Name</dd>
-
-                        <dt class="col-sm-4">Department Code:</dt>
-                        <dd class="col-sm-8">
-                            @if (!string.IsNullOrEmpty(Model.Code))
-                            {
-                                <span class="badge bg-primary">@Model.Code</span>
-                            }
-                            else
-                            {
-                                <span class="text-muted">Not specified</span>
-                            }
-                        </dd>
-
-                        <dt class="col-sm-4">Created At:</dt>
-                        <dd class="col-sm-8">@Model.CreatedAt.ToString("MMM dd, yyyy hh:mm tt")</dd>
-                    </dl>
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary me-3">
+                            <i class="fas fa-building fa-2x"></i>
+                        </div>
+                        <div>
+                            <small class="text-muted text-uppercase fw-bold">Department Code</small>
+                            <h4 class="fw-bold text-dark mb-0">@Model.Code</h4>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between small border-top pt-3">
+                        <span class="text-muted">Created On</span>
+                        <span class="fw-bold text-dark">@Model.CreatedAt.ToString("MMM dd, yyyy")</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Department Statistics -->
-        <div class="col-md-6">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Statistics</h6>
-                </div>
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 h-100">
                 <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-6 mb-3">
-                            <div class="p-3 bg-primary bg-opacity-10 rounded">
-                                <h3 class="text-primary mb-0">@(Model.Batches?.Count ?? 0)</h3>
-                                <small class="text-muted">Batches</small>
+                    <div class="row h-100 align-items-center text-center g-3">
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light rounded hover-scale transition">
+                                <h3 class="fw-bold text-primary mb-0">@(Model.Batches?.Count ?? 0)</h3>
+                                <small class="text-muted text-uppercase x-small fw-bold">Batches</small>
                             </div>
                         </div>
-                        <div class="col-6 mb-3">
-                            <div class="p-3 bg-info bg-opacity-10 rounded">
-                                <h3 class="text-info mb-0">@(Model.Courses?.Count ?? 0)</h3>
-                                <small class="text-muted">Courses</small>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light rounded hover-scale transition">
+                                <h3 class="fw-bold text-success mb-0">@(Model.Courses?.Count ?? 0)</h3>
+                                <small class="text-muted text-uppercase x-small fw-bold">Courses</small>
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div class="p-3 bg-success bg-opacity-10 rounded">
-                                <h3 class="text-success mb-0">@(Model.Teachers?.Count ?? 0)</h3>
-                                <small class="text-muted">Teachers</small>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light rounded hover-scale transition">
+                                <h3 class="fw-bold text-info mb-0">@(Model.Teachers?.Count ?? 0)</h3>
+                                <small class="text-muted text-uppercase x-small fw-bold">Faculty</small>
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div class="p-3 bg-warning bg-opacity-10 rounded">
-                                <h3 class="text-warning mb-0">@(Model.Students?.Count ?? 0)</h3>
-                                <small class="text-muted">Students</small>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light rounded hover-scale transition">
+                                <h3 class="fw-bold text-warning text-dark mb-0">@(Model.Students?.Count ?? 0)</h3>
+                                <small class="text-muted text-uppercase x-small fw-bold">Students</small>
                             </div>
                         </div>
                     </div>
@@ -87,163 +88,204 @@
         </div>
     </div>
 
-    <!-- Batches List -->
-    @if (Model.Batches != null && Model.Batches.Any())
-    {
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">
-                    <i class="fas fa-users me-2"></i>Batches
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Batch Year</th>
-                                <th>Year</th>
-                                <th>Created Date</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var batch in Model.Batches)
-                            {
-                                <tr>
-                                    <td>@batch.Year</td>
-                                    <td>@batch.Year</td>
-                                    <td>@batch.CreatedAt.ToString("MMM dd, yyyy")</td>
-                                    <td>@(batch.Description ?? "N/A")</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white border-bottom-0 pt-3 px-3">
+            <ul class="nav nav-tabs card-header-tabs" id="deptTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#batches" type="button">
+                        <i class="fas fa-layer-group me-2"></i>Batches
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#courses" type="button">
+                        <i class="fas fa-book me-2"></i>Courses
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#faculty" type="button">
+                        <i class="fas fa-chalkboard-teacher me-2"></i>Faculty
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#students" type="button">
+                        <i class="fas fa-user-graduate me-2"></i>Students
+                    </button>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="card-body bg-light bg-opacity-10 p-0">
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="batches">
+                    @if (Model.Batches != null && Model.Batches.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light text-uppercase x-small text-muted">
+                                    <tr>
+                                        <th class="ps-4">Batch Year</th>
+                                        <th>Description</th>
+                                        <th>Sections</th>
+                                        <th>Created</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var batch in Model.Batches.OrderByDescending(b => b.Year))
+                                    {
+                                        <tr>
+                                            <td class="ps-4 fw-bold text-primary">
+                                                <a asp-action="ViewBatch" asp-controller="Admin" asp-route-id="@batch.Id" class="text-decoration-none">
+                                                    @batch.Year <i class="fas fa-external-link-alt ms-1 x-small opacity-50"></i>
+                                                </a>
+                                            </td>
+                                            <td class="text-muted small">@(batch.Description ?? "-")</td>
+                                            <td><span class="badge bg-light text-dark border">@(batch.Sections?.Count ?? 0)</span></td>
+                                            <td class="small text-muted">@batch.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-layer-group fa-3x text-muted opacity-25 mb-3"></i>
+                            <p class="text-muted small">No batches found.</p>
+                        </div>
+                    }
+                </div>
+
+                <div class="tab-pane fade" id="courses">
+                    @if (Model.Courses != null && Model.Courses.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light text-uppercase x-small text-muted">
+                                    <tr>
+                                        <th class="ps-4">Code</th>
+                                        <th>Title</th>
+                                        <th>Credits</th>
+                                        <th class="text-end pe-4">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var course in Model.Courses.OrderBy(c => c.Code))
+                                    {
+                                        <tr>
+                                            <td class="ps-4"><span class="badge bg-secondary">@course.Code</span></td>
+                                            <td class="fw-bold text-dark">@course.Title</td>
+                                            <td>@course.Credits</td>
+                                            <td class="text-end pe-4">
+                                                <a asp-action="ViewCourse" asp-controller="Admin" asp-route-id="@course.Id" class="btn btn-sm btn-light border">
+                                                    <i class="fas fa-eye text-primary"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-book-open fa-3x text-muted opacity-25 mb-3"></i>
+                            <p class="text-muted small">No courses listed.</p>
+                        </div>
+                    }
+                </div>
+
+                <div class="tab-pane fade" id="faculty">
+                    @if (Model.Teachers != null && Model.Teachers.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light text-uppercase x-small text-muted">
+                                    <tr>
+                                        <th class="ps-4">Name</th>
+                                        <th>Employee ID</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var teacher in Model.Teachers.OrderBy(t => t.FullName))
+                                    {
+                                        <tr>
+                                            <td class="ps-4 fw-bold text-dark">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-success bg-opacity-10 text-success rounded-circle p-1 me-2 d-flex justify-content-center align-items-center" style="width: 28px; height: 28px;">
+                                                        <span class="x-small fw-bold">@teacher.FullName.Substring(0,1)</span>
+                                                    </div>
+                                                    @teacher.FullName
+                                                </div>
+                                            </td>
+                                            <td><span class="font-monospace small text-muted">@teacher.EmployeeId</span></td>
+                                            <td><a href="mailto:@teacher.Email" class="text-decoration-none small">@teacher.Email</a></td>
+                                            <td class="small text-muted">@(teacher.PhoneNumber ?? "-")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-chalkboard-teacher fa-3x text-muted opacity-25 mb-3"></i>
+                            <p class="text-muted small">No faculty members assigned.</p>
+                        </div>
+                    }
+                </div>
+
+                <div class="tab-pane fade" id="students">
+                    @if (Model.Students != null && Model.Students.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light text-uppercase x-small text-muted">
+                                    <tr>
+                                        <th class="ps-4">Roll Number</th>
+                                        <th>Name</th>
+                                        <th>Batch</th>
+                                        <th>Section</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var student in Model.Students.OrderBy(s => s.RollNumber))
+                                    {
+                                        <tr>
+                                            <td class="ps-4 font-monospace fw-bold text-primary">@student.RollNumber</td>
+                                            <td class="fw-bold text-dark">@student.FullName</td>
+                                            <td><span class="badge bg-light text-dark border">@(student.Batch?.Year ?? "-")</span></td>
+                                            <td><span class="badge bg-light text-dark border">@(student.Section?.Name ?? "-")</span></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-user-graduate fa-3x text-muted opacity-25 mb-3"></i>
+                            <p class="text-muted small">No students enrolled.</p>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
-    }
-
-    <!-- Courses List -->
-    @if (Model.Courses != null && Model.Courses.Any())
-    {
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">
-                    <i class="fas fa-book me-2"></i>Courses
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Course Name</th>
-                                <th>Course Code</th>
-                                <th>Credits</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var course in Model.Courses)
-                            {
-                                <tr>
-                                    <td>@course.Title</td>
-                                    <td><span class="badge bg-info">@course.Code</span></td>
-                                    <td>@course.Credits</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    }
-
-    <!-- Teachers List -->
-    @if (Model.Teachers != null && Model.Teachers.Any())
-    {
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">
-                    <i class="fas fa-chalkboard-teacher me-2"></i>Teachers
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Phone</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var teacher in Model.Teachers)
-                            {
-                                <tr>
-                                    <td>@teacher.FullName</td>
-                                    <td>@(teacher.Email ?? "N/A")</td>
-                                    <td>@(teacher.PhoneNumber ?? "N/A")</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    }
-
-    <!-- Students List -->
-    @if (Model.Students != null && Model.Students.Any())
-    {
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">
-                    <i class="fas fa-user-graduate me-2"></i>Students
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Roll Number</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Batch</th>
-                                <th>Section</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var student in Model.Students)
-                            {
-                                <tr>
-                                    <td><span class="badge bg-primary">@student.RollNumber</span></td>
-                                    <td>@student.FullName</td>
-                                    <td>@(student.Email ?? "N/A")</td>
-                                    <td>@(student.Batch?.Year ?? "N/A")</td>
-                                    <td>@(student.Section?.Name ?? "N/A")</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    }
-
-    @if ((Model.Batches == null || !Model.Batches.Any()) && 
-         (Model.Courses == null || !Model.Courses.Any()) && 
-         (Model.Teachers == null || !Model.Teachers.Any()) && 
-         (Model.Students == null || !Model.Students.Any()))
-    {
-        <div class="card shadow mb-4">
-            <div class="card-body text-center py-5">
-                <i class="fas fa-inbox fa-3x text-gray-300 mb-3"></i>
-                <h5 class="text-gray-500">No Associated Data</h5>
-                <p class="text-muted">This department doesn't have any batches, courses, teachers, or students yet.</p>
-            </div>
-        </div>
-    }
+    </div>
 </div>
+
+@section Scripts {
+    <style>
+        .x-small { font-size: 0.75rem; letter-spacing: 0.05em; }
+        .hover-scale:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.05); }
+        .transition { transition: all 0.2s ease; }
+        .nav-tabs .nav-link { color: #6c757d; border: none; border-bottom: 3px solid transparent; }
+        .nav-tabs .nav-link.active { color: var(--uet-royal-blue); border-bottom-color: var(--uet-royal-blue); background: none; }
+        .nav-tabs .nav-link:hover:not(.active) { color: var(--uet-royal-blue); border-bottom-color: rgba(0,0,102,0.1); }
+    </style>
+}
