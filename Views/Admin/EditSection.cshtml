@@ -1,0 +1,89 @@
+@model AttendenceManagementSystem.Models.Section
+@{
+    ViewData["Title"] = "Edit Section";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-edit me-2"></i>Edit Section
+        </h1>
+        <a class="btn btn-secondary" asp-action="EditBatch" asp-route-id="@Model.BatchId">
+            Back to Batch
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Section Information</h6>
+                </div>
+                <div class="card-body">
+                    <form asp-action="EditSection" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+                        
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label">Section Name <span class="text-danger">*</span></label>
+                            <input asp-for="Name" class="form-control" placeholder="e.g., A" maxlength="10" required />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                            <small class="form-text text-muted">Enter the section name (e.g., A, B1, Morning)</small>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                            <a class="btn btn-secondary" asp-action="EditBatch" asp-route-id="@Model.BatchId">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle me-2"></i>Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2"><strong>Section ID:</strong> @Model.Id</p>
+                    <p class="mb-2"><strong>Batch:</strong> @Model.Batch?.Year</p>
+                    <p class="mb-2"><strong>Department:</strong> @Model.Batch?.Department?.Name</p>
+                    <p class="mb-2"><strong>Created:</strong> @Model.CreatedAt.ToString("MMM dd, yyyy")</p>
+                    <hr />
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-exclamation-triangle text-warning me-1"></i>
+                        Editing the section will affect all associated students.
+                    </p>
+                </div>
+            </div>
+
+            @if (Model.Students != null && Model.Students.Any())
+            {
+                <div class="card shadow mt-3">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-users me-2"></i>Students
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <i class="fas fa-user-graduate text-primary me-2"></i>
+                            <strong>Total Students:</strong> @Model.Students.Count
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

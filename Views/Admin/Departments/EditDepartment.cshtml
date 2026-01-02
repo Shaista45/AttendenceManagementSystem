@@ -102,10 +102,6 @@
                                                        class="btn btn-sm btn-light border" title="Edit">
                                                         <i class="fas fa-edit text-warning"></i>
                                                     </a>
-                                                    <button type="button" class="btn btn-sm btn-light border delete-batch" 
-                                                            data-batch-id="@batch.Id" data-batch-year="@batch.Year" title="Delete">
-                                                        <i class="fas fa-trash text-danger"></i>
-                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -214,14 +210,89 @@
     </div>
 </div>
 
-<partial name="_EditDepartmentModals" model="@Model" />
+<div class="modal fade" id="deleteDepartmentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Delete Department</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete department <strong id="deleteDepartmentName"></strong>?</p>
+                <div class="alert alert-danger mb-0">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Warning:</strong> This will permanently delete all batches, courses, teachers, and students associated with this department.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form asp-action="DeleteDepartmentConfirmed" asp-controller="Admin" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="deleteDepartmentId" />
+                    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addBatchModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addCourseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-book me-2"></i>Add New Course</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="courseModalError" class="alert alert-danger d-none"></div>
+                <form id="addCourseForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="DepartmentId" id="CourseDepartmentId" />
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Course Code <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="Code" required placeholder="e.g. CS101" />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Course Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="Title" required placeholder="e.g. Intro to Computing" />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Credits <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="Credits" min="1" max="6" required value="3" />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="Description" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveCourseBtn">Save Course</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     
     <script>
         $(document).ready(function() {
-            // Delete Department Logic
+            // ==========================================
+            // 1. DELETE DEPARTMENT LOGIC
+            // ==========================================
             $('#deleteDepartmentBtn').on('click', function() {
                 var deptName = $(this).data('department-name');
                 var deptId = $(this).data('department-id');
@@ -230,28 +301,119 @@
                 new bootstrap.Modal(document.getElementById('deleteDepartmentModal')).show();
             });
 
-            // Quick Add Batch Logic
+            // ==========================================
+            // 2. BATCH MANAGEMENT (Quick Add)
+            // ==========================================
+            
+            // Open Batch Modal
             $('.quick-add-batch-btn').on('click', function() {
                 var deptId = $(this).data('department-id');
-                // Load partial via AJAX or use existing modal logic
-                // For simplicity, assumed logic exists in _EditDepartmentModals partial or inline script
-                // If using the same logic as Index page:
+                // Load the partial view into the modal body
                 $.get('/Admin/CreateBatch?departmentId=' + deptId, function(data) {
                     $('#addBatchModal .modal-content').html(data);
+                    
+                    // Re-parse validation since we loaded new HTML
+                    var form = $('#addBatchForm');
+                    $.validator.unobtrusive.parse(form);
+                    
                     new bootstrap.Modal(document.getElementById('addBatchModal')).show();
+                }).fail(function() {
+                    alert('Error loading batch form. Please check your connection.');
                 });
             });
 
-            // Quick Add Course Logic
+            // Save Batch Button Click (Delegated Event)
+            $(document).on('click', '#saveBatchBtn', function() {
+                var form = $('#addBatchForm');
+                var btn = $(this);
+
+                if (!form.valid()) {
+                    return; 
+                }
+
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...');
+
+                $.ajax({
+                    url: '@Url.Action("CreateBatch", "Admin")',
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function(response) {
+                        if (response.success) {
+                            location.reload(); 
+                        } else {
+                            var errorList = "<ul>";
+                            $.each(response.errors, function(i, val) {
+                                errorList += "<li>" + val + "</li>";
+                            });
+                            errorList += "</ul>";
+                            
+                            var alertHtml = '<div class="alert alert-danger alert-dismissible fade show">' + 
+                                            errorList + 
+                                            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+                            
+                            $('#addBatchModal .modal-body').prepend(alertHtml);
+                            btn.prop('disabled', false).text('Save Batch');
+                        }
+                    },
+                    error: function() {
+                        alert('A server error occurred.');
+                        btn.prop('disabled', false).text('Save Batch');
+                    }
+                });
+            });
+
+            // ==========================================
+            // 3. COURSE MANAGEMENT (Quick Add)
+            // ==========================================
+            
+            // Open Course Modal
             $('.quick-add-course-btn').on('click', function() {
-                // Reset form
                 $('#addCourseForm')[0].reset();
                 $('#CourseDepartmentId').val($(this).data('department-id'));
+                $('#courseModalError').addClass('d-none');
                 new bootstrap.Modal(document.getElementById('addCourseModal')).show();
             });
             
-            // Re-use save logic from Index page or define here
-            // ... (Includes the AJAX save logic for Course and Batch similar to Index page) ...
+            // Save Course Button Click
+            $('#saveCourseBtn').on('click', function() {
+                var form = $('#addCourseForm');
+                var btn = $(this);
+                
+                if(!form[0].checkValidity()) {
+                    form[0].reportValidity();
+                    return;
+                }
+
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...');
+
+                $.ajax({
+                    url: '@Url.Action("CreateCourseQuick", "Admin")',
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function(response) {
+                        if(response.success) {
+                            location.reload();
+                        } else {
+                            $('#courseModalError').removeClass('d-none').text(response.message);
+                            btn.prop('disabled', false).text('Save Course');
+                        }
+                    },
+                    error: function() {
+                        $('#courseModalError').removeClass('d-none').text('Server error occurred.');
+                        btn.prop('disabled', false).text('Save Course');
+                    }
+                });
+            });
+
+            // ==========================================
+            // 4. MAIN DEPARTMENT FORM
+            // ==========================================
+            $('#departmentForm').on('submit', function() {
+                if($(this).valid()) {
+                    $('#saveDepartmentBtn').prop('disabled', true)
+                        .html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...');
+                }
+            });
         });
     </script>
     <style>

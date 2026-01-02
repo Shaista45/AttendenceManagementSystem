@@ -90,7 +90,7 @@ namespace AttendenceManagementSystem.Controllers
             return View(department);
         }
 
-        public async Task<IActionResult> EditDepartment(int? id)
+        public async Task<IActionResult>EditDepartment(int? id)
         {
             if (id == null)
                 return NotFound();
@@ -135,7 +135,7 @@ namespace AttendenceManagementSystem.Controllers
                 }
                 return RedirectToAction(nameof(Departments));
             }
-            return View(department);
+            return View("~/Views/Admin/Departments/EditDepartment.cshtml",department);
         }
 
         public async Task<IActionResult> ViewDepartment(int? id)
@@ -434,6 +434,104 @@ namespace AttendenceManagementSystem.Controllers
             return Json(new { success = false, message = "Invalid data" });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateSection(int batchId, string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                ShowMessage("Section name is required!", "error");
+                return RedirectToAction(nameof(EditBatch), new { id = batchId });
+            }
+
+            var batch = await _context.Batches.FindAsync(batchId);
+            if (batch == null)
+            {
+                ShowMessage("Batch not found!", "error");
+                return RedirectToAction(nameof(Departments));
+            }
+
+            var section = new Section
+            {
+                BatchId = batchId,
+                Name = name,
+                CreatedAt = DateTime.UtcNow
+            };
+            
+            _context.Sections.Add(section);
+            await _context.SaveChangesAsync();
+            ShowMessage("Section added successfully!");
+            
+            return RedirectToAction(nameof(EditBatch), new { id = batchId });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteSection(int id)
+        {
+            var section = await _context.Sections
+                .Include(s => s.Batch)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (section == null)
+            {
+                return Json(new { success = false, message = "Section not found." });
+            }
+
+            var batchId = section.BatchId;
+
+            try
+            {
+                _context.Sections.Remove(section);
+                await _context.SaveChangesAsync();
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Error deleting section: {ex.Message}" });
+            }
+        }
+
+        public async Task<IActionResult> EditSection(int id)
+        {
+            var section = await _context.Sections
+                .Include(s => s.Batch)
+                    .ThenInclude(b => b.Department)
+                .Include(s => s.Students)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (section == null)
+            {
+                ShowMessage("Section not found!", "error");
+                return RedirectToAction(nameof(Departments));
+            }
+
+            return View(section);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditSection(int id, string name)
+        {
+            var section = await _context.Sections.FindAsync(id);
+            if (section == null)
+            {
+                ShowMessage("Section not found!", "error");
+                return RedirectToAction(nameof(Departments));
+            }
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                ShowMessage("Section name is required!", "error");
+                return RedirectToAction(nameof(EditSection), new { id });
+            }
+
+            section.Name = name;
+            await _context.SaveChangesAsync();
+            ShowMessage("Section updated successfully!");
+
+            return RedirectToAction(nameof(EditBatch), new { id = section.BatchId });
+        }
+
         public async Task<IActionResult> QuickAddCourse(int departmentId)
         {
             var department = await _context.Departments.FindAsync(departmentId);
@@ -578,34 +676,42 @@ namespace AttendenceManagementSystem.Controllers
         #region Student Management
         
         // UPDATE THIS METHOD
-        public async Task<IActionResult> Students(int? batchId, int? sectionId)
+      public async Task<IActionResult> Students(int? batchId, int? sectionId, string search)
         {
-            // 1. Start the query
+            // 1. Base Query
             var query = _context.Students
                 .Include(s => s.Department)
                 .Include(s => s.Batch)
                 .Include(s => s.Section)
                 .AsQueryable();
 
-            // 2. Apply Batch Filter if selected
+            // 2. Apply Filters
             if (batchId.HasValue)
             {
                 query = query.Where(s => s.BatchId == batchId.Value);
             }
 
-            // 3. Apply Section Filter if selected
             if (sectionId.HasValue)
             {
                 query = query.Where(s => s.SectionId == sectionId.Value);
             }
 
-            var students = await query.ToListAsync();
+            if (!string.IsNullOrEmpty(search))
+            {
+                search = search.ToLower();
+                query = query.Where(s => s.FullName.ToLower().Contains(search) 
+                                      || s.RollNumber.ToLower().Contains(search) 
+                                      || s.Email.ToLower().Contains(search));
+            }
 
-            // 4. Populate Dropdowns for the View
-            // Batches dropdown
-            ViewData["Batches"] = new SelectList(await _context.Batches.OrderBy(b => b.Year).ToListAsync(), "Id", "Year", batchId);
+            var students = await query.OrderBy(s => s.RollNumber).ToListAsync();
+
+            // 3. Populate Dropdowns (Preserve Selection)
             
-            // Sections dropdown (filtered by selected Batch if applicable)
+            // Batches: Always load all batches for the filter
+            ViewData["Batches"] = new SelectList(await _context.Batches.OrderByDescending(b => b.Year).ToListAsync(), "Id", "Year", batchId);
+
+            // Sections: If a batch is selected, filter sections. Otherwise, show all or none.
             IQueryable<Section> sectionsQuery = _context.Sections;
             if (batchId.HasValue)
             {
@@ -613,7 +719,11 @@ namespace AttendenceManagementSystem.Controllers
             }
             ViewData["Sections"] = new SelectList(await sectionsQuery.OrderBy(s => s.Name).ToListAsync(), "Id", "Name", sectionId);
 
-            // Return the view
+            // 4. Pass filter state to View for "No records" message
+            ViewBag.CurrentBatchId = batchId;
+            ViewBag.CurrentSectionId = sectionId;
+            ViewBag.CurrentSearch = search;
+
             return View("~/Views/Admin/Students/Index.cshtml", students);
         }
 
@@ -632,20 +742,62 @@ namespace AttendenceManagementSystem.Controllers
             return View("~/Views/Admin/CreateStudent.cshtml");
         }
 
-        [HttpPost]
+       [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateStudent(Student student)
         {
-            // ... (Your existing logic for Creating Student) ...
             if (ModelState.IsValid)
             {
-                _context.Students.Add(student);
-                await _context.SaveChangesAsync();
+                // 1. Check if email already exists in the system
+                var existingUser = await _userManager.FindByEmailAsync(student.Email);
+                if (existingUser != null)
+                {
+                    ShowMessage("A user with this email already exists.", "error");
+                    await PopulateStudentDropdowns();
+                    return View("~/Views/Admin/CreateStudent.cshtml", student);
+                }
+
+                // 2. Create the Identity User (Login Account) first
+                var user = new ApplicationUser
+                {
+                    UserName = student.Email,
+                    Email = student.Email,
+                    EmailConfirmed = true // Admin created, so mark as confirmed
+                };
+
+                // Set a default strong password (Or generate one)
+                string defaultPassword = "Student@123"; 
+
+                var result = await _userManager.CreateAsync(user, defaultPassword);
+
+                if (result.Succeeded)
+                {
+                    // 3. Assign the "Student" role
+                    await _userManager.AddToRoleAsync(user, "Student");
+
+                    // 4. Link the new User ID to the Student entity
+                    // This fixes the Foreign Key Constraint error
+                    student.UserId = user.Id; 
+                    student.CreatedAt = DateTime.UtcNow;
+
+                    // 5. Save the Student Record
+                    _context.Students.Add(student);
+                    await _context.SaveChangesAsync();
                 
-                ShowMessage($"Student created successfully!");
-                return RedirectToAction(nameof(Students));
+                    ShowMessage($"Student created successfully! Default Password: {defaultPassword}");
+                    return RedirectToAction(nameof(Students));
+                }
+                else
+                {
+                    // If User creation failed (e.g. weak password), show errors
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError("", error.Description);
+                    }
+                }
             }
             
+            // If we got here, something failed, reload the form
             await PopulateStudentDropdowns();
             return View("~/Views/Admin/CreateStudent.cshtml", student);
         }

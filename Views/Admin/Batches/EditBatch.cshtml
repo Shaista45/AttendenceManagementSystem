@@ -9,8 +9,8 @@
         <h1 class="h3 mb-0 text-gray-800">
             <i class="fas fa-edit me-2"></i>Edit Batch
         </h1>
-       <a class="btn btn-secondary" asp-action="EditDepartments">
-           Back to Departments
+       <a class="btn btn-secondary" asp-action="EditDepartment" asp-route-id="@Model.DepartmentId">
+           Back to Department
        </a>
     </div>
 
@@ -204,7 +204,7 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-2"></i>Save Changes
                             </button>
-                            <a class="btn btn-secondary" asp-action="Departments">
+                            <a class="btn btn-secondary" asp-action="EditDepartment" asp-route-id="@Model.DepartmentId">
                                 Cancel
                             </a>
                         </div>
