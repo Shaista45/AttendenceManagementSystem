@@ -18,5 +18,6 @@ namespace AttendenceManagementSystem.Services
         Task<byte[]> ExportAttendanceToExcelAsync(int? courseId = null, DateOnly? fromDate = null, DateOnly? toDate = null);
         Task<List<TeacherExcelData>> ImportTeachersFromExcelAsync(IFormFile file, int departmentId);
         byte[] GenerateTeacherTemplate();
+        byte[] GenerateStudentTemplate();
     }
 }

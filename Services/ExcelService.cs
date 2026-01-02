@@ -343,5 +343,88 @@ namespace AttendenceManagementSystem.Services
                 throw;
             }
         }
+
+        public byte[] GenerateStudentTemplate()
+        {
+            try
+            {
+                using var workbook = new XLWorkbook();
+                var worksheet = workbook.Worksheets.Add("Students");
+
+                // Add headers
+                worksheet.Cell(1, 1).Value = "Roll Number";
+                worksheet.Cell(1, 2).Value = "Full Name";
+                worksheet.Cell(1, 3).Value = "Email";
+                worksheet.Cell(1, 4).Value = "Phone Number";
+                worksheet.Cell(1, 5).Value = "Department Name";
+                worksheet.Cell(1, 6).Value = "Batch Year";
+                worksheet.Cell(1, 7).Value = "Section Name";
+
+                // Add sample data
+                worksheet.Cell(2, 1).Value = "2023-CS-101";
+                worksheet.Cell(2, 2).Value = "Jane Doe";
+                worksheet.Cell(2, 3).Value = "jane.doe@example.com";
+                worksheet.Cell(2, 4).Value = "923001234567";
+                worksheet.Cell(2, 5).Value = "Computer Science";
+                worksheet.Cell(2, 6).Value = "2023";
+                worksheet.Cell(2, 7).Value = "A";
+
+                worksheet.Cell(3, 1).Value = "2023-CS-102";
+                worksheet.Cell(3, 2).Value = "John Smith";
+                worksheet.Cell(3, 3).Value = "john.smith@example.com";
+                worksheet.Cell(3, 4).Value = "923009876543";
+                worksheet.Cell(3, 5).Value = "Computer Science";
+                worksheet.Cell(3, 6).Value = "2023";
+                worksheet.Cell(3, 7).Value = "A";
+
+                // Format headers
+                var headerRange = worksheet.Range(1, 1, 1, 7);
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
+                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                headerRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thick;
+
+                // Format sample data
+                var dataRange = worksheet.Range(2, 1, 3, 7);
+                dataRange.Style.Fill.BackgroundColor = XLColor.LightYellow;
+                dataRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+
+                // Add instructions
+                worksheet.Cell(5, 1).Value = "Instructions:";
+                worksheet.Cell(6, 1).Value = "1. Fill in student details starting from row 2 (or row 4 after deleting sample rows)";
+                worksheet.Cell(7, 1).Value = "2. All fields are required";
+                worksheet.Cell(8, 1).Value = "3. Roll Number must be unique (e.g., 2023-CS-101)";
+                worksheet.Cell(9, 1).Value = "4. Email must be unique and valid";
+                worksheet.Cell(10, 1).Value = "5. Phone Number should include country code (e.g., 923001234567)";
+                worksheet.Cell(11, 1).Value = "6. Department Name must match existing department or will be created";
+                worksheet.Cell(12, 1).Value = "7. Batch Year should be in YYYY format (e.g., 2023)";
+                worksheet.Cell(13, 1).Value = "8. Section Name is case-sensitive (e.g., A, B, C)";
+                worksheet.Cell(14, 1).Value = "9. Delete the sample rows (rows 2-3) before uploading";
+                worksheet.Cell(15, 1).Value = "10. First row (headers) will be skipped during import";
+
+                var instructionsRange = worksheet.Range(5, 1, 15, 1);
+                instructionsRange.Style.Font.Italic = true;
+                instructionsRange.Style.Font.FontColor = XLColor.DarkGray;
+                instructionsRange.Style.Font.FontSize = 9;
+
+                // Adjust column widths
+                worksheet.Column(1).Width = 18;
+                worksheet.Column(2).Width = 20;
+                worksheet.Column(3).Width = 28;
+                worksheet.Column(4).Width = 18;
+                worksheet.Column(5).Width = 22;
+                worksheet.Column(6).Width = 12;
+                worksheet.Column(7).Width = 15;
+
+                using var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+                return stream.ToArray();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating student template");
+                throw;
+            }
+        }
     }
 }

@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace AttendenceManagementSystem.Controllers
 {
@@ -22,13 +23,15 @@ namespace AttendenceManagementSystem.Controllers
         private readonly IExcelService _excelService;
         private readonly IReportService _reportService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ILogger<AdminController> _logger;
 
-        public AdminController(ApplicationDbContext context, IExcelService excelService, IReportService reportService, UserManager<ApplicationUser> userManager)
+        public AdminController(ApplicationDbContext context, IExcelService excelService, IReportService reportService, UserManager<ApplicationUser> userManager, ILogger<AdminController> logger)
         {
             _context = context;
             _excelService = excelService;
             _reportService = reportService;
             _userManager = userManager;
+            _logger = logger;
         }
 
         public IActionResult Dashboard()
@@ -838,6 +841,22 @@ namespace AttendenceManagementSystem.Controllers
             return View();
         }
 
+        public IActionResult DownloadStudentTemplate()
+        {
+            try
+            {
+                var fileBytes = _excelService.GenerateStudentTemplate();
+                var fileName = $"Student_Import_Template_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error downloading student template");
+                ShowMessage("Error generating template file.", "error");
+                return RedirectToAction(nameof(UploadStudents));
+            }
+        }
+
         // Student Details
         public async Task<IActionResult> StudentDetails(int id)
         {
@@ -1428,7 +1447,7 @@ namespace AttendenceManagementSystem.Controllers
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error generating Excel report: {ex.Message}");
+                ShowMessage($"Error generating Excel report: {ex.Message}", "error");
                 return RedirectToAction(nameof(Reports));
             }
         }
@@ -1447,7 +1466,7 @@ namespace AttendenceManagementSystem.Controllers
                     case "student":
                         if (!entityId.HasValue)
                         {
-                            ShowErrorMessage("Student ID is required.");
+                            ShowMessage("Student ID is required.", "error");
                             return RedirectToAction(nameof(Reports));
                         }
                         pdfBytes = await _reportService.GenerateStudentAttendanceReportAsync(
@@ -1466,7 +1485,7 @@ namespace AttendenceManagementSystem.Controllers
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error generating PDF report: {ex.Message}");
+                ShowMessage($"Error generating PDF report: {ex.Message}", "error");
                 return RedirectToAction(nameof(Reports));
             }
         }
@@ -1959,7 +1978,7 @@ namespace AttendenceManagementSystem.Controllers
                     var existingUser = await _userManager.FindByEmailAsync(model.Email);
                     if (existingUser != null)
                     {
-                        ShowErrorMessage("A user with this email already exists.");
+                        ShowMessage("A user with this email already exists.", "error");
                         ViewBag.Departments = new SelectList(await _context.Departments.ToListAsync(), "Id", "Name", model.DepartmentId);
                         return View("~/Views/Admin/Teachers/Create.cshtml", model);
                     }
@@ -2015,7 +2034,8 @@ namespace AttendenceManagementSystem.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ShowErrorMessage($"Error creating teacher: {ex.Message}");
+                    ShowMessage($"Error creating teacher: {ex.Message}", "error");
+                    _logger.LogError(ex, "Error creating teacher");
                 }
             }
 
@@ -2238,7 +2258,7 @@ namespace AttendenceManagementSystem.Controllers
             {
                 if (assignments == null || !assignments.Any())
                 {
-                    ShowErrorMessage("Please add at least one course assignment.");
+                    ShowMessage("Please add at least one course assignment.", "error");
                     return RedirectToAction(nameof(AssignCourses), new { id = teacherId });
                 }
 
@@ -2279,7 +2299,7 @@ namespace AttendenceManagementSystem.Controllers
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error assigning courses: {ex.Message}");
+                ShowMessage($"Error assigning courses: {ex.Message}", "error");
                 return RedirectToAction(nameof(AssignCourses), new { id = teacherId });
             }
         }
@@ -2300,7 +2320,7 @@ namespace AttendenceManagementSystem.Controllers
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error removing assignment: {ex.Message}");
+                ShowMessage($"Error removing assignment: {ex.Message}", "error");
             }
 
             return RedirectToAction(nameof(AssignCourses), new { id = teacherId });
@@ -2348,7 +2368,7 @@ namespace AttendenceManagementSystem.Controllers
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error deleting teacher: {ex.Message}");
+                ShowMessage($"Error deleting teacher: {ex.Message}", "error");
                 return RedirectToAction(nameof(Teachers));
             }
         }
@@ -2366,14 +2386,14 @@ namespace AttendenceManagementSystem.Controllers
         {
             if (file == null || file.Length == 0)
             {
-                ShowErrorMessage("Please select a valid Excel file.");
+                ShowMessage("Please select a valid Excel file.", "error");
                 ViewBag.Departments = new SelectList(_context.Departments.ToList(), "Id", "Name");
                 return View("~/Views/Admin/Teachers/UploadTeachers.cshtml");
             }
 
             if (!file.FileName.EndsWith(".xlsx") && !file.FileName.EndsWith(".xls"))
             {
-                ShowErrorMessage("Only Excel files (.xlsx, .xls) are allowed.");
+                ShowMessage("Only Excel files (.xlsx, .xls) are allowed.", "error");
                 ViewBag.Departments = new SelectList(_context.Departments.ToList(), "Id", "Name");
                 return View("~/Views/Admin/Teachers/UploadTeachers.cshtml");
             }
@@ -2473,7 +2493,7 @@ namespace AttendenceManagementSystem.Controllers
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error processing Excel file: {ex.Message}");
+                ShowMessage($"Error processing Excel file: {ex.Message}", "error");
                 ViewBag.Departments = new SelectList(_context.Departments.ToList(), "Id", "Name");
                 return View("~/Views/Admin/Teachers/UploadTeachers.cshtml");
             }
@@ -2489,7 +2509,7 @@ namespace AttendenceManagementSystem.Controllers
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Error generating template: {ex.Message}");
+                ShowMessage($"Error generating template: {ex.Message}", "error");
                 return RedirectToAction(nameof(Teachers));
             }
         }
@@ -2602,7 +2622,7 @@ namespace AttendenceManagementSystem.Controllers
 
             if (student == null)
             {
-                ShowErrorMessage("Student not found.");
+                ShowMessage("Student not found.", "error");
                 return RedirectToAction(nameof(StudentSummary));
             }
 

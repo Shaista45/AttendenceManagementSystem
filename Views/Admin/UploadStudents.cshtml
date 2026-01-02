@@ -112,9 +112,9 @@
                         </div>
                         <div class="card-body d-flex flex-column">
                             <p class="text-muted small">Download a pre-formatted template to ensure accurate data import.</p>
-                            <button type="button" class="btn btn-success shadow-sm w-100 mb-3" id="downloadTemplateBtn">
+                            <a asp-action="DownloadStudentTemplate" class="btn btn-success shadow-sm w-100 mb-3">
                                 <i class="fas fa-file-excel me-2"></i>Download Template
-                            </button>
+                            </a>
                             
                             <hr class="my-3">
                             
@@ -130,7 +130,6 @@
         </div>
     </div>
 </div>
-
 @section Scripts {
     <script>
         $(document).ready(function() {
@@ -140,86 +139,116 @@
             var fileInfo = $('#fileInfo');
             var fileNameDisplay = $('#fileName');
 
-            // Drag hover effects
-            dropZone.on('dragover', function(e) {
+            console.log('Upload page initialized');
+            console.log('Upload button found:', uploadBtn.length);
+            console.log('Initial button disabled state:', uploadBtn.prop('disabled'));
+
+            // 1. CLICK TO BROWSE
+            // Trigger hidden input click when dropzone is clicked
+            dropZone.on('click', function(e) {
+                if(e.target !== fileInput[0]) {
+                    fileInput.trigger('click');
+                }
+            });
+
+            // 2. FILE SELECTED VIA BROWSE
+            fileInput.on('change', function() {
+                console.log('File input changed, files:', this.files);
+                handleFiles(this.files);
+            });
+
+            // 3. DRAG & DROP HANDLERS
+            dropZone.on('dragover dragenter', function(e) {
                 e.preventDefault();
+                e.stopPropagation();
                 $(this).addClass('bg-primary bg-opacity-10 border-primary');
             });
-            
-            dropZone.on('dragleave drop', function(e) {
+
+            dropZone.on('dragleave dragend drop', function(e) {
                 e.preventDefault();
+                e.stopPropagation();
                 $(this).removeClass('bg-primary bg-opacity-10 border-primary');
             });
 
-            // File selection handler
-            fileInput.on('change', function() {
-                handleFile(this.files[0]);
+            dropZone.on('drop', function(e) {
+                var files = e.originalEvent.dataTransfer.files;
+                console.log('Files dropped:', files);
+                
+                // CRITICAL FIX: Assign dropped files to the input
+                // This makes the form submit the file correctly
+                fileInput[0].files = files;
+                
+                handleFiles(files);
             });
 
-            function handleFile(file) {
-                if (!file) return;
+            // COMMON FILE HANDLER
+            function handleFiles(files) {
+                console.log('handleFiles called with:', files);
+                if (files.length > 0) {
+                    var file = files[0];
+                    console.log('Processing file:', file.name, 'Size:', file.size);
+                    
+                    // Validate Excel Extension
+                    if (!file.name.match(/\.(xlsx|xls)$/i)) {
+                        alert('Please upload an Excel file (.xlsx or .xls)');
+                        resetForm();
+                        return;
+                    }
 
-                if (!file.name.toLowerCase().endsWith('.xlsx')) {
-                    alert('Please select a valid Excel file (.xlsx)');
+                    // Validate Size (10MB)
+                    if (file.size > 10 * 1024 * 1024) {
+                        alert('File size exceeds 10MB limit');
+                        resetForm();
+                        return;
+                    }
+
+                    // Success State
+                    console.log('File validated successfully, enabling button');
+                    fileNameDisplay.text(file.name);
+                    fileInfo.removeClass('d-none');
+                    
+                    // Force enable the button
+                    uploadBtn.removeAttr('disabled');
+                    uploadBtn.prop('disabled', false);
+                    console.log('Button disabled state after enable:', uploadBtn.prop('disabled'));
+                    
+                    dropZone.addClass('border-success bg-light');
+                } else {
+                    console.log('No files to handle');
                     resetForm();
-                    return;
                 }
-
-                if (file.size > 10 * 1024 * 1024) {
-                    alert('File size exceeds 10MB limit');
-                    resetForm();
-                    return;
-                }
-
-                // Show file info
-                fileNameDisplay.text(file.name);
-                fileInfo.removeClass('d-none');
-                uploadBtn.prop('disabled', false);
-                dropZone.addClass('border-success').css('background-color', '#f8fff9');
             }
 
-            // Clear file
-            $('#clearFile').on('click', function() {
+            // RESET FORM
+            $('#clearFile').on('click', function(e) {
+                e.stopPropagation(); // Prevent opening browse dialog
+                console.log('Clear file clicked');
                 resetForm();
             });
 
             function resetForm() {
-                fileInput.val('');
+                console.log('Resetting form');
+                fileInput.val(''); // Clear input
                 fileInfo.addClass('d-none');
-                uploadBtn.prop('disabled', true);
-                dropZone.removeClass('border-success').css('background-color', '');
+                uploadBtn.attr('disabled', 'disabled');
+                uploadBtn.prop('disabled', true); // DISABLE BUTTON
+                dropZone.removeClass('border-success bg-light');
             }
 
-            // Form Submit
-            $('#uploadForm').on('submit', function(e) {
-                if (!fileInput.val()) {
-                    e.preventDefault();
-                    return;
+            // FORM SUBMIT VISUALS
+            $('#uploadForm').on('submit', function() {
+                if (fileInput[0].files.length === 0) {
+                    alert('Please select a file first.');
+                    return false;
                 }
                 
+                console.log('Form submitting');
                 $('#uploadProgress').show();
                 $('#progressText').show();
                 uploadBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Importing...');
             });
-
-            // Template Download (Generating CSV for demo, user should convert to XLSX)
-            $('#downloadTemplateBtn').on('click', function() {
-                const headers = ['Roll Number', 'Full Name', 'Email', 'Phone Number', 'Department Name', 'Batch Year', 'Section Name'];
-                const sample = ['2023-CS-101', 'Jane Doe', 'jane@example.com', '923001234567', 'Computer Science', '2023', 'A'];
-                
-                let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + sample.join(",");
-                
-                const encodedUri = encodeURI(csvContent);
-                const link = document.createElement("a");
-                link.setAttribute("href", encodedUri);
-                link.setAttribute("download", "Student_Import_Template.csv");
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                alert("Template downloaded as CSV. Please save as .xlsx in Excel before uploading.");
-            });
         });
+    </script>
     </script>
     <style>
         .upload-zone { transition: all 0.2s ease-in-out; }
@@ -228,14 +257,3 @@
         .fade-in { animation: fadeIn 0.3s ease-in; }
     </style>
 }
-
-<style>
-    @@keyframes slideIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .upload-card {
-        animation: slideIn 0.5s ease-out;
-    }
-</style>
