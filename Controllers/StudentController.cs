@@ -293,6 +293,12 @@ namespace AttendenceManagementSystem.Controllers
                 .Select(e => e.Course)
                 .ToListAsync();
 
+            // Initialize ViewData even if no courses
+            ViewData["Courses"] = new SelectList(enrolledCourses, "Id", "Code", courseId);
+            ViewData["FromDate"] = fromDate?.ToString("yyyy-MM-dd") ?? DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30)).ToString("yyyy-MM-dd");
+            ViewData["ToDate"] = toDate?.ToString("yyyy-MM-dd") ?? DateOnly.FromDateTime(DateTime.UtcNow).ToString("yyyy-MM-dd");
+            ViewData["Student"] = student;
+
             if (!enrolledCourses.Any())
             {
                 ShowMessage("You are not enrolled in any courses.", "warning");
@@ -306,10 +312,10 @@ namespace AttendenceManagementSystem.Controllers
             var attendance = await _attendanceService.GetStudentAttendanceAsync(
                 student.Id, selectedCourseId, selectedFromDate, selectedToDate);
 
+            // Update ViewData with selected values
             ViewData["Courses"] = new SelectList(enrolledCourses, "Id", "Code", selectedCourseId);
             ViewData["FromDate"] = selectedFromDate.ToString("yyyy-MM-dd");
             ViewData["ToDate"] = selectedToDate.ToString("yyyy-MM-dd");
-            ViewData["Student"] = student;
 
             return View(attendance);
         }

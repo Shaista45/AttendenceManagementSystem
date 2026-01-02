@@ -3,61 +3,67 @@
     ViewData["Title"] = "Student Attendance Report";
 }
 
-<div class="container-fluid mt-4">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="mb-3">
-                <i class="bi bi-person-check"></i> Student Attendance Report
-            </h2>
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h1 class="h3 mb-0 fw-bold text-primary">
+                <i class="fas fa-user-check me-2"></i>Student Attendance Report
+            </h1>
+            <p class="text-muted small mb-0">Individual student attendance records and performance tracking</p>
         </div>
+        <a href="javascript:location.reload()" class="btn btn-outline-primary btn-sm shadow-sm bg-white">
+            <i class="fas fa-sync-alt me-2"></i>Refresh Data
+        </a>
     </div>
 
     <!-- Filters -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="bi bi-funnel"></i> Filters</h5>
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h6 class="m-0 fw-bold text-primary">
+                <i class="fas fa-filter me-2"></i>Report Filters
+            </h6>
         </div>
-        <div class="card-body">
+        <div class="card-body bg-light bg-opacity-50">
             <form method="get" asp-action="StudentAttendanceReport">
                 <div class="row g-3">
                     <div class="col-md-3">
-                        <label class="form-label">Department</label>
-                        <select name="DepartmentId" class="form-select" asp-items="ViewBag.Departments">
+                        <label class="form-label fw-bold small text-dark">Department</label>
+                        <select name="DepartmentId" class="form-select shadow-sm" asp-items="ViewBag.Departments">
                             <option value="">All Departments</option>
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Batch</label>
-                        <select name="BatchId" class="form-select" asp-items="ViewBag.Batches">
+                        <label class="form-label fw-bold small text-dark">Batch</label>
+                        <select name="BatchId" class="form-select shadow-sm" asp-items="ViewBag.Batches">
                             <option value="">All Batches</option>
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Section</label>
-                        <select name="SectionId" class="form-select" asp-items="ViewBag.Sections">
+                        <label class="form-label fw-bold small text-dark">Section</label>
+                        <select name="SectionId" class="form-select shadow-sm" asp-items="ViewBag.Sections">
                             <option value="">All Sections</option>
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Course</label>
-                        <select name="CourseId" class="form-select" asp-items="ViewBag.Courses">
+                        <label class="form-label fw-bold small text-dark">Course</label>
+                        <select name="CourseId" class="form-select shadow-sm" asp-items="ViewBag.Courses">
                             <option value="">All Courses</option>
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Start Date</label>
-                        <input type="date" name="StartDate" class="form-control" value="@Model.Filters.StartDate?.ToString("yyyy-MM-dd")" />
+                        <label class="form-label fw-bold small text-dark">Start Date</label>
+                        <input type="date" name="StartDate" class="form-control shadow-sm" value="@Model.Filters.StartDate?.ToString("yyyy-MM-dd")" />
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">End Date</label>
-                        <input type="date" name="EndDate" class="form-control" value="@Model.Filters.EndDate?.ToString("yyyy-MM-dd")" />
+                        <label class="form-label fw-bold small text-dark">End Date</label>
+                        <input type="date" name="EndDate" class="form-control shadow-sm" value="@Model.Filters.EndDate?.ToString("yyyy-MM-dd")" />
                     </div>
-                    <div class="col-md-6 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary me-2">
-                            <i class="bi bi-search"></i> Apply Filters
+                    <div class="col-md-6 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-primary shadow-sm">
+                            <i class="fas fa-search me-2"></i>Apply Filters
                         </button>
-                        <a asp-action="StudentAttendanceReport" class="btn btn-secondary">
-                            <i class="bi bi-x-circle"></i> Clear
+                        <a asp-action="StudentAttendanceReport" class="btn btn-outline-secondary shadow-sm">
+                            <i class="fas fa-times-circle me-2"></i>Clear
                         </a>
                     </div>
                 </div>
@@ -68,50 +74,105 @@
     <!-- Results -->
     @if (Model.Students.Any())
     {
-        <div class="card">
-            <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="bi bi-table"></i> Student Attendance Records
-                    <span class="badge bg-primary">@Model.Students.Count Students</span>
-                </h5>
+        <!-- Summary Statistics -->
+        <div class="row g-4 mb-4">
+            <div class="col-xl-4 col-md-6">
+                <div class="card h-100 border-start border-4 border-primary shadow-sm py-2">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col me-2">
+                                <div class="text-uppercase text-primary fw-bold x-small mb-1">Total Students</div>
+                                <div class="h4 mb-0 fw-bold text-gray-800">@Model.Students.Count</div>
+                            </div>
+                            <div class="col-auto">
+                                <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                                    <i class="fas fa-users fa-lg"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-4 col-md-6">
+                <div class="card h-100 border-start border-4 border-success shadow-sm py-2">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col me-2">
+                                <div class="text-uppercase text-success fw-bold x-small mb-1">Above 75%</div>
+                                <div class="h4 mb-0 fw-bold text-gray-800">@Model.Students.Count(s => !s.IsBelowThreshold)</div>
+                            </div>
+                            <div class="col-auto">
+                                <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
+                                    <i class="fas fa-check-circle fa-lg"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-4 col-md-6">
+                <div class="card h-100 border-start border-4 border-danger shadow-sm py-2">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col me-2">
+                                <div class="text-uppercase text-danger fw-bold x-small mb-1">Below 75%</div>
+                                <div class="h4 mb-0 fw-bold text-gray-800">@Model.Students.Count(s => s.IsBelowThreshold)</div>
+                            </div>
+                            <div class="col-auto">
+                                <div class="bg-danger bg-opacity-10 p-3 rounded-circle text-danger">
+                                    <i class="fas fa-exclamation-triangle fa-lg"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold text-primary">
+                    <i class="fas fa-table me-2"></i>Student Attendance Details
+                    <span class="badge bg-primary bg-opacity-10 text-primary ms-2">@Model.Students.Count Students</span>
+                </h6>
                 <div>
-                    <button onclick="window.print()" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-printer"></i> Print
+                    <button onclick="window.print()" class="btn btn-sm btn-outline-primary shadow-sm">
+                        <i class="fas fa-print me-2"></i>Print Report
                     </button>
                 </div>
             </div>
-            <div class="card-body">
+            <div class="card-body bg-light bg-opacity-50">
                 <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
                             <tr>
-                                <th>Roll Number</th>
-                                <th>Student Name</th>
-                                <th>Department</th>
-                                <th>Batch</th>
-                                <th>Section</th>
-                                <th class="text-center">Total Classes</th>
-                                <th class="text-center">Present</th>
-                                <th class="text-center">Absent</th>
-                                <th class="text-center">Attendance %</th>
-                                <th class="text-center">Status</th>
+                                <th class="fw-bold">Roll Number</th>
+                                <th class="fw-bold">Student Name</th>
+                                <th class="fw-bold">Department</th>
+                                <th class="fw-bold">Batch</th>
+                                <th class="fw-bold">Section</th>
+                                <th class="text-center fw-bold">Total Classes</th>
+                                <th class="text-center fw-bold">Present</th>
+                                <th class="text-center fw-bold">Absent</th>
+                                <th class="text-center fw-bold">Attendance %</th>
+                                <th class="text-center fw-bold">Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var student in Model.Students)
                             {
                                 <tr class="@(student.IsBelowThreshold ? "table-danger" : "")">
-                                    <td>@student.RollNumber</td>
-                                    <td>@student.StudentName</td>
+                                    <td><span class="text-muted small">@student.RollNumber</span></td>
+                                    <td><span class="fw-bold text-dark">@student.StudentName</span></td>
                                     <td>@student.Department</td>
                                     <td>@student.Batch</td>
                                     <td>@student.Section</td>
-                                    <td class="text-center">@student.TotalClasses</td>
+                                    <td class="text-center"><span class="text-dark">@student.TotalClasses</span></td>
                                     <td class="text-center">
-                                        <span class="badge bg-success">@student.ClassesAttended</span>
+                                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill">@student.ClassesAttended</span>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge bg-danger">@student.ClassesAbsent</span>
+                                        <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill">@student.ClassesAbsent</span>
                                     </td>
                                     <td class="text-center">
                                         <strong class="@(student.IsBelowThreshold ? "text-danger" : "text-success")">
@@ -122,13 +183,13 @@
                                         @if (student.IsBelowThreshold)
                                         {
                                             <span class="badge bg-danger">
-                                                <i class="bi bi-exclamation-triangle"></i> Below 75%
+                                                <i class="fas fa-exclamation-triangle"></i> Below 75%
                                             </span>
                                         }
                                         else
                                         {
                                             <span class="badge bg-success">
-                                                <i class="bi bi-check-circle"></i> Good
+                                                <i class="fas fa-check-circle"></i> Good
                                             </span>
                                         }
                                     </td>
@@ -170,26 +231,30 @@
     }
     else
     {
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i> No attendance records found. Please adjust your filters and try again.
+        <div class="alert alert-info border-0 shadow-sm d-flex" role="alert">
+            <i class="fas fa-info-circle fa-2x me-3 mt-1"></i>
+            <div>
+                <h6 class="alert-heading fw-bold">No Records Found</h6>
+                <p class="small mb-0">No attendance records found matching your criteria. Please adjust your filters and try again.</p>
+            </div>
         </div>
     }
 
     <div class="row mt-4">
         <div class="col-12">
-            <a asp-action="Reports" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Reports
+            <a asp-action="Reports" class="btn btn-outline-secondary shadow-sm">
+                <i class="fas fa-arrow-left me-2"></i>Back to Reports
             </a>
         </div>
     </div>
 </div>
 
-@section Styles {
-    <style>
-        @@media print {
-            .btn, .card-header button {
-                display: none;
-            }
-        }
-    </style>
-}
+<style>
+    .x-small { font-size: 0.75rem; letter-spacing: 0.05em; }
+    .text-gray-800 { color: #5a5c69; }
+    
+    @@media print {
+        .btn, .card-header { display: none !important; }
+        .card { border: 1px solid #dee2e6 !important; }
+    }
+</style>

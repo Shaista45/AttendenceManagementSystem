@@ -1099,29 +1099,35 @@ namespace AttendenceManagementSystem.Controllers
                 var timetables = await timetableQuery.ToListAsync();
                 var assignedCourses = timetables.Select(tt => tt.CourseId).Distinct().Count();
 
-                var courseIds = timetables.Select(tt => tt.CourseId).Distinct().ToList();
-                
                 int totalClasses = 0;
                 int markedClasses = 0;
 
-                if (courseIds.Any())
+                if (timetables.Any())
                 {
-                    var attendanceQuery = _context.Attendances
-                        .Where(a => courseIds.Contains(a.CourseId));
-
-                    if (filters.StartDate.HasValue)
-                        attendanceQuery = attendanceQuery.Where(a => a.Date >= DateOnly.FromDateTime(filters.StartDate.Value));
-
-                    if (filters.EndDate.HasValue)
-                        attendanceQuery = attendanceQuery.Where(a => a.Date <= DateOnly.FromDateTime(filters.EndDate.Value));
-
-                    var distinctClasses = await attendanceQuery
-                        .GroupBy(a => new { a.CourseId, a.Date })
-                        .Select(g => g.Key)
-                        .ToListAsync();
+                    // Get course IDs from timetables
+                    var courseIds = timetables.Select(tt => tt.CourseId).Distinct().ToList();
                     
-                    totalClasses = distinctClasses.Count;
-                    markedClasses = await attendanceQuery.CountAsync();
+                    // Query attendance for each course separately to avoid Contains translation issues
+                    var allAttendanceRecords = new List<(int CourseId, DateOnly Date, int Id)>();
+                    
+                    foreach (var courseId in courseIds)
+                    {
+                        var courseAttendances = await _context.Attendances
+                            .Where(a => a.CourseId == courseId)
+                            .Where(a => !filters.StartDate.HasValue || a.Date >= DateOnly.FromDateTime(filters.StartDate.Value))
+                            .Where(a => !filters.EndDate.HasValue || a.Date <= DateOnly.FromDateTime(filters.EndDate.Value))
+                            .Select(a => new { a.CourseId, a.Date, a.Id })
+                            .ToListAsync();
+                        
+                        allAttendanceRecords.AddRange(courseAttendances.Select(a => (a.CourseId, a.Date, a.Id)));
+                    }
+                    
+                    // Calculate metrics
+                    totalClasses = allAttendanceRecords
+                        .GroupBy(a => new { a.CourseId, a.Date })
+                        .Count();
+                    
+                    markedClasses = allAttendanceRecords.Count;
                 }
 
                 teacherReports.Add(new TeacherReportViewModel
