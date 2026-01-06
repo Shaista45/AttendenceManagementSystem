@@ -44,15 +44,31 @@
                             <option value="">All Sections</option>
                         </select>
                     </div>
+                    <!--  filter by department button -->
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted text-uppercase fw-bold">Department</label>
+                        <select name="departmentId" 
+                                class="form-select border-0 shadow-sm" 
+                                asp-items="@(ViewData["Departments"] as SelectList)"
+                                onchange="this.form.submit()">
+                            <option value="">All Departments</option>
+                        </select>
+                    </div>
 
-                    <div class="col-md-4 ms-auto">
+                     <!-- when any name , roll number, or e mail is entered the related student should be shown other wise print message that student not found -->
+
+                    <div class="col-md-4">
                         <label class="form-label small text-muted text-uppercase fw-bold">Search</label>
                         <div class="input-group shadow-sm">
-                            <span class="input-group-text bg-white border-0"><i class="fas fa-search text-muted"></i></span>
-                            <input type="text" name="search" class="form-control border-0" 
-                                   placeholder="Name, Roll No, or Email..." 
-                                   value="@ViewBag.CurrentSearch">
-                            <button type="submit" class="btn btn-primary">Go</button>
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" name="search" value="@(ViewBag.CurrentSearch ?? "")" 
+                                   class="form-control border-start-0 ps-0" 
+                                   placeholder="Search by name, roll number, or email" />
+                            <button type="submit" class="btn btn-primary shadow-sm">
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
                         </div>
                     </div>
                     

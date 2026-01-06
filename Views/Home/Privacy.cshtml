@@ -1,6 +1,218 @@
 ﻿@{
     ViewData["Title"] = "Privacy Policy";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<style>
+    :root {
+        --primary-blue: #0044cc;
+        --dark-blue: #001a4d;
+        --accent-gold: #ffc107;
+    }
+
+    @@keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @@keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+
+    .animate-up {
+        animation: fadeInUp 0.8s ease-out forwards;
+        opacity: 0;
+    }
+
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+
+    .privacy-header {
+        background: linear-gradient(135deg, #0d47a1 0%, #001040 100%);
+        border-radius: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .privacy-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%);
+        border-radius: 50%;
+    }
+
+    .content-card {
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 68, 204, 0.15);
+        border: 1px solid rgba(0, 68, 204, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .content-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 25px 70px rgba(0, 68, 204, 0.2);
+    }
+
+    .icon-box {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .content-card:hover .icon-box {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .section-title {
+        color: var(--dark-blue);
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .privacy-text {
+        color: #555;
+        line-height: 1.8;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="privacy-header text-white p-5 mb-5 position-relative animate-up">
+        <div class="position-relative" style="z-index: 10;">
+            <div class="text-center mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-white bg-opacity-10 rounded-circle p-3 mb-3">
+                    <i class="fas fa-shield-alt fa-3x"></i>
+                </div>
+            </div>
+            <h1 class="display-4 fw-bold text-center mb-3">Privacy Policy</h1>
+            <p class="lead text-center opacity-90 mb-0">Your privacy and data security are our top priorities</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6 animate-up delay-100">
+            <div class="content-card p-4 h-100">
+                <div class="d-flex align-items-start mb-3">
+                    <div class="icon-box bg-primary bg-opacity-10 me-3">
+                        <i class="fas fa-database fa-2x" style="color: var(--primary-blue);"></i>
+                    </div>
+                    <div>
+                        <h4 class="section-title">Data Collection</h4>
+                    </div>
+                </div>
+                <p class="privacy-text">
+                    We collect only the necessary information required for the attendance management system to function effectively. This includes:
+                </p>
+                <ul class="privacy-text">
+                    <li>Personal identification information (name, email, student/employee ID)</li>
+                    <li>Academic information (department, batch, section)</li>
+                    <li>Attendance records and timestamps</li>
+                    <li>Login credentials (securely encrypted)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-lg-6 animate-up delay-200">
+            <div class="content-card p-4 h-100">
+                <div class="d-flex align-items-start mb-3">
+                    <div class="icon-box bg-success bg-opacity-10 me-3">
+                        <i class="fas fa-lock fa-2x text-success"></i>
+                    </div>
+                    <div>
+                        <h4 class="section-title">Data Security</h4>
+                    </div>
+                </div>
+                <p class="privacy-text">
+                    Your data is protected using industry-standard security measures:
+                </p>
+                <ul class="privacy-text">
+                    <li>End-to-end encryption for all sensitive data</li>
+                    <li>Secure authentication and authorization protocols</li>
+                    <li>Regular security audits and updates</li>
+                    <li>Access controls based on user roles and permissions</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-lg-6 animate-up delay-300">
+            <div class="content-card p-4 h-100">
+                <div class="d-flex align-items-start mb-3">
+                    <div class="icon-box me-3" style="background: rgba(255, 193, 7, 0.1);">
+                        <i class="fas fa-user-shield fa-2x" style="color: var(--accent-gold);"></i>
+                    </div>
+                    <div>
+                        <h4 class="section-title">Data Usage</h4>
+                    </div>
+                </div>
+                <p class="privacy-text">
+                    We use your information solely for:
+                </p>
+                <ul class="privacy-text">
+                    <li>Managing and tracking attendance records</li>
+                    <li>Generating academic reports and analytics</li>
+                    <li>Facilitating communication between students, teachers, and administrators</li>
+                    <li>Improving system functionality and user experience</li>
+                </ul>
+                <p class="privacy-text mt-3">
+                    <strong>We never sell or share your personal information with third parties.</strong>
+                </p>
+            </div>
+        </div>
+
+        <div class="col-lg-6 animate-up delay-300">
+            <div class="content-card p-4 h-100">
+                <div class="d-flex align-items-start mb-3">
+                    <div class="icon-box bg-info bg-opacity-10 me-3">
+                        <i class="fas fa-user-check fa-2x text-info"></i>
+                    </div>
+                    <div>
+                        <h4 class="section-title">Your Rights</h4>
+                    </div>
+                </div>
+                <p class="privacy-text">
+                    You have the right to:
+                </p>
+                <ul class="privacy-text">
+                    <li>Access your personal data stored in the system</li>
+                    <li>Request corrections to inaccurate information</li>
+                    <li>Request deletion of your data (subject to institutional policies)</li>
+                    <li>Opt-out of non-essential communications</li>
+                </ul>
+                <p class="privacy-text mt-3">
+                    For any privacy concerns or data-related requests, please contact your system administrator.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-card p-4 mt-4 animate-up delay-300">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5 class="section-title mb-2">
+                    <i class="fas fa-calendar-alt me-2" style="color: var(--primary-blue);"></i>
+                    Policy Updates
+                </h5>
+                <p class="privacy-text mb-0">
+                    This privacy policy may be updated periodically to reflect changes in our practices or legal requirements. 
+                    Users will be notified of significant changes via email or system notifications.
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <small class="text-muted">
+                    <i class="fas fa-clock me-1"></i>Last Updated: January 2026
+                </small>
+            </div>
+        </div>
+    </div>
+</div>

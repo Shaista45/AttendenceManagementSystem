@@ -1,71 +1,151 @@
 ﻿@model AttendenceManagementSystem.Controllers.LoginViewModel
-@if (TempData["Message"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        @TempData["Message"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
-@{
-    ViewData["Title"] = "Login";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-}
 
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow-lg border-0 rounded-lg mt-5">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="text-center font-weight-light my-4">
-                        <i class="fas fa-sign-in-alt me-2"></i>Login
-                    </h3>
+<style>
+    :root {
+        --primary-blue: #0044cc;
+        --dark-blue: #001a4d;
+        --accent-gold: #ffc107;
+    }
+
+    @@keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @@keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+
+    .animate-up {
+        animation: fadeInUp 0.8s ease-out forwards;
+        opacity: 0;
+    }
+
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+
+    .form-card {
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 68, 204, 0.15);
+        border: 1px solid rgba(0, 68, 204, 0.1);
+    }
+
+    .gradient-bg {
+        background: linear-gradient(135deg, #0d47a1 0%, #001040 100%);
+        position: relative;
+        min-height: 100vh;
+        margin-top: -1.5rem;
+        padding-top: 6rem;
+    }
+
+    .gradient-bg::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%);
+        border-radius: 50%;
+    }
+
+    .btn-primary-custom {
+        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--dark-blue) 100%);
+        border: none;
+        color: #ffffff !important; /* Forces white text for visibility */
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 68, 204, 0.3);
+        color: #ffffff !important;
+    }
+
+    .demo-card {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffc107 100%);
+        border: none;
+        animation: float 6s ease-in-out infinite;
+    }
+</style>
+
+<div class="gradient-bg">
+    <div class="container position-relative" style="z-index: 10;">
+        @if (TempData["Message"] != null)
+        {
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="alert alert-success alert-dismissible fade show animate-up" role="alert">
+                        @TempData["Message"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <form method="post" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]">
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            </div>
+        }
+        
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="form-card p-5 animate-up delay-100">
+                    <div class="text-center mb-5">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle p-4 mb-3">
+                            <i class="fas fa-sign-in-alt fa-3x" style="color: var(--primary-blue);"></i>
+                        </div>
+                        <h2 class="fw-bold mb-2" style="color: var(--dark-blue);">Welcome Back</h2>
+                        <p class="text-muted">Sign in to access your account</p>
+                    </div>
 
-                        <div class="form-floating mb-3">
-                            <input asp-for="Email" class="form-control" placeholder="name@example.com" />
-                            <label asp-for="Email">Email address</label>
+                    <form method="post" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="form-floating mb-3 animate-up delay-200">
+                            <input asp-for="Email" class="form-control shadow-sm" placeholder="name@example.com" style="border: 1px solid #e0e0e0;" />
+                            <label asp-for="Email"><i class="fas fa-envelope me-2"></i>Email address</label>
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>
 
-                        <div class="form-floating mb-3">
-                            <input asp-for="Password" class="form-control" placeholder="Password" type="password" />
-                            <label asp-for="Password">Password</label>
+                        <div class="form-floating mb-3 animate-up delay-200">
+                            <input asp-for="Password" class="form-control shadow-sm" placeholder="Password" type="password" style="border: 1px solid #e0e0e0;" />
+                            <label asp-for="Password"><i class="fas fa-lock me-2"></i>Password</label>
                             <span asp-validation-for="Password" class="text-danger"></span>
                         </div>
 
-                        <div class="d-flex align-items-center justify-content-between mt-4 mb-0">
+                        <div class="d-flex align-items-center justify-content-between mt-4 mb-4 animate-up delay-200">
                             <div class="form-check">
                                 <input class="form-check-input" asp-for="RememberMe" />
                                 <label class="form-check-label" asp-for="RememberMe">Remember me</label>
                             </div>
-                            <a class="small" asp-action="ForgotPassword">Forgot Password?</a>
+                            <a class="text-decoration-none" asp-action="ForgotPassword" style="color: var(--primary-blue);">Forgot Password?</a>
                         </div>
 
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg">
+                        <div class="d-grid gap-2 animate-up delay-200">
+                            <button type="submit" class="btn btn-primary-custom btn-lg shadow-sm fw-bold">
                                 <i class="fas fa-sign-in-alt me-2"></i>Login
                             </button>
                         </div>
                     </form>
-                </div>
-                <div class="card-footer text-center py-3">
-                    <div class="small">
-                        <a href="@Url.Action("Register", "Account")">Need an account? Sign up!</a>
+
+                    <div class="text-center mt-4 pt-4 border-top">
+                        <p class="text-muted mb-0">
+                            Don't have an account? <a href="@Url.Action("Register", "Account")" class="text-decoration-none fw-bold" style="color: var(--primary-blue);">Sign up!</a>
+                        </p>
                     </div>
                 </div>
-            </div>
 
-            <div class="card mt-4">
-                <div class="card-body">
-                    <h6 class="card-title">Demo Accounts</h6>
-                    <div class="row">
-                        <div class="col-12">
-                            <small class="text-muted">
-                                <strong>Admin:</strong> admin@university.com / Admin123!
-                            </small>
+                <div class="demo-card card border-0 shadow-lg mt-4 animate-up delay-200">
+                    <div class="card-body">
+                        <h6 class="card-title fw-bold mb-3" style="color: var(--dark-blue);">
+                            <i class="fas fa-key me-2"></i>Demo Accounts
+                        </h6>
+                        <div class="row">
+                            <div class="col-12">
+                                <small style="color: var(--dark-blue);">
+                                    <strong>Admin:</strong> admin@university.com / Admin123!
+                                </small>
+                            </div>
                         </div>
                     </div>
                 </div>

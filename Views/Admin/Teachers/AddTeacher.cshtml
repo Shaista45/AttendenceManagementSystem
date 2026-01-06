@@ -1,0 +1,126 @@
+@model AttendenceManagementSystem.Models.Teacher
+
+@{
+    ViewData["Title"] = "Add Teacher";
+    // Check if we are in "Specific Department" mode
+    bool isDepartmentSpecific = Model.DepartmentId > 0;
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-plus me-2"></i>Add New Teacher
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="AddTeacher" asp-controller="Admin" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="FullName" class="form-label">Full Name <span class="text-danger">*</span></label>
+                                <input asp-for="FullName" class="form-control" placeholder="Enter full name" required />
+                                <span asp-validation-for="FullName" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                                <input asp-for="Email" class="form-control" type="email" placeholder="teacher@university.com" required />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="EmployeeId" class="form-label">Employee ID</label>
+                                <input asp-for="EmployeeId" class="form-control" placeholder="e.g. EMP-001" />
+                                <span asp-validation-for="EmployeeId" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="PhoneNumber" class="form-label">Phone Number</label>
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="e.g. +92-300-1234567" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="DepartmentId" class="form-label">Department <span class="text-danger">*</span></label>
+                            
+                            @if (isDepartmentSpecific)
+                            {
+                                @* Logic: If DepartmentId is pre-set (coming from Edit Department), 
+                                   disable the dropdown to prevent changes and use a hidden input to submit the value.
+                                *@
+                                <select asp-for="DepartmentId" asp-items="ViewBag.Departments" class="form-select bg-light" disabled>
+                                    <option value="">-- Select Department --</option>
+                                </select>
+                                <input type="hidden" asp-for="DepartmentId" />
+                            }
+                            else
+                            {
+                                <select asp-for="DepartmentId" asp-items="ViewBag.Departments" class="form-select" required>
+                                    <option value="">-- Select Department --</option>
+                                </select>
+                            }
+                            <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Password <span class="text-danger">*</span></label>
+                                <input type="password" name="Password" class="form-control" placeholder="Minimum 6 characters" required minlength="6" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                <input type="password" name="ConfirmPassword" class="form-control" placeholder="Re-enter password" required />
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info border-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Note:</strong> The teacher account will be created with default login credentials. They can change their password after first login.
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                            @if (isDepartmentSpecific)
+                            {
+                                <a asp-action="EditDepartment" asp-route-id="@Model.DepartmentId" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to Department
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-action="Teachers" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                                </a>
+                            }
+
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-save me-2"></i>Add Teacher
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // GLOBAL MODAL SAFETY CLEANUP (fixes dull & frozen UI)
+        $(document).on('hidden.bs.modal', '.modal', function () {
+            $('body').removeClass('modal-open');
+            $('body').css({
+                'overflow': '',
+                'padding-right': ''
+            });
+            $('.modal-backdrop').remove();
+        });
+    </script>
+}

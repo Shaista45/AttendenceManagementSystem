@@ -4,6 +4,20 @@
 }
 
 <div class="container-fluid px-4 mt-4">
+    @* Success/Error Message Display *@
+    @if (TempData["Message"] != null)
+    {
+        var messageType = TempData["MessageType"]?.ToString() ?? "success";
+        var alertClass = messageType == "success" ? "alert-success" : messageType == "warning" ? "alert-warning" : "alert-danger";
+        var iconClass = messageType == "success" ? "fa-check-circle" : messageType == "warning" ? "fa-exclamation-triangle" : "fa-times-circle";
+        
+        <div class="alert @alertClass alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas @iconClass me-2"></i>
+            <strong>@TempData["Message"]</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
         <div>
             <h1 class="h3 mb-0 fw-bold text-primary">
@@ -50,13 +64,6 @@
                                 <small class="text-muted x-small">Short code for IDs (e.g. 2023-CS-01)</small>
                             </div>
                         </div>
-
-                        <div class="d-flex justify-content-end gap-3 mt-4 border-top pt-3">
-                            <a class="btn btn-light border px-4" asp-action="Departments">Cancel</a>
-                            <button type="submit" class="btn btn-primary px-4 shadow-sm fw-bold" id="saveDepartmentBtn">
-                                <i class="fas fa-save me-2"></i>Save Changes
-                            </button>
-                        </div>
                     </form>
                 </div>
             </div>
@@ -95,11 +102,11 @@
                                             <td class="text-end pe-4">
                                                 <div class="btn-group shadow-sm">
                                                     <a asp-controller="Admin" asp-action="ViewBatch" asp-route-id="@batch.Id" 
-                                                       class="btn btn-sm btn-light border" title="View Details">
+                                                        class="btn btn-sm btn-light border" title="View Details">
                                                         <i class="fas fa-eye text-primary"></i>
                                                     </a>
                                                     <a asp-controller="Admin" asp-action="EditBatch" asp-route-id="@batch.Id" 
-                                                       class="btn btn-sm btn-light border" title="Edit">
+                                                        class="btn btn-sm btn-light border" title="Edit">
                                                         <i class="fas fa-edit text-warning"></i>
                                                     </a>
                                                 </div>
@@ -127,7 +134,7 @@
                     <h6 class="m-0 fw-bold text-primary">
                         <i class="fas fa-book me-2"></i>Courses
                     </h6>
-                    <button type="button" class="btn btn-sm btn-outline-primary quick-add-course-btn" data-department-id="@Model.Id">
+                    <button type="button" class="btn btn-sm btn-outline-primary quick-add-course-btn shadow-sm" data-department-id="@Model.Id">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
@@ -142,7 +149,7 @@
                                         <div class="fw-bold text-dark small">@course.Code</div>
                                         <div class="text-muted x-small text-truncate" style="max-width: 150px;">@course.Title</div>
                                     </div>
-                                    <a asp-action="ViewCourse" asp-route-id="@course.Id" class="btn btn-sm btn-light border text-primary">
+                                    <a asp-controller="Admin" asp-action="ViewCourse" asp-route-id="@course.Id" class="btn btn-sm btn-light border text-primary shadow-sm">
                                         <i class="fas fa-chevron-right"></i>
                                     </a>
                                 </li>
@@ -150,7 +157,7 @@
                             @if (Model.Courses.Count > 5)
                             {
                                 <li class="list-group-item text-center bg-light">
-                                    <a asp-action="Courses" class="text-decoration-none small fw-bold">View All @Model.Courses.Count Courses</a>
+                                    <a asp-controller="Admin" asp-action="Courses" class="text-decoration-none small fw-bold">View All @Model.Courses.Count Courses</a>
                                 </li>
                             }
                         </ul>
@@ -167,9 +174,7 @@
                     <h6 class="m-0 fw-bold text-primary">
                         <i class="fas fa-chalkboard-teacher me-2"></i>Faculty
                     </h6>
-                    <a asp-controller="Admin" asp-action="AddTeacher" asp-route-departmentId="@Model.Id" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-plus"></i>
-                    </a>
+                    @* Add Faculty Button Removed Here *@
                 </div>
                 <div class="card-body p-0">
                     @if (Model.Teachers != null && Model.Teachers.Any())
@@ -187,7 +192,7 @@
                                             <div class="text-muted x-small">@teacher.EmployeeId</div>
                                         </div>
                                     </div>
-                                    <a asp-action="TeacherDetails" asp-route-id="@teacher.Id" class="btn btn-sm btn-light border text-primary">
+                                    <a asp-controller="Admin" asp-action="TeacherDetails" asp-route-id="@teacher.Id" class="btn btn-sm btn-light border text-primary shadow-sm">
                                         <i class="fas fa-chevron-right"></i>
                                     </a>
                                 </li>
@@ -195,7 +200,7 @@
                             @if (Model.Teachers.Count > 5)
                             {
                                 <li class="list-group-item text-center bg-light">
-                                    <a asp-action="Teachers" class="text-decoration-none small fw-bold">View All @Model.Teachers.Count Teachers</a>
+                                    <a asp-controller="Admin" asp-action="Teachers" class="text-decoration-none small fw-bold">View All @Model.Teachers.Count Teachers</a>
                                 </li>
                             }
                         </ul>
@@ -207,6 +212,15 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-3 mt-4">
+        <a class="btn btn-secondary px-4" asp-action="Departments">
+            <i class="fas fa-times me-2"></i>Cancel
+        </a>
+        <button type="submit" form="departmentForm" class="btn btn-primary px-4 shadow-sm fw-bold" id="saveDepartmentBtn">
+            <i class="fas fa-save me-2"></i>Save Changes
+        </button>
     </div>
 </div>
 
@@ -266,14 +280,24 @@
                         <input type="text" class="form-control" name="Title" required placeholder="e.g. Intro to Computing" />
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label">Credits <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" name="Credits" min="1" max="6" required value="3" />
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Credits <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="Credits" min="1" max="6" required value="3" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Semester <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="Semester" required placeholder="e.g. 1, Fall 2024" maxlength="20" />
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="mb-3">
                         <label class="form-label">Description</label>
-                        <textarea class="form-control" name="Description" rows="3"></textarea>
+                        <textarea class="form-control" name="Description" rows="3" placeholder="Optional course description"></textarea>
                     </div>
                 </form>
             </div>
@@ -290,6 +314,20 @@
     
     <script>
         $(document).ready(function() {
+            // Auto-dismiss success alerts after 5 seconds
+            setTimeout(function() {
+                $('.alert-success, .alert-info').fadeOut('slow', function() {
+                    $(this).remove();
+                });
+            }, 5000);
+            
+            // ==========================================
+            // FIX: Move modals to body to prevent backdrop z-index issues
+            // ==========================================
+            $('#deleteDepartmentModal').appendTo("body");
+            $('#addBatchModal').appendTo("body");
+            $('#addCourseModal').appendTo("body");
+
             // ==========================================
             // 1. DELETE DEPARTMENT LOGIC
             // ==========================================
@@ -306,30 +344,52 @@
             // ==========================================
             
             // Open Batch Modal
-            $('.quick-add-batch-btn').on('click', function() {
+            $('.quick-add-batch-btn').on('click', function(e) {
+                e.preventDefault();
                 var deptId = $(this).data('department-id');
+                var modalElement = document.getElementById('addBatchModal');
+                
+                // Complete cleanup of all modal states
+                var existingModal = bootstrap.Modal.getInstance(modalElement);
+                if (existingModal) {
+                    existingModal.dispose();
+                }
+                $('.modal-backdrop').remove();
+                $('body').removeClass('modal-open').removeAttr('style');
+                $(modalElement).removeClass('show').removeAttr('style').hide();
+                
                 // Load the partial view into the modal body
                 $.get('/Admin/CreateBatch?departmentId=' + deptId, function(data) {
                     $('#addBatchModal .modal-content').html(data);
-                    
                     // Re-parse validation since we loaded new HTML
                     var form = $('#addBatchForm');
-                    $.validator.unobtrusive.parse(form);
+                    if ($.validator && $.validator.unobtrusive) {
+                        $.validator.unobtrusive.parse(form);
+                    }
                     
-                    new bootstrap.Modal(document.getElementById('addBatchModal')).show();
-                }).fail(function() {
-                    alert('Error loading batch form. Please check your connection.');
+                    // Create fresh modal instance after small delay
+                    setTimeout(function() {
+                        var bsModal = new bootstrap.Modal(modalElement);
+                        bsModal.show();
+                    }, 100);
+                }).fail(function(xhr, status, error) {
+                    alert('Error loading batch form: ' + (error || 'Please check your connection.'));
                 });
             });
 
             // Save Batch Button Click (Delegated Event)
-            $(document).on('click', '#saveBatchBtn', function() {
+            $(document).on('click', '#saveBatchBtn', function(e) {
+                e.preventDefault();
                 var form = $('#addBatchForm');
                 var btn = $(this);
 
-                if (!form.valid()) {
+                // Check if form is valid
+                if (form.length && $.validator && !form.valid()) {
                     return; 
                 }
+
+                // Remove any previous error alerts
+                $('#addBatchModal .modal-body .alert').remove();
 
                 btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...');
 
@@ -339,25 +399,36 @@
                     data: form.serialize(),
                     success: function(response) {
                         if (response.success) {
-                            location.reload(); 
+                            // Close modal properly before reload
+                            var modalElement = document.getElementById('addBatchModal');
+                            var modal = bootstrap.Modal.getInstance(modalElement);
+                            if (modal) {
+                                modal.hide();
+                            }
+                            setTimeout(function() {
+                                location.reload();
+                            }, 300);
                         } else {
-                            var errorList = "<ul>";
+                            var errorList = "<ul class='mb-0'>";
                             $.each(response.errors, function(i, val) {
                                 errorList += "<li>" + val + "</li>";
                             });
                             errorList += "</ul>";
                             
                             var alertHtml = '<div class="alert alert-danger alert-dismissible fade show">' + 
-                                            errorList + 
+                                            '<strong>Error:</strong> ' + errorList + 
                                             '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
                             
                             $('#addBatchModal .modal-body').prepend(alertHtml);
-                            btn.prop('disabled', false).text('Save Batch');
+                            btn.prop('disabled', false).html('<i class="fas fa-save me-2"></i>Save Batch');
                         }
                     },
-                    error: function() {
-                        alert('A server error occurred.');
-                        btn.prop('disabled', false).text('Save Batch');
+                    error: function(xhr, status, error) {
+                        var alertHtml = '<div class="alert alert-danger alert-dismissible fade show">' + 
+                                        '<strong>Error:</strong> A server error occurred. ' + (error || '') +
+                                        '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+                        $('#addBatchModal .modal-body').prepend(alertHtml);
+                        btn.prop('disabled', false).html('<i class="fas fa-save me-2"></i>Save Batch');
                     }
                 });
             });
@@ -367,15 +438,33 @@
             // ==========================================
             
             // Open Course Modal
-            $('.quick-add-course-btn').on('click', function() {
+            $('.quick-add-course-btn').on('click', function(e) {
+                e.preventDefault();
+                var modalElement = document.getElementById('addCourseModal');
+                
+                // Complete cleanup of all modal states
+                var existingModal = bootstrap.Modal.getInstance(modalElement);
+                if (existingModal) {
+                    existingModal.dispose();
+                }
+                $('.modal-backdrop').remove();
+                $('body').removeClass('modal-open').removeAttr('style');
+                $(modalElement).removeClass('show').removeAttr('style').hide();
+                
                 $('#addCourseForm')[0].reset();
                 $('#CourseDepartmentId').val($(this).data('department-id'));
                 $('#courseModalError').addClass('d-none');
-                new bootstrap.Modal(document.getElementById('addCourseModal')).show();
+
+                // Create fresh modal instance after small delay
+                setTimeout(function() {
+                    var bsModal = new bootstrap.Modal(modalElement);
+                    bsModal.show();
+                }, 100);
             });
             
             // Save Course Button Click
-            $('#saveCourseBtn').on('click', function() {
+            $('#saveCourseBtn').on('click', function(e) {
+                e.preventDefault();
                 var form = $('#addCourseForm');
                 var btn = $(this);
                 
@@ -384,6 +473,7 @@
                     return;
                 }
 
+                $('#courseModalError').addClass('d-none').text('');
                 btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...');
 
                 $.ajax({
@@ -392,14 +482,22 @@
                     data: form.serialize(),
                     success: function(response) {
                         if(response.success) {
-                            location.reload();
+                            // Close modal properly before reload
+                            var modalElement = document.getElementById('addCourseModal');
+                            var modal = bootstrap.Modal.getInstance(modalElement);
+                            if (modal) {
+                                modal.hide();
+                            }
+                            setTimeout(function() {
+                                location.reload();
+                            }, 300);
                         } else {
-                            $('#courseModalError').removeClass('d-none').text(response.message);
+                            $('#courseModalError').removeClass('d-none').text(response.message || 'An error occurred.');
                             btn.prop('disabled', false).text('Save Course');
                         }
                     },
-                    error: function() {
-                        $('#courseModalError').removeClass('d-none').text('Server error occurred.');
+                    error: function(xhr, status, error) {
+                        $('#courseModalError').removeClass('d-none').text('Server error occurred: ' + (error || 'Unknown error'));
                         btn.prop('disabled', false).text('Save Course');
                     }
                 });

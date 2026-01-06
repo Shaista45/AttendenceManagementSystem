@@ -443,15 +443,19 @@ namespace AttendenceManagementSystem.Controllers
         {
             if (string.IsNullOrWhiteSpace(name))
             {
-                ShowMessage("Section name is required!", "error");
-                return RedirectToAction(nameof(EditBatch), new { id = batchId });
+                return Json(new { success = false, message = "Section name is required!" });
             }
 
             var batch = await _context.Batches.FindAsync(batchId);
             if (batch == null)
             {
-                ShowMessage("Batch not found!", "error");
-                return RedirectToAction(nameof(Departments));
+                return Json(new { success = false, message = "Batch not found!" });
+            }
+
+            // Check for duplicate
+            if (await _context.Sections.AnyAsync(s => s.BatchId == batchId && s.Name == name))
+            {
+                return Json(new { success = false, message = "Section name already exists in this batch." });
             }
 
             var section = new Section
@@ -463,9 +467,9 @@ namespace AttendenceManagementSystem.Controllers
             
             _context.Sections.Add(section);
             await _context.SaveChangesAsync();
-            ShowMessage("Section added successfully!");
             
-            return RedirectToAction(nameof(EditBatch), new { id = batchId });
+            // FIX: Return JSON instead of Redirect
+            return Json(new { success = true, message = "Section added successfully!" });
         }
 
         [HttpPost]
@@ -579,7 +583,7 @@ namespace AttendenceManagementSystem.Controllers
             ViewBag.DepartmentName = department.Name;
             return PartialView("~/Views/Admin/Departments/_QuickAddTeacher.cshtml");
         }
-
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> QuickAddTeacher(int departmentId, string fullName, string email, string phoneNumber, string employeeId)
@@ -1647,7 +1651,7 @@ namespace AttendenceManagementSystem.Controllers
         public async Task<IActionResult> EditBatch(int id, Batch batch)
         {
             if (id != batch.Id)
-                return NotFound();
+                return Json(new { success = false, message = "Invalid Batch ID." });
 
             if (ModelState.IsValid)
             {
@@ -1655,17 +1659,19 @@ namespace AttendenceManagementSystem.Controllers
                 {
                     _context.Update(batch);
                     await _context.SaveChangesAsync();
-                    ShowMessage("Batch updated successfully!");
-                    return RedirectToAction("EditDepartment", new { id = batch.DepartmentId });
+                    // FIX: Return JSON instead of Redirect
+                    return Json(new { success = true, message = "Batch updated successfully!", departmentId = batch.DepartmentId });
                 }
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!_context.Batches.Any(b => b.Id == batch.Id))
-                        return NotFound();
+                        return Json(new { success = false, message = "Batch not found." });
                     throw;
                 }
             }
-            return View("~/Views/Admin/Batches/EditBatch.cshtml", batch);
+            // Capture validation errors
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+            return Json(new { success = false, message = "Validation failed", errors = errors });
         }
 
         [HttpGet]
@@ -1886,6 +1892,78 @@ namespace AttendenceManagementSystem.Controllers
             if (departmentId.HasValue)
                 teacher.DepartmentId = departmentId.Value;
             
+            return View("~/Views/Admin/Teachers/AddTeacher.cshtml", teacher);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddTeacher(Teacher teacher, string Password, string ConfirmPassword)
+        {
+            if (string.IsNullOrWhiteSpace(Password) || Password.Length < 6)
+            {
+                ModelState.AddModelError("Password", "Password must be at least 6 characters long.");
+            }
+
+            if (Password != ConfirmPassword)
+            {
+                ModelState.AddModelError("ConfirmPassword", "Passwords do not match.");
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    // Check if email already exists
+                    var existingUser = await _userManager.FindByEmailAsync(teacher.Email);
+                    if (existingUser != null)
+                    {
+                        ModelState.AddModelError("Email", "This email is already registered.");
+                        ViewBag.Departments = new SelectList(await _context.Departments.ToListAsync(), "Id", "Name", teacher.DepartmentId);
+                        return View("~/Views/Admin/Teachers/AddTeacher.cshtml", teacher);
+                    }
+
+                    // Create user account
+                    var user = new ApplicationUser
+                    {
+                        UserName = teacher.Email,
+                        Email = teacher.Email,
+                        EmailConfirmed = true
+                    };
+
+                    var result = await _userManager.CreateAsync(user, Password);
+                    if (result.Succeeded)
+                    {
+                        // Assign Teacher role
+                        await _userManager.AddToRoleAsync(user, "Teacher");
+
+                        // Create teacher record
+                        teacher.UserId = user.Id;
+                        teacher.CreatedAt = DateTime.UtcNow;
+                        teacher.IsApproved = true;
+                        teacher.IsActive = true;
+
+                        _context.Teachers.Add(teacher);
+                        await _context.SaveChangesAsync();
+
+                        ShowMessage("Teacher added successfully!");
+                        return RedirectToAction("EditDepartment", new { id = teacher.DepartmentId });
+                    }
+                    else
+                    {
+                        foreach (var error in result.Errors)
+                        {
+                            ModelState.AddModelError(string.Empty, error.Description);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error adding teacher");
+                    ModelState.AddModelError(string.Empty, "An error occurred while adding the teacher.");
+                }
+            }
+
+            ViewBag.Departments = new SelectList(await _context.Departments.ToListAsync(), "Id", "Name", teacher.DepartmentId);
             return View("~/Views/Admin/Teachers/AddTeacher.cshtml", teacher);
         }
 

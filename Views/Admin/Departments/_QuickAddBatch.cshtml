@@ -1,32 +1,42 @@
 @*
-    This partial view renders a form for quickly adding a new batch.
-    It's designed to be loaded into a modal dialog on the EditDepartment page.
+IMPORTANT:
+This view is loaded INSIDE an existing Bootstrap modal via AJAX.
+It MUST NOT contain:
+- .modal
+- .modal-dialog
+- .modal-content
+- data-bs-dismiss attributes
+
+Only modal-header, modal-body, modal-footer allowed.
+Refactor accordingly.
 *@
 @model AttendenceManagementSystem.Models.Batch
+<div class="modal-header">
+    <h5 class="modal-title" id="addBatchModalLabel"><i class="fas fa-layer-group me-2"></i>Add New Batch</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <form id="quickAddBatchForm" asp-action="QuickAddBatch" asp-controller="Admin" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="departmentId" value="@ViewBag.DepartmentId" />
 
-<form id="quickAddBatchForm" asp-action="QuickAddBatch" asp-controller="Admin" method="post">
-    @Html.AntiForgeryToken()
-    <input type="hidden" name="departmentId" value="@ViewBag.DepartmentId" />
+        <div class="alert alert-info">
+            Adding a new batch to the <strong>@ViewBag.DepartmentName</strong> department.
+        </div>
 
-    <div class="alert alert-info">
-        Adding a new batch to the <strong>@ViewBag.DepartmentName</strong> department.
-    </div>
-
-    <div class="mb-3">
-        <label for="year" class="form-label">Batch Year <span class="text-danger">*</span></label>
-        <input type="text" id="year" name="year" class="form-control" placeholder="e.g., 2024" required maxlength="4" />
-        <div class="invalid-feedback">Please enter a valid 4-digit year.</div>
-    </div>
-
-    <div class="mb-3">
-        <label for="description" class="form-label">Description</label>
-        <textarea id="description" name="description" class="form-control" rows="3" placeholder="Optional: e.g., Fall Semester Entry"></textarea>
-    </div>
-
-    <div class="d-flex justify-content-end gap-2">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Add Batch
-        </button>
-    </div>
-</form>
+        <div class="mb-3">
+            <label for="year" class="form-label">Batch Year <span class="text-danger">*</span></label>
+            <input type="number" id="year" name="year" class="form-control" placeholder="e.g., 2024" required min="2000" max="2100" />
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <input type="text" id="description" name="description" class="form-control" placeholder="e.g., Fall 2024 Batch" />
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+    <button type="submit" class="btn btn-primary" form="quickAddBatchForm">
+        <i class="fas fa-plus me-2"></i>Add Batch
+    </button>
+</div>

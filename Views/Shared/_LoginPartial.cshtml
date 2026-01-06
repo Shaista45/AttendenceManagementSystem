@@ -7,9 +7,13 @@
     @if (SignInManager.IsSignedIn(User))
     {
         <li class="nav-item dropdown no-arrow">
+            @{
+                var fullName = User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value ?? User.Identity?.Name;
+                var dashboardController = User.IsInRole("Admin") ? "Admin" : User.IsInRole("Teacher") ? "Teacher" : "Student";
+            }
             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <div class="d-none d-lg-flex flex-column text-end me-2">
-                    <span class="text-gray-800 small fw-bold">@User.Identity?.Name</span>
+                    <span class="text-gray-800 small fw-bold">@fullName</span>
                 </div>
                 <div class="img-profile rounded-circle d-flex align-items-center justify-content-center bg-primary text-white shadow-sm" style="width: 35px; height: 35px;">
                      <i class="fas fa-user"></i>
@@ -21,21 +25,15 @@
                         <i class="fas fa-user-circle fa-2x me-2 text-warning"></i>
                         <div>
                             <div class="small text-white-50">Signed in as</div>
-                            <div class="fw-bold">@User.Identity?.Name</div>
+                            <div class="fw-bold">@fullName</div>
                         </div>
                     </div>
                 </div>
                 <div class="p-2">
                     <li>
-                        <a class="dropdown-item rounded py-2" href="#">
+                        <a class="dropdown-item rounded py-2" asp-controller="@dashboardController" asp-action="Dashboard">
                             <i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>
                             My Profile
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item rounded py-2" href="#">
-                            <i class="fas fa-cogs fa-sm fa-fw me-2 text-gray-400"></i>
-                            Account Settings
                         </a>
                     </li>
                     <li><hr class="dropdown-divider my-2"></li>
@@ -54,9 +52,14 @@
     else
     {
         <li class="nav-item">
-            <a class="nav-link text-gray-800 fw-medium" asp-controller="Account" asp-action="Register">
-                <i class="fas fa-user-plus me-1 text-primary"></i> Register
-            </a>
+           <a class="btn btn-primary rounded-pill px-4 ms-2 shadow-sm fw-bold text-white d-flex align-items-center gap-2" 
+                asp-controller="Account" asp-action="Register"
+                style="background-color: #0044cc; border: none; transition: transform 0.2s;"
+                onmouseover="this.style.transform='translateY(-2px)'" 
+                onmouseout="this.style.transform='translateY(0)'">
+                    <i class="fas fa-user-plus"></i> 
+                    <span>Register</span>
+           </a>
         </li>
         <li class="nav-item ms-2">
             <a class="btn btn-primary btn-sm px-4 py-2 shadow-sm" asp-controller="Account" asp-action="Login">

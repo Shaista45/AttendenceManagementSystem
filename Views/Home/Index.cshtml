@@ -2,147 +2,261 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="hero-section text-white py-5 mb-5 position-relative" style="background: linear-gradient(135deg, var(--uet-royal-blue) 0%, #000033 100%); border-radius: 0 0 50px 50px; margin-top: -1.5rem; padding-top: 5rem !important; overflow: hidden;">
-    <div class="position-absolute top-0 start-0 w-100 h-100" style="background-image: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.05) 0%, transparent 50%); pointer-events: none;"></div>
+<style>
+    :root {
+        --primary-blue: #0044cc; /* Royal Blue */
+        --dark-blue: #001a4d;
+        --accent-gold: #ffc107;
+    }
+
+    /* Animations */
+    @@keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @@keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
+        100% { transform: translateY(0px); }
+    }
+
+    @@keyframes pulse-soft {
+        0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4); }
+        70% { box-shadow: 0 0 0 15px rgba(255, 193, 7, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+    }
+
+    /* Utility Classes */
+    .hero-bg {
+        background: linear-gradient(135deg, #0d47a1 0%, #001040 100%);
+        border-radius: 0 0 80px 80px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-bg::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 800px;
+        height: 800px;
+        background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .animate-up {
+        animation: fadeInUp 0.8s ease-out forwards;
+        opacity: 0;
+    }
+
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+
+    .floating-card {
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    }
+
+    .feature-card {
+        transition: all 0.3s ease;
+        border: 1px solid #f0f0f0;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08) !important;
+        border-color: var(--primary-blue);
+    }
+
+    .icon-box {
+        width: 70px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover .icon-box {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .cta-card {
+        background: linear-gradient(45deg, #ffffff 0%, #f8f9fa 100%);
+        border-left: 5px solid var(--primary-blue) !important;
+    }
     
+    .btn-hover-effect {
+        transition: transform 0.2s;
+    }
+    .btn-hover-effect:hover {
+        transform: translateY(-2px);
+    }
+</style>
+
+<div class="hero-bg text-white py-5 mb-5" style="margin-top: -1.5rem; padding-top: 6rem !important;">
     <div class="container position-relative z-1">
-        <div class="row align-items-center min-vh-50">
-            <div class="col-lg-7 py-5">
-                <div class="d-inline-flex align-items-center bg-white bg-opacity-10 rounded-pill px-3 py-1 mb-4 border border-white border-opacity-25">
-                    <span class="badge bg-warning text-dark me-2">New</span>
-                    <small class="fw-bold">Real-time Attendance Tracking v2.0</small>
+        <div class="row align-items-center min-vh-50 py-5">
+            <div class="col-lg-6 mb-5 mb-lg-0">
+                <div class="animate-up">
+                    <div class="d-inline-flex align-items-center bg-white bg-opacity-10 rounded-pill px-3 py-1 mb-4 border border-white border-opacity-25">
+                        <span class="badge bg-warning text-dark me-2 rounded-pill">New</span>
+                        <small class="fw-bold letter-spacing-1">Attendance System v2.0</small>
+                    </div>
                 </div>
                 
-                <h1 class="display-4 fw-bold mb-4 lh-tight">
-                    Smart Attendance for <br/>
-                    <span class="text-warning">Future-Ready Universities</span>
+                <h1 class="display-4 fw-bolder mb-4 lh-sm animate-up delay-100">
+                    Smart Campus, <br/>
+                    <span class="text-warning position-relative">
+                        Smarter Attendance
+                        <svg class="position-absolute w-100 start-0 bottom-0 text-white" height="10" viewBox="0 0 100 10" preserveAspectRatio="none" style="opacity: 0.3; z-index: -1;">
+                            <path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="2" fill="none" />
+                        </svg>
+                    </span>
                 </h1>
                 
-                <p class="lead mb-5 opacity-90" style="max-width: 600px; font-weight: 300;">
+                <p class="lead mb-5 opacity-90 animate-up delay-200" style="font-weight: 300; line-height: 1.8;">
                     Eliminate paperwork and streamline academic management. Empower faculty and students with our secure, role-based, and real-time attendance platform.
                 </p>
                 
-                @if (!User.Identity.IsAuthenticated)
-                {
-                    <div class="d-flex flex-wrap gap-3">
-                        <a class="btn btn-warning btn-lg px-5 py-3 fw-bold shadow-lg" asp-controller="Account" asp-action="Login">
-                            <i class="fas fa-sign-in-alt me-2"></i>Login Portal
-                        </a>
-                        <a class="btn btn-outline-light btn-lg px-5 py-3 fw-bold" asp-controller="Account" asp-action="Register">
-                            <i class="fas fa-user-plus me-2"></i>Register Now
-                        </a>
-                    </div>
-                }
-                else
-                {
-                    <div class="d-flex flex-wrap gap-3">
-                        @if (User.IsInRole("Admin"))
-                        {
-                            <a class="btn btn-warning btn-lg px-4 py-3 fw-bold shadow-lg" asp-controller="Admin" asp-action="Dashboard">
-                                <i class="fas fa-tachometer-alt me-2"></i>Go to Admin Console
+                <div class="animate-up delay-300">
+                    @if (!User.Identity.IsAuthenticated)
+                    {
+                        <div class="d-flex flex-wrap gap-3">
+                            <a class="btn btn-warning btn-lg px-5 py-3 fw-bold shadow-lg rounded-pill btn-hover-effect text-dark" 
+                               style="animation: pulse-soft 2s infinite;" asp-controller="Account" asp-action="Login">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login Portal
                             </a>
-                        }
-                        else if (User.IsInRole("Teacher"))
-                        {
-                            <a class="btn btn-warning btn-lg px-4 py-3 fw-bold shadow-lg" asp-controller="Teacher" asp-action="Dashboard">
-                                <i class="fas fa-chalkboard-teacher me-2"></i>Go to Faculty Console
+                            <a class="btn btn-outline-light btn-lg px-5 py-3 fw-bold rounded-pill btn-hover-effect" asp-controller="Account" asp-action="Register">
+                                <i class="fas fa-user-plus me-2"></i>Register Now
                             </a>
-                        }
-                        else if (User.IsInRole("Student"))
-                        {
-                            <a class="btn btn-warning btn-lg px-4 py-3 fw-bold shadow-lg" asp-controller="Student" asp-action="Dashboard">
-                                <i class="fas fa-user-graduate me-2"></i>Go to Student Portal
-                            </a>
-                        }
-                    </div>
-                }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-wrap gap-3">
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a class="btn btn-warning btn-lg px-5 py-3 fw-bold shadow-lg rounded-pill btn-hover-effect text-dark" asp-controller="Admin" asp-action="Dashboard">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Admin Console
+                                </a>
+                            }
+                            else if (User.IsInRole("Teacher"))
+                            {
+                                <a class="btn btn-warning btn-lg px-5 py-3 fw-bold shadow-lg rounded-pill btn-hover-effect text-dark" asp-controller="Teacher" asp-action="Dashboard">
+                                    <i class="fas fa-chalkboard-teacher me-2"></i>Faculty Console
+                                </a>
+                            }
+                            else if (User.IsInRole("Student"))
+                            {
+                                <a class="btn btn-warning btn-lg px-5 py-3 fw-bold shadow-lg rounded-pill btn-hover-effect text-dark" asp-controller="Student" asp-action="Dashboard">
+                                    <i class="fas fa-user-graduate me-2"></i>Student Portal
+                                </a>
+                            }
+                        </div>
+                    }
+                </div>
             </div>
             
-            <div class="col-lg-5 d-none d-lg-block">
-                <div class="position-relative" style="transform: perspective(1000px) rotateY(-10deg) rotateX(5deg);">
-                     <div class="card shadow-lg border-0 p-2 mb-3 bg-white" style="transform: translateX(20px); z-index: 2;">
+            <div class="col-lg-6 position-relative d-none d-lg-block animate-up delay-200">
+                <div class="floating-card position-relative" style="z-index: 10;">
+                    <div class="card glass-card border-0 p-3 mb-4 ms-lg-5" style="transform: rotate(-2deg);">
                         <div class="card-body">
-                             <div class="d-flex align-items-center mb-3">
-                                 <div class="bg-primary bg-opacity-10 rounded-circle p-3 text-primary me-3">
-                                     <i class="fas fa-chart-pie fa-lg"></i>
-                                 </div>
-                                 <div>
-                                     <h6 class="fw-bold mb-0 text-dark">Attendance Rate</h6>
-                                     <small class="text-muted">Department Average</small>
-                                 </div>
-                                 <h4 class="ms-auto fw-bold text-primary mb-0">94%</h4>
-                             </div>
-                             <div class="progress" style="height: 6px;">
-                                 <div class="progress-bar bg-primary" role="progressbar" style="width: 94%"></div>
-                             </div>
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="bg-primary bg-opacity-10 rounded-circle p-3 text-primary me-3">
+                                    <i class="fas fa-chart-line fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold text-dark mb-0">Attendance Analytics</h5>
+                                    <small class="text-muted">Real-time Data</small>
+                                </div>
+                                <h3 class="ms-auto fw-bold text-success mb-0">98%</h3>
+                            </div>
+                            <div class="d-flex align-items-end justify-content-between" style="height: 60px;">
+                                <div class="bg-primary opacity-25 rounded w-100 mx-1" style="height: 40%"></div>
+                                <div class="bg-primary opacity-50 rounded w-100 mx-1" style="height: 70%"></div>
+                                <div class="bg-primary opacity-75 rounded w-100 mx-1" style="height: 50%"></div>
+                                <div class="bg-primary rounded w-100 mx-1" style="height: 90%"></div>
+                                <div class="bg-warning rounded w-100 mx-1" style="height: 60%"></div>
+                            </div>
                         </div>
-                     </div>
-                     
-                     <div class="card shadow-lg border-0 p-2 bg-light" style="transform: scale(0.95) translateX(-10px); z-index: 1; opacity: 0.9;">
-                         <div class="card-body">
-                             <div class="d-flex align-items-center">
-                                 <div class="bg-success bg-opacity-10 rounded-circle p-3 text-success me-3">
-                                     <i class="fas fa-check-circle fa-lg"></i>
-                                 </div>
-                                 <div>
-                                     <h6 class="fw-bold mb-0 text-dark">System Status</h6>
-                                     <small class="text-success fw-bold">All Services Online</small>
-                                 </div>
-                             </div>
-                         </div>
-                     </div>
+                    </div>
+
+                    <div class="card glass-card border-0 p-2 position-absolute" 
+                         style="bottom: -20px; left: 0; width: 220px; animation: float 6s ease-in-out infinite reverse;">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="spinner-grow text-success spinner-grow-sm me-2" role="status"></div>
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-dark small">System Active</h6>
+                                    <small class="text-success x-small fw-bold">Live Sync On</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="container py-5" style="margin-top: -2rem;">
-    <div class="row text-center mb-5">
-        <div class="col-lg-8 mx-auto">
-            <h6 class="text-primary fw-bold text-uppercase letter-spacing-2">Why Choose Us</h6>
-            <h2 class="fw-bold mb-3">Comprehensive Management Solutions</h2>
-            <p class="text-muted">Designed to meet the rigorous demands of modern academic institutions with security, efficiency, and professional style.</p>
+<div class="container py-5" style="margin-top: -3rem;">
+    <div class="row justify-content-center mb-5 animate-up delay-300">
+        <div class="col-lg-8 text-center">
+            <h6 class="text-primary fw-bold text-uppercase letter-spacing-2 mb-2">Features</h6>
+            <h2 class="fw-bolder mb-3">Comprehensive Management</h2>
+            <p class="text-muted">Everything you need to manage academic records securely and efficiently.</p>
         </div>
     </div>
 
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
+    <div class="row g-4 mb-5">
+        <div class="col-md-4 animate-up delay-100">
+            <div class="card h-100 border-0 shadow-sm feature-card bg-white rounded-4">
                 <div class="card-body p-4 text-center">
-                    <div class="mb-4 d-inline-flex p-3 rounded-circle bg-primary bg-opacity-10 text-primary">
+                    <div class="icon-box bg-primary bg-opacity-10 text-primary mx-auto mb-4">
                         <i class="fas fa-user-shield fa-2x"></i>
                     </div>
-                    <h5 class="card-title fw-bold text-dark">Admin Control</h5>
-                    <p class="card-text text-muted">
+                    <h5 class="fw-bold text-dark mb-3">Admin Control</h5>
+                    <p class="text-muted mb-0">
                         Complete oversight of departments, courses, and user roles. Generate detailed institutional reports with a single click.
                     </p>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
+        <div class="col-md-4 animate-up delay-200">
+            <div class="card h-100 border-0 shadow-sm feature-card bg-white rounded-4">
                 <div class="card-body p-4 text-center">
-                    <div class="mb-4 d-inline-flex p-3 rounded-circle bg-warning bg-opacity-10 text-dark">
+                    <div class="icon-box bg-warning bg-opacity-10 text-warning mx-auto mb-4">
                         <i class="fas fa-chalkboard-teacher fa-2x"></i>
                     </div>
-                    <h5 class="card-title fw-bold text-dark">Faculty Tools</h5>
-                    <p class="card-text text-muted">
+                    <h5 class="fw-bold text-dark mb-3">Faculty Tools</h5>
+                    <p class="text-muted mb-0">
                         Effortless attendance marking, real-time student history access, and automated shortage alerts for efficient class management.
                     </p>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
+        <div class="col-md-4 animate-up delay-300">
+            <div class="card h-100 border-0 shadow-sm feature-card bg-white rounded-4">
                 <div class="card-body p-4 text-center">
-                    <div class="mb-4 d-inline-flex p-3 rounded-circle bg-info bg-opacity-10 text-info">
+                    <div class="icon-box bg-success bg-opacity-10 text-success mx-auto mb-4">
                         <i class="fas fa-user-graduate fa-2x"></i>
                     </div>
-                    <h5 class="card-title fw-bold text-dark">Student Portal</h5>
-                    <p class="card-text text-muted">
+                    <h5 class="fw-bold text-dark mb-3">Student Portal</h5>
+                    <p class="text-muted mb-0">
                         Transparency in academic progress. View personal attendance records, timetables, and eligibility status instantly.
                     </p>
                 </div>
@@ -151,29 +265,29 @@
     </div>
 </div>
 
-<div class="container pb-5 mb-5">
-    <div class="card border-0 shadow-lg overflow-hidden bg-white rounded-4">
-        <div class="row g-0">
-            <div class="col-lg-7 p-5 d-flex flex-column justify-content-center">
-                <h3 class="fw-bold text-primary mb-3">Ready to Transform Your Campus?</h3>
-                <p class="text-muted mb-4 lead">
+<div class="container pb-5 mb-5 animate-up delay-200">
+    <div class="card cta-card border-0 shadow-lg overflow-hidden rounded-4">
+        <div class="row g-0 align-items-center">
+            <div class="col-lg-7 p-5">
+                <h3 class="fw-bold text-dark mb-3">Ready to Transform Your Campus?</h3>
+                <p class="text-muted mb-4 lead" style="font-size: 1.1rem;">
                     Join the digital revolution in academic management. Secure, fast, and reliable attendance tracking is just a click away.
                 </p>
+                
                 @if (!User.Identity.IsAuthenticated)
                 {
-                    <div>
-                        <a class="btn btn-primary btn-lg shadow-sm px-4" asp-controller="Account" asp-action="Register">
-                            Get Started Now <i class="fas fa-arrow-right ms-2"></i>
-                        </a>
-                    </div>
+                    <a class="btn btn-primary btn-lg shadow rounded-pill px-5 btn-hover-effect" asp-controller="Account" asp-action="Register">
+                        Get Started Now <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
                 }
             </div>
-            <div class="col-lg-5 bg-light d-none d-lg-flex align-items-center justify-content-center p-5 position-relative overflow-hidden">
-                <i class="fas fa-university fa-10x text-primary position-absolute" style="opacity: 0.05; transform: rotate(-15deg) scale(1.5);"></i>
-                
+            <div class="col-lg-5 bg-light d-none d-lg-flex align-items-center justify-content-center p-5 position-relative overflow-hidden" style="min-height: 300px;">
+                <div class="position-absolute top-0 end-0 p-5 opacity-25">
+                    <i class="fas fa-university fa-10x text-primary" style="transform: rotate(-15deg);"></i>
+                </div>
                 <div class="text-center position-relative z-1">
-                    <div class="display-1 fw-bold text-primary mb-0">10k+</div>
-                    <div class="text-muted fw-bold">Students Managed</div>
+                    <div class="display-3 fw-bolder text-primary mb-0">99.9%</div>
+                    <div class="text-muted fw-bold letter-spacing-1 text-uppercase">System Uptime</div>
                 </div>
             </div>
         </div>

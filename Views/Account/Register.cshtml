@@ -1,52 +1,172 @@
 ﻿@model AttendenceManagementSystem.Controllers.RegisterViewModel
-@{
-    ViewData["Title"] = "Register";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-}
 
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-lg border-0 rounded-lg mt-5">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="text-center font-weight-light my-4">
-                        <i class="fas fa-user-plus me-2"></i>Create Account
-                    </h3>
-                </div>
-                <div class="card-body">
+<style>
+    :root {
+        --primary-blue: #0044cc;
+        --dark-blue: #001a4d;
+        --accent-gold: #ffc107;
+    }
+
+    @@keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @@keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+
+    .animate-up {
+        animation: fadeInUp 0.8s ease-out forwards;
+        opacity: 0;
+    }
+
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+
+    .form-card {
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 68, 204, 0.15);
+        border: 1px solid rgba(0, 68, 204, 0.1);
+    }
+
+    .gradient-bg {
+        background: linear-gradient(135deg, #0d47a1 0%, #001040 100%);
+        position: relative;
+        min-height: 100vh;
+        margin-top: -1.5rem;
+        padding-top: 6rem;
+        padding-bottom: 4rem;
+    }
+
+    .gradient-bg::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%);
+        border-radius: 50%;
+    }
+
+    .btn-register {
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+        border: none;
+        transition: all 0.3s ease;
+        color: white;
+    }
+
+    .btn-register:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+        color: white;
+    }
+
+    .role-option {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    .role-option:hover {
+        border-color: var(--primary-blue);
+        background: rgba(0, 68, 204, 0.05);
+    }
+
+    .role-option.active {
+        border-color: var(--primary-blue);
+        background: rgba(0, 68, 204, 0.1);
+    }
+
+    .section-divider {
+        position: relative;
+        text-align: center;
+        margin: 2rem 0;
+    }
+
+    .section-divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--primary-blue), transparent);
+    }
+
+    .section-divider span {
+        background: white;
+        padding: 0 1rem;
+        position: relative;
+        color: var(--primary-blue);
+        font-weight: 600;
+    }
+</style>
+
+<div class="gradient-bg">
+    <div class="container position-relative" style="z-index: 10;">
+        <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-8">
+                <div class="form-card p-5 animate-up delay-100">
+                    <div class="text-center mb-5">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle p-4 mb-3">
+                            <i class="fas fa-user-plus fa-3x" style="color: var(--primary-blue);"></i>
+                        </div>
+                        <h2 class="fw-bold mb-2" style="color: var(--dark-blue);">Create Your Account</h2>
+                        <p class="text-muted">Join our attendance management system</p>
+                    </div>
+
                     <form method="post" asp-action="Register" id="registerForm">
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
                         <!-- Role Selection -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Register As <span class="text-danger">*</span></label>
-                            <div class="row">
+                        <div class="mb-4 animate-up delay-200">
+                            <label class="form-label fw-bold" style="color: var(--dark-blue);">
+                                <i class="fas fa-user-tag me-2"></i>Register As <span class="text-danger">*</span>
+                            </label>
+                            <div class="row g-3">
                                 <div class="col-md-6">
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="Role" id="roleStudent" value="Student" checked />
-                                        <label class="form-check-label" for="roleStudent">
-                                            <i class="fas fa-user-graduate me-2"></i>Student
+                                    <div class="role-option active" onclick="selectRole('Student', this)">
+                                        <input class="form-check-input d-none" type="radio" name="Role" id="roleStudent" value="Student" checked />
+                                        <label class="d-block cursor-pointer" for="roleStudent">
+                                            <div class="text-center">
+                                                <i class="fas fa-user-graduate fa-2x mb-2" style="color: var(--primary-blue);"></i>
+                                                <h6 class="mb-0 fw-bold">Student</h6>
+                                            </div>
                                         </label>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="Role" id="roleTeacher" value="Teacher" />
-                                        <label class="form-check-label" for="roleTeacher">
-                                            <i class="fas fa-chalkboard-teacher me-2"></i>Teacher
+                                    <div class="role-option" onclick="selectRole('Teacher', this)">
+                                        <input class="form-check-input d-none" type="radio" name="Role" id="roleTeacher" value="Teacher" />
+                                        <label class="d-block cursor-pointer" for="roleTeacher">
+                                            <div class="text-center">
+                                                <i class="fas fa-chalkboard-teacher fa-2x mb-2" style="color: var(--primary-blue);"></i>
+                                                <h6 class="mb-0 fw-bold">Teacher</h6>
+                                            </div>
                                         </label>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <hr class="mb-4" />
+                        <div class="section-divider">
+                            <span><i class="fas fa-user-circle me-2"></i>Personal Information</span>
+                        </div>
 
                         <!-- Common Fields -->
-                        <div class="row">
+                        <div class="row animate-up delay-300">
                             <div class="col-md-6">
                                 <div class="form-floating mb-3">
-                                    <input asp-for="FullName" class="form-control" placeholder="John Doe" />
+                                    <input asp-for="FullName" class="form-control shadow-sm" placeholder="John Doe" style="border: 1px solid #e0e0e0;" />
                                     <label asp-for="FullName">Full Name <span class="text-danger">*</span></label>
                                     <span asp-validation-for="FullName" class="text-danger"></span>
                                 </div>
@@ -54,17 +174,17 @@
 
                             <div class="col-md-6">
                                 <div class="form-floating mb-3">
-                                    <input asp-for="Email" class="form-control" placeholder="name@example.com" />
+                                    <input asp-for="Email" class="form-control shadow-sm" placeholder="name@example.com" style="border: 1px solid #e0e0e0;" />
                                     <label asp-for="Email">Email address <span class="text-danger">*</span></label>
                                     <span asp-validation-for="Email" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row">
+                        <div class="row animate-up delay-300">
                             <div class="col-md-6">
                                 <div class="form-floating mb-3">
-                                    <input asp-for="Password" class="form-control" placeholder="Password" type="password" />
+                                    <input asp-for="Password" class="form-control shadow-sm" placeholder="Password" type="password" style="border: 1px solid #e0e0e0;" />
                                     <label asp-for="Password">Password <span class="text-danger">*</span></label>
                                     <span asp-validation-for="Password" class="text-danger"></span>
                                     <small class="text-muted">At least 6 characters</small>
@@ -73,17 +193,17 @@
 
                             <div class="col-md-6">
                                 <div class="form-floating mb-3">
-                                    <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm Password" type="password" />
+                                    <input asp-for="ConfirmPassword" class="form-control shadow-sm" placeholder="Confirm Password" type="password" style="border: 1px solid #e0e0e0;" />
                                     <label asp-for="ConfirmPassword">Confirm Password <span class="text-danger">*</span></label>
                                     <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row">
+                        <div class="row animate-up delay-300">
                             <div class="col-md-6">
                                 <div class="form-floating mb-3">
-                                    <select asp-for="DepartmentId" class="form-select" id="departmentSelect" asp-items="@(ViewData["Departments"] as SelectList)">
+                                    <select asp-for="DepartmentId" class="form-select shadow-sm" id="departmentSelect" asp-items="@(ViewData["Departments"] as SelectList)" style="border: 1px solid #e0e0e0;">
                                         <option value="">-- Select Department --</option>
                                     </select>
                                     <label asp-for="DepartmentId">Department <span class="text-danger">*</span></label>
@@ -93,7 +213,7 @@
 
                             <div class="col-md-6">
                                 <div class="form-floating mb-3">
-                                    <input asp-for="PhoneNumber" class="form-control" placeholder="Phone Number" />
+                                    <input asp-for="PhoneNumber" class="form-control shadow-sm" placeholder="Phone Number" style="border: 1px solid #e0e0e0;" />
                                     <label asp-for="PhoneNumber">Phone Number</label>
                                     <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                                 </div>
@@ -102,13 +222,14 @@
 
                         <!-- Student-Specific Fields -->
                         <div id="studentFields">
-                            <h5 class="text-primary mb-3">
-                                <i class="fas fa-user-graduate me-2"></i>Student Information
-                            </h5>
-                            <div class="row">
+                            <div class="section-divider">
+                                <span><i class="fas fa-user-graduate me-2"></i>Student Information</span>
+                            </div>
+                            
+                            <div class="row animate-up delay-300">
                                 <div class="col-md-6">
                                     <div class="form-floating mb-3">
-                                        <input asp-for="RollNumber" class="form-control" placeholder="Enter roll number (optional)" />
+                                        <input asp-for="RollNumber" class="form-control shadow-sm" placeholder="Enter roll number (optional)" style="border: 1px solid #e0e0e0;" />
                                         <label asp-for="RollNumber">Roll Number (Optional)</label>
                                         <span asp-validation-for="RollNumber" class="text-danger"></span>
                                         <small class="text-muted">Leave blank to auto-generate</small>
@@ -117,7 +238,7 @@
 
                                 <div class="col-md-6">
                                     <div class="form-floating mb-3">
-                                        <select asp-for="BatchId" class="form-select" id="batchSelect">
+                                        <select asp-for="BatchId" class="form-select shadow-sm" id="batchSelect" style="border: 1px solid #e0e0e0;">
                                             <option value="">-- Select Batch/Session --</option>
                                         </select>
                                         <label asp-for="BatchId">Batch/Session <span class="text-danger">*</span></label>
@@ -126,10 +247,10 @@
                                 </div>
                             </div>
 
-                            <div class="row">
+                            <div class="row animate-up delay-300">
                                 <div class="col-md-6">
                                     <div class="form-floating mb-3">
-                                        <select asp-for="SectionId" class="form-select" id="sectionSelect">
+                                        <select asp-for="SectionId" class="form-select shadow-sm" id="sectionSelect" style="border: 1px solid #e0e0e0;">
                                             <option value="">-- Select Section --</option>
                                         </select>
                                         <label asp-for="SectionId">Section <span class="text-danger">*</span></label>
@@ -141,35 +262,37 @@
 
                         <!-- Teacher-Specific Fields -->
                         <div id="teacherFields" style="display: none;">
-                            <h5 class="text-info mb-3">
-                                <i class="fas fa-chalkboard-teacher me-2"></i>Teacher Information
-                            </h5>
-                            <div class="row">
+                            <div class="section-divider">
+                                <span><i class="fas fa-chalkboard-teacher me-2"></i>Teacher Information</span>
+                            </div>
+                            
+                            <div class="row animate-up delay-300">
                                 <div class="col-md-6">
                                     <div class="form-floating mb-3">
-                                        <input asp-for="EmployeeId" class="form-control" placeholder="Employee ID" />
+                                        <input asp-for="EmployeeId" class="form-control shadow-sm" placeholder="Employee ID" style="border: 1px solid #e0e0e0;" />
                                         <label asp-for="EmployeeId">Employee ID <span class="text-danger">*</span></label>
                                         <span asp-validation-for="EmployeeId" class="text-danger"></span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="alert alert-info">
+                            <div class="alert alert-info border-0 shadow-sm">
                                 <i class="fas fa-info-circle me-2"></i>
                                 <strong>Note:</strong> Teacher accounts require admin approval before you can login. You will receive a notification once your account is approved.
                             </div>
                         </div>
 
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-lg" id="registerBtn" style="background-color: #28a745; color: white;">
+                        <div class="d-grid gap-2 mt-5 animate-up delay-300">
+                            <button type="submit" class="btn btn-register btn-lg shadow-sm fw-bold" id="registerBtn">
                                 <i class="fas fa-user-plus me-2"></i>Register
                             </button>
                         </div>
                     </form>
-                </div>
-                <div class="card-footer text-center py-3">
-                    <div class="small">
-                        <a href="@Url.Action("Login", "Account")">Already have an account? Sign in!</a>
+
+                    <div class="text-center mt-4 pt-4 border-top">
+                        <p class="text-muted mb-0">
+                            Already have an account? <a href="@Url.Action("Login", "Account")" class="text-decoration-none fw-bold" style="color: var(--primary-blue);">Sign in!</a>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -181,6 +304,13 @@
     <partial name="_ValidationScriptsPartial" />
     
     <script>
+        function selectRole(role, element) {
+            // Remove active class from all role options
+            document.querySelectorAll('.role-option').forEach(opt => opt.classList.remove('active'));
+            // Add active class to selected option
+            element.classList.add('active');
+        }
+
         $(document).ready(function() {
             // Handle role selection
             $('input[name="Role"]').on('change', function() {

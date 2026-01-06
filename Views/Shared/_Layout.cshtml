@@ -11,6 +11,99 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <style>
+        :root {
+            --primary-color: #0044cc; /* Royal Blue */
+            --primary-dark: #002a80;
+            --accent-color: #ffc107;
+            --sidebar-width: 260px;
+            --text-color: #2c3e50;
+            --bg-light: #f4f6f9;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        /* --- Sidebar Styling --- */
+        .sidebar {
+            background: linear-gradient(180deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            min-height: 100vh;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-brand {
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .user-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.2s;
+        }
+        .user-panel:hover { transform: translateY(-2px); }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            padding: 0.8rem 1.2rem;
+            margin-bottom: 0.2rem;
+            border-radius: 8px;
+            transition: all 0.2s ease-in-out;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-link i { width: 24px; text-align: center; margin-right: 10px; transition: transform 0.2s; }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: #fff !important;
+            transform: translateX(5px);
+        }
+        
+        .nav-link:hover i { transform: scale(1.2); }
+
+        .nav-link.active {
+            background-color: #fff;
+            color: var(--primary-color) !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            font-weight: 700;
+        }
+
+        /* --- Navbar Styling --- */
+        .topbar {
+            height: 70px;
+            background-color: #fff !important;
+            border-bottom: 1px solid #e3e6f0;
+        }
+
+        /* --- Animations --- */
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        @@keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary-color); }
+    </style>
+
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
@@ -19,32 +112,45 @@
             @if (User.Identity.IsAuthenticated)
             {
                 <div class="col-md-3 col-lg-2 d-none d-md-block sidebar text-white">
-                    <div class="sidebar-brand">
-                        <div class="d-flex align-items-center justify-content-center mb-2">
-                            <i class="fas fa-university fa-2x text-warning me-2"></i>
-                            <h5 class="mb-0 fw-bold">UET AMS</h5>
+                    <div class="sidebar-brand text-center">
+                        <div class="d-inline-flex align-items-center justify-content-center mb-2 p-2 bg-white rounded-circle" style="width: 50px; height: 50px;">
+                            <i class="fas fa-university fa-lg text-primary"></i>
                         </div>
-                        <small class="opacity-75 d-block">Attendance Portal</small>
+                        <h5 class="mb-0 fw-bold mt-2 letter-spacing-1">UET AMS</h5>
+                        <small class="opacity-75" style="font-size: 0.75rem; letter-spacing: 1px;">ATTENDANCE PORTAL</small>
                     </div>
 
-                    <div class="px-3 mb-4 text-center">
-                        <div class="p-3 rounded bg-white bg-opacity-10">
-                            <i class="fas fa-user-circle fa-2x mb-2 text-warning"></i>
-                            <div class="fw-bold text-truncate">@User.Identity.Name</div>
-                            <small class="text-white-50">
-                                @(User.IsInRole("Admin") ? "Administrator" : User.IsInRole("Teacher") ? "Faculty" : "Student")
-                            </small>
+                    <div class="px-3 my-4">
+                        <div class="user-panel p-3 rounded d-flex align-items-center gap-3">
+                            <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px; min-width: 40px;">
+                                @{
+                                    var fullName = User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value ?? User.Identity.Name;
+                                }
+                                @(fullName?.Substring(0,1).ToUpper() ?? "U")
+                            </div>
+                            <div class="overflow-hidden">
+                                <div class="fw-bold text-truncate small">@fullName</div>
+                                <div class="badge bg-white bg-opacity-25 text-white x-small fw-normal">
+                                    @(User.IsInRole("Admin") ? "Administrator" : User.IsInRole("Teacher") ? "Faculty" : "Student")
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <ul class="nav flex-column px-2">
+                    <ul class="nav flex-column px-3 pb-4">
                         @if (User.IsInRole("Admin"))
                         {
+                            <li class="nav-item mb-1">
+                                <small class="text-uppercase text-white-50 fw-bold ps-3 mb-2 d-block" style="font-size: 0.7rem;">Core</small>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Dashboard" ? "active" : "")" 
                                    asp-controller="Admin" asp-action="Dashboard">
                                     <i class="fas fa-tachometer-alt"></i>Dashboard
                                 </a>
+                            </li>
+                            <li class="nav-item mb-1 mt-3">
+                                <small class="text-uppercase text-white-50 fw-bold ps-3 mb-2 d-block" style="font-size: 0.7rem;">Management</small>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Departments" ? "active" : "")" 
@@ -63,6 +169,9 @@
                                    asp-controller="Admin" asp-action="Teachers">
                                     <i class="fas fa-chalkboard-teacher"></i>Teachers
                                 </a>
+                            </li>
+                            <li class="nav-item mb-1 mt-3">
+                                <small class="text-uppercase text-white-50 fw-bold ps-3 mb-2 d-block" style="font-size: 0.7rem;">Analytics</small>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Reports" ? "active" : "")" 
@@ -115,7 +224,7 @@
                             <li class="nav-item">
                                 <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "RegisterSubjects" ? "active" : "")" 
                                    asp-controller="Student" asp-action="RegisterSubjects">
-                                    <i class="fas fa-book"></i>Subjects
+                                    <i class="fas fa-book"></i>Register Subjects
                                 </a>
                             </li>
                              <li class="nav-item">
@@ -129,19 +238,21 @@
                 </div>
             }
 
-            <div class="@(User.Identity.IsAuthenticated ? "col-md-9 col-lg-10" : "col-12") d-flex flex-column min-vh-100">
+            <div class="@(User.Identity.IsAuthenticated ? "col-md-9 col-lg-10" : "col-12") d-flex flex-column min-vh-100 bg-light">
                 
-                <nav class="navbar navbar-expand bg-white topbar mb-4 static-top shadow-sm px-4">
+                <nav class="navbar navbar-expand navbar-light topbar sticky-top px-4 shadow-sm">
                      @if (User.Identity.IsAuthenticated)
                     {
-                        <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
-                            <i class="fa fa-bars"></i>
+                        <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle me-3">
+                            <i class="fa fa-bars text-primary"></i>
                         </button>
                     }
 
                     <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
-                        <img src="~/images/logo.png" alt="Logo" style="height: 35px; width: auto;" class="me-2" />
-                        <span class="d-none d-sm-inline">Attendance System</span>
+                        <div class="bg-primary text-white rounded p-1 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                            <i class="fas fa-graduation-cap fa-sm"></i>
+                        </div>
+                        <span class="fw-bold text-primary letter-spacing-1 d-none d-sm-inline">UET <span class="text-dark">ATTENDANCE</span></span>
                     </a>
 
                     <div class="ms-auto">
@@ -149,13 +260,18 @@
                     </div>
                 </nav>
 
-                <main class="flex-grow-1 px-4 pb-5">
+                <main class="flex-grow-1 px-4 py-4 fade-in-up">
                     @if (TempData["Message"] != null)
                     {
-                        <div class="alert alert-@(TempData["MessageType"] ?? "success") alert-dismissible fade show shadow-sm" role="alert">
+                        <div class="alert alert-@(TempData["MessageType"] ?? "success") alert-dismissible fade show shadow-sm border-0 border-start border-4 border-@(TempData["MessageType"] ?? "success") bg-white" role="alert">
                             <div class="d-flex align-items-center">
-                                <i class="fas @((TempData["MessageType"]?.ToString() == "error" ? "fa-exclamation-triangle" : "fa-check-circle")) me-2 fa-lg"></i>
-                                <div>@TempData["Message"]</div>
+                                <div class="rounded-circle p-2 bg-@(TempData["MessageType"] ?? "success") bg-opacity-10 text-@(TempData["MessageType"] ?? "success") me-3">
+                                    <i class="fas @((TempData["MessageType"]?.ToString() == "error" ? "fa-exclamation-triangle" : "fa-check"))"></i>
+                                </div>
+                                <div>
+                                    <strong class="d-block text-uppercase x-small text-muted">Notification</strong>
+                                    <span class="text-dark">@TempData["Message"]</span>
+                                </div>
                             </div>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
@@ -165,10 +281,19 @@
                 </main>
 
                 <footer class="bg-white py-3 mt-auto border-top">
-                    <div class="container-fluid text-center">
-                        <span class="text-muted small">
-                            &copy; @DateTime.Now.Year - University of Engineering & Technology. All Rights Reserved.
-                        </span>
+                    <div class="container-fluid">
+                        <div class="row align-items-center">
+                            <div class="col-md-6 text-center text-md-start">
+                                <span class="text-muted small">
+                                    &copy; @DateTime.Now.Year - <strong>University of Engineering & Technology</strong>.
+                                </span>
+                            </div>
+                            <div class="col-md-6 text-center text-md-end">
+                                <span class="text-muted x-small">
+                                    <i class="fas fa-code me-1"></i> Developed by Shaista Noureen
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </footer>
             </div>
