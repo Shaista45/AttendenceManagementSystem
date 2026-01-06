@@ -5,44 +5,34 @@
     var timetables = ViewBag.Timetables as List<dynamic>;
 }
 
-<div class="container-fluid py-4">
-    <div class="card shadow-sm">
-        <div class="card-header bg-info text-white">
-            <h4 class="mb-0">
-                <i class="fas fa-user me-2"></i>Teacher Details
-            </h4>
+<div class="container-fluid px-4 mt-4">
+    <!-- Page Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h1 class="h3 mb-0 fw-bold text-success">
+                <i class="fas fa-chalkboard-teacher me-2"></i>Faculty Profile
+            </h1>
+            <p class="text-muted small mb-0">Detailed information and course assignments</p>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <table class="table table-borderless">
-                        <tr>
-                            <th width="40%">Full Name:</th>
-                            <td><strong>@Model.FullName</strong></td>
-                        </tr>
-                        <tr>
-                            <th>Email:</th>
-                            <td>@Model.Email</td>
-                        </tr>
-                        <tr>
-                            <th>Employee ID:</th>
-                            <td>@(Model.EmployeeId ?? "N/A")</td>
-                        </tr>
-                        <tr>
-                            <th>Phone Number:</th>
-                            <td>@(Model.PhoneNumber ?? "N/A")</td>
-                        </tr>
-                    </table>
-                </div>
-                <div class="col-md-6">
-                    <table class="table table-borderless">
-                        <tr>
-                            <th width="40%">Department:</th>
-                            <td>@Model.DepartmentName</td>
-                        </tr>
-                        <tr>
-                            <th>Status:</th>
-                            <td>
+        <div class="d-flex gap-2">
+            <a asp-action="Teachers" class="btn btn-outline-secondary btn-sm shadow-sm">
+                <i class="fas fa-arrow-left me-2"></i>Back to List
+            </a>
+            <a asp-action="EditTeacherInfo" asp-route-id="@Model.Id" class="btn btn-primary btn-sm shadow-sm">
+                <i class="fas fa-edit me-2"></i>Edit Info
+            </a>
+        </div>
+    </div>
+
+    <!-- Status Cards Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 border-start border-4 border-success shadow-sm py-2">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col me-2">
+                            <div class="text-uppercase text-success fw-bold x-small mb-1">Approval Status</div>
+                            <div class="h6 mb-0 fw-bold text-gray-800">
                                 @if (Model.IsApproved)
                                 {
                                     <span class="badge bg-success">
@@ -52,14 +42,28 @@
                                 else
                                 {
                                     <span class="badge bg-warning text-dark">
-                                        <i class="fas fa-clock me-1"></i>Pending Approval
+                                        <i class="fas fa-clock me-1"></i>Pending
                                     </span>
                                 }
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>Active:</th>
-                            <td>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
+                                <i class="fas fa-user-check fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 border-start border-4 border-info shadow-sm py-2">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col me-2">
+                            <div class="text-uppercase text-info fw-bold x-small mb-1">Active Status</div>
+                            <div class="h6 mb-0 fw-bold text-gray-800">
                                 @if (Model.IsActive)
                                 {
                                     <span class="badge bg-success">Active</span>
@@ -68,86 +72,186 @@
                                 {
                                     <span class="badge bg-danger">Inactive</span>
                                 }
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>Created At:</th>
-                            <td>@Model.CreatedAt.ToString("MMM dd, yyyy")</td>
-                        </tr>
-                    </table>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="bg-info bg-opacity-10 p-3 rounded-circle text-info">
+                                <i class="fas fa-toggle-on fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 border-start border-4 border-primary shadow-sm py-2">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col me-2">
+                            <div class="text-uppercase text-primary fw-bold x-small mb-1">Assigned Courses</div>
+                            <div class="h4 mb-0 fw-bold text-gray-800">@Model.AssignedCoursesCount</div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                                <i class="fas fa-book fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 border-start border-4 border-warning shadow-sm py-2">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col me-2">
+                            <div class="text-uppercase text-warning text-dark fw-bold x-small mb-1">Department</div>
+                            <div class="small mb-0 fw-bold text-gray-800">@Model.DepartmentName</div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning text-dark">
+                                <i class="fas fa-building fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card shadow-sm mt-4">
-        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
-                <i class="fas fa-book me-2"></i>Assigned Courses
-            </h5>
-            <a asp-action="AssignCourses" asp-route-id="@Model.Id" class="btn btn-sm btn-light">
-                <i class="fas fa-plus me-1"></i>Assign New Course
-            </a>
+    <!-- Main Content -->
+    <div class="row g-4">
+        <!-- Personal Information Card -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="m-0 fw-bold text-success">
+                        <i class="fas fa-id-card me-2"></i>Personal Information
+                    </h6>
+                </div>
+                <div class="card-body bg-light bg-opacity-50">
+                    <div class="mb-3 pb-3 border-bottom">
+                        <label class="text-muted small fw-bold mb-1">Full Name</label>
+                        <div class="h5 mb-0 text-dark">@Model.FullName</div>
+                    </div>
+                    <div class="mb-3 pb-3 border-bottom">
+                        <label class="text-muted small fw-bold mb-1">Email Address</label>
+                        <div class="text-dark">
+                            <i class="fas fa-envelope me-2 text-primary"></i>@Model.Email
+                        </div>
+                    </div>
+                    <div class="mb-3 pb-3 border-bottom">
+                        <label class="text-muted small fw-bold mb-1">Employee ID</label>
+                        <div class="text-dark">
+                            <i class="fas fa-id-badge me-2 text-success"></i>@(Model.EmployeeId ?? "N/A")
+                        </div>
+                    </div>
+                    <div class="mb-3 pb-3 border-bottom">
+                        <label class="text-muted small fw-bold mb-1">Phone Number</label>
+                        <div class="text-dark">
+                            <i class="fas fa-phone me-2 text-info"></i>@(Model.PhoneNumber ?? "N/A")
+                        </div>
+                    </div>
+                    <div class="mb-0">
+                        <label class="text-muted small fw-bold mb-1">Member Since</label>
+                        <div class="text-dark">
+                            <i class="fas fa-calendar-alt me-2 text-warning"></i>@Model.CreatedAt.ToString("MMMM dd, yyyy")
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            @if (timetables != null && timetables.Any())
-            {
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Course Name</th>
-                                <th>Batch</th>
-                                <th>Section</th>
-                                <th>Day</th>
-                                <th>Time Slot</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var tt in timetables)
-                            {
-                                <tr>
-                                    <td><strong>@tt.CourseName</strong></td>
-                                    <td>@tt.BatchName</td>
-                                    <td>@tt.SectionName</td>
-                                    <td>
-                                        <span class="badge bg-primary">@tt.DayOfWeek</span>
-                                    </td>
-                                    <td>@tt.TimeSlot</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-                <div class="alert alert-info mt-3">
-                    <i class="fas fa-info-circle me-2"></i>
-                    <strong>Teaching Workload:</strong> @Model.AssignedCoursesCount unique @(Model.AssignedCoursesCount == 1 ? "course" : "courses")
-                </div>
-            }
-            else
-            {
-                <div class="text-center py-4">
-                    <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
-                    <p class="text-muted">No courses assigned yet.</p>
-                    <a asp-action="AssignCourses" asp-route-id="@Model.Id" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>Assign Courses
+
+        <!-- Course Assignments Card -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 fw-bold text-primary">
+                        <i class="fas fa-book-open me-2"></i>Course Assignments
+                    </h6>
+                    <a asp-action="AssignCourses" asp-route-id="@Model.Id" class="btn btn-sm btn-primary shadow-sm">
+                        <i class="fas fa-plus me-1"></i>Assign Course
                     </a>
                 </div>
-            }
+                <div class="card-body bg-light bg-opacity-50" style="max-height: 500px; overflow-y: auto;">
+                    @if (timetables != null && timetables.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 bg-white">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th class="fw-bold small">Course</th>
+                                        <th class="fw-bold small">Batch</th>
+                                        <th class="fw-bold small">Section</th>
+                                        <th class="fw-bold small">Day</th>
+                                        <th class="fw-bold small">Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var tt in timetables)
+                                    {
+                                        <tr>
+                                            <td class="fw-bold text-primary small">@tt.CourseName</td>
+                                            <td class="small">@tt.BatchName</td>
+                                            <td class="small">@tt.SectionName</td>
+                                            <td>
+                                                <span class="badge bg-primary">@tt.DayOfWeek</span>
+                                            </td>
+                                            <td class="small text-muted">@tt.TimeSlot</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="alert alert-info mt-3 mb-0 border-0 shadow-sm">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-info bg-opacity-10 p-2 rounded-circle text-info me-3">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div>
+                                    <strong>Teaching Workload</strong>
+                                    <div class="small">@Model.AssignedCoursesCount unique @(Model.AssignedCoursesCount == 1 ? "course" : "courses") assigned</div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <div class="bg-light rounded-circle d-inline-flex p-4 mb-3">
+                                <i class="fas fa-book-open fa-3x text-muted"></i>
+                            </div>
+                            <p class="text-muted mb-3">No courses assigned yet</p>
+                            <a asp-action="AssignCourses" asp-route-id="@Model.Id" class="btn btn-primary shadow-sm">
+                                <i class="fas fa-plus me-2"></i>Assign First Course
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="mt-4 d-flex justify-content-between">
-        <a asp-action="Teachers" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Back to Teachers
-        </a>
-        <div>
-            <a asp-action="EditTeacherInfo" asp-route-id="@Model.Id" class="btn btn-primary">
-                <i class="fas fa-edit me-2"></i>Edit Information
-            </a>
-            <a asp-action="AssignCourses" asp-route-id="@Model.Id" class="btn btn-info">
-                <i class="fas fa-book me-2"></i>Update Assignments
-            </a>
+    <!-- Action Buttons -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body bg-light bg-opacity-50 py-3">
+                    <div class="d-flex flex-wrap gap-2 justify-content-center">
+                        <a asp-action="EditTeacherInfo" asp-route-id="@Model.Id" class="btn btn-primary shadow-sm">
+                            <i class="fas fa-edit me-2"></i>Edit Information
+                        </a>
+                        <a asp-action="AssignCourses" asp-route-id="@Model.Id" class="btn btn-info shadow-sm">
+                            <i class="fas fa-book me-2"></i>Update Assignments
+                        </a>
+                        <a asp-action="Teachers" class="btn btn-outline-secondary shadow-sm">
+                            <i class="fas fa-list me-2"></i>View All Faculty
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

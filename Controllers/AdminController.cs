@@ -1099,6 +1099,7 @@ namespace AttendenceManagementSystem.Controllers
         public async Task<IActionResult> StudentAttendanceReport(ReportFilterViewModel filters)
         {
             await LoadFilterDropdowns();
+            await LoadSelectedFilterNames(filters);
             
             var query = _context.Students
                 .Include(s => s.Department)
@@ -1165,6 +1166,7 @@ namespace AttendenceManagementSystem.Controllers
         public async Task<IActionResult> TeacherReport(ReportFilterViewModel filters)
         {
             await LoadFilterDropdowns();
+            await LoadSelectedFilterNames(filters);
             
             var query = _context.Teachers
                 .Include(t => t.Department)
@@ -1246,6 +1248,7 @@ namespace AttendenceManagementSystem.Controllers
         public async Task<IActionResult> CourseReport(ReportFilterViewModel filters)
         {
             await LoadFilterDropdowns();
+            await LoadSelectedFilterNames(filters);
             
             var query = _context.Courses
                 .Include(c => c.Department)
@@ -1318,6 +1321,7 @@ namespace AttendenceManagementSystem.Controllers
         public async Task<IActionResult> DailyAttendanceReport(ReportFilterViewModel filters)
         {
             await LoadFilterDropdowns();
+            await LoadSelectedFilterNames(filters);
             
             var attendanceQuery = _context.Attendances
                 .Include(a => a.Course)
@@ -1366,6 +1370,7 @@ namespace AttendenceManagementSystem.Controllers
         public async Task<IActionResult> LowAttendanceReport(ReportFilterViewModel filters)
         {
             await LoadFilterDropdowns();
+            await LoadSelectedFilterNames(filters);
             
             var query = _context.Students
                 .Include(s => s.Department)
@@ -1591,6 +1596,25 @@ namespace AttendenceManagementSystem.Controllers
             ViewData["Batches"] = new SelectList(await _context.Batches.ToListAsync(), "Id", "Year");
             ViewData["Sections"] = new SelectList(await _context.Sections.ToListAsync(), "Id", "Name");
             ViewData["Courses"] = new SelectList(await _context.Courses.ToListAsync(), "Id", "Title");
+        }
+
+        private async Task LoadSelectedFilterNames(ReportFilterViewModel filters)
+        {
+            if (filters.DepartmentId.HasValue)
+            {
+                var department = await _context.Departments.FindAsync(filters.DepartmentId.Value);
+                ViewBag.SelectedDepartment = department?.Name;
+            }
+            if (filters.BatchId.HasValue)
+            {
+                var batch = await _context.Batches.FindAsync(filters.BatchId.Value);
+                ViewBag.SelectedBatch = batch?.Year;
+            }
+            if (filters.SectionId.HasValue)
+            {
+                var section = await _context.Sections.FindAsync(filters.SectionId.Value);
+                ViewBag.SelectedSection = section?.Name;
+            }
         }
 
         #endregion

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT API Test - Attendance Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 40px 0; }
+        .test-container { max-width: 800px; margin: 0 auto; }
+        .test-card { background: white; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        .section-title { color: #667eea; font-weight: bold; border-bottom: 2px solid #667eea; padding-bottom: 10px; margin-bottom: 20px; }
+        .token-display { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; word-wrap: break-word; font-family: 'Courier New', monospace; font-size: 12px; max-height: 150px; overflow-y: auto; }
+        .badge-success { background-color: #28a745; }
+        .badge-danger { background-color: #dc3545; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-card p-5">
+            <h1 class="text-center mb-4">🔐 JWT Authentication Test</h1>
+            <p class="text-center text-muted mb-5">Test API endpoints for JWT token generation and validation</p>
+
+            <!-- Login Test -->
+            <div class="mb-5">
+                <h3 class="section-title">1. Login with Credentials</h3>
+                <p class="text-muted small">Authenticate using email and password to get a JWT token</p>
+                
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Email</label>
+                        <input type="email" id="loginEmail" class="form-control" placeholder="admin@uet.edu.pk" value="admin@uet.edu.pk">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Password</label>
+                        <input type="password" id="loginPassword" class="form-control" placeholder="Admin@123" value="Admin@123">
+                    </div>
+                </div>
+                <button onclick="testLogin()" class="btn btn-primary btn-lg w-100 mb-3">
+                    <i class="bi bi-box-arrow-in-right"></i> Login & Get JWT Token
+                </button>
+                <div id="loginResult"></div>
+            </div>
+
+            <!-- Demo Token Test -->
+            <div class="mb-5">
+                <h3 class="section-title">2. Get Demo Token (Testing)</h3>
+                <p class="text-muted small">Generate a demo JWT token without authentication (for API testing)</p>
+                <button onclick="testDemoToken()" class="btn btn-secondary btn-lg w-100 mb-3">
+                    <i class="bi bi-key"></i> Generate Demo Token
+                </button>
+                <div id="demoTokenResult"></div>
+            </div>
+
+            <!-- Token Info -->
+            <div id="tokenInfo" class="d-none">
+                <h3 class="section-title">3. Token Information</h3>
+                <div class="alert alert-success">
+                    <strong>✅ Token Generated Successfully!</strong>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">JWT Token:</label>
+                    <div id="tokenDisplay" class="token-display"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Decoded Token (Header.Payload.Signature):</label>
+                    <pre id="decodedToken"></pre>
+                </div>
+                <div class="alert alert-info">
+                    <strong>📝 How to use:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Copy the token above</li>
+                        <li>Add to API requests: <code>Authorization: Bearer {token}</code></li>
+                        <li>Token is valid for 3 hours</li>
+                        <li>Use with Postman, Insomnia, or any HTTP client</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- API Documentation -->
+            <div class="mt-5">
+                <h3 class="section-title">📚 API Endpoints</h3>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Method</th>
+                                <th>Endpoint</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge bg-success">POST</span></td>
+                                <td><code>/api/ApiAuth/login</code></td>
+                                <td>Login with credentials to get JWT token</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-secondary">POST</span></td>
+                                <td><code>/api/ApiAuth/token</code></td>
+                                <td>Get demo JWT token (testing only)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function testLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const resultDiv = document.getElementById('loginResult');
+
+            resultDiv.innerHTML = '<div class="alert alert-info"><i class="bi bi-hourglass-split"></i> Authenticating...</div>';
+
+            try {
+                const response = await fetch('/api/ApiAuth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <strong>✅ Login Successful!</strong><br>
+                            <small>User: ${data.user.fullName} (${data.user.email})</small><br>
+                            <small>Roles: ${data.user.roles.join(', ')}</small>
+                        </div>
+                    `;
+                    displayToken(data.token);
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <strong>❌ Login Failed</strong><br>
+                            <small>${data.message || 'Invalid credentials'}</small>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testDemoToken() {
+            const resultDiv = document.getElementById('demoTokenResult');
+            resultDiv.innerHTML = '<div class="alert alert-info"><i class="bi bi-hourglass-split"></i> Generating token...</div>';
+
+            try {
+                const response = await fetch('/api/ApiAuth/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <strong>✅ Demo Token Generated!</strong><br>
+                            <small>${data.message}</small>
+                        </div>
+                    `;
+                    displayToken(data.token);
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <strong>❌ Failed:</strong> ${data.message || 'Unknown error'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function displayToken(token) {
+            document.getElementById('tokenInfo').classList.remove('d-none');
+            document.getElementById('tokenDisplay').textContent = token;
+
+            // Decode JWT (just for display, not validation)
+            try {
+                const parts = token.split('.');
+                const header = JSON.parse(atob(parts[0]));
+                const payload = JSON.parse(atob(parts[1]));
+                
+                const decoded = {
+                    header: header,
+                    payload: payload,
+                    signature: parts[2].substring(0, 50) + '...'
+                };
+
+                document.getElementById('decodedToken').textContent = JSON.stringify(decoded, null, 2);
+            } catch (e) {
+                document.getElementById('decodedToken').textContent = 'Could not decode token';
+            }
+
+            // Scroll to token info
+            document.getElementById('tokenInfo').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

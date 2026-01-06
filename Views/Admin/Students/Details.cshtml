@@ -3,82 +3,105 @@
     ViewData["Title"] = "Student Details";
 }
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-user me-2"></i>Student Details
-        </h1>
-        <div class="btn-group">
-            <a class="btn btn-warning" asp-action="EditStudent" asp-route-id="@Model.Id">
-                <i class="fas fa-edit me-2"></i>Edit
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h1 class="h3 mb-0 fw-bold text-primary">
+                <i class="fas fa-user-graduate me-2"></i>Student Profile
+            </h1>
+            <p class="text-muted small mb-0">View complete student information and academic details</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-primary shadow-sm" asp-action="EditStudent" asp-route-id="@Model.Id">
+                <i class="fas fa-edit me-2"></i>Edit Info
             </a>
-            <a class="btn btn-secondary" asp-action="Students">
-                <i class="fas fa-arrow-left me-2"></i>Back to List
+            <a class="btn btn-outline-secondary shadow-sm" asp-action="Students">
+                <i class="fas fa-arrow-left me-2"></i>Back
             </a>
         </div>
     </div>
 
-    <div class="row">
+    <div class="row g-4">
         <!-- Personal Information -->
-        <div class="col-md-6">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Personal Information</h6>
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="m-0 fw-bold text-primary">
+                        <i class="fas fa-id-card me-2"></i>Personal Information
+                    </h6>
                 </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-sm-4 font-weight-bold">Roll Number:</div>
-                        <div class="col-sm-8">@Model.RollNumber</div>
+                <div class="card-body bg-light bg-opacity-50">
+                    <div class="mb-3 pb-3 border-bottom">
+                        <label class="text-muted small fw-bold mb-1">Roll Number</label>
+                        <div class="h5 mb-0 text-dark">@Model.RollNumber</div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-sm-4 font-weight-bold">Full Name:</div>
-                        <div class="col-sm-8">@Model.FullName</div>
+                    <div class="mb-3 pb-3 border-bottom">
+                        <label class="text-muted small fw-bold mb-1">Full Name</label>
+                        <div class="h5 mb-0 text-dark">@Model.FullName</div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-sm-4 font-weight-bold">Email:</div>
-                        <div class="col-sm-8">@Model.Email</div>
+                    <div class="mb-3 pb-3 border-bottom">
+                        <label class="text-muted small fw-bold mb-1">Email Address</label>
+                        <div class="text-dark">
+                            <i class="fas fa-envelope me-2 text-primary"></i>@Model.Email
+                        </div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-sm-4 font-weight-bold">Phone Number:</div>
-                        <div class="col-sm-8">@(Model.PhoneNumber ?? "N/A")</div>
+                    <div class="mb-3 pb-3 border-bottom">
+                        <label class="text-muted small fw-bold mb-1">Phone Number</label>
+                        <div class="text-dark">
+                            <i class="fas fa-phone me-2 text-info"></i>@(Model.PhoneNumber ?? "N/A")
+                        </div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-sm-4 font-weight-bold">Created At:</div>
-                        <div class="col-sm-8">@Model.CreatedAt.ToString("MMM dd, yyyy")</div>
+                    <div class="mb-0">
+                        <label class="text-muted small fw-bold mb-1">Enrolled Since</label>
+                        <div class="text-dark">
+                            <i class="fas fa-calendar-alt me-2 text-warning"></i>@Model.CreatedAt.ToString("MMMM dd, yyyy")
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Academic Information -->
-        <div class="col-md-6">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Academic Information</h6>
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="m-0 fw-bold text-success">
+                        <i class="fas fa-graduation-cap me-2"></i>Academic Information
+                    </h6>
                 </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-sm-4 font-weight-bold">Department:</div>
-                        <div class="col-sm-8">@Model.Department?.Name</div>
+                <div class="card-body bg-light bg-opacity-50">
+                    <div class="mb-3 pb-3 border-bottom">
+                        <label class="text-muted small fw-bold mb-1">Department</label>
+                        <div class="text-dark">
+                            <span class="badge bg-warning bg-opacity-10 text-dark border border-warning px-3 py-2">@Model.Department?.Name</span>
+                        </div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-sm-4 font-weight-bold">Batch/Session:</div>
-                        <div class="col-sm-8">@Model.Batch?.Year</div>
+                    <div class="mb-3 pb-3 border-bottom">
+                        <label class="text-muted small fw-bold mb-1">Batch / Session</label>
+                        <div class="text-dark">
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2">@Model.Batch?.Year</span>
+                        </div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-sm-4 font-weight-bold">Section:</div>
-                        <div class="col-sm-8">@Model.Section?.Name</div>
+                    <div class="mb-3 pb-3 border-bottom">
+                        <label class="text-muted small fw-bold mb-1">Section</label>
+                        <div class="text-dark">
+                            <span class="badge bg-info bg-opacity-10 text-info border border-info px-3 py-2">@Model.Section?.Name</span>
+                        </div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-sm-4 font-weight-bold">User Account:</div>
-                        <div class="col-sm-8">
+                    <div class="mb-0">
+                        <label class="text-muted small fw-bold mb-1">Account Status</label>
+                        <div class="text-dark">
                             @if (Model.User != null)
                             {
-                                <span class="badge bg-success">Active</span>
+                                <span class="badge bg-success px-3 py-2">
+                                    <i class="fas fa-check-circle me-1"></i>Active Account
+                                </span>
                             }
                             else
                             {
-                                <span class="badge bg-secondary">No Account</span>
+                                <span class="badge bg-secondary px-3 py-2">
+                                    <i class="fas fa-user-slash me-1"></i>No Account
+                                </span>
                             }
                         </div>
                     </div>
@@ -87,19 +110,28 @@
         </div>
     </div>
 
-    <!-- Attendance Summary -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
-        </div>
-        <div class="card-body">
-            <div class="btn-group">
-                <a class="btn btn-primary" asp-controller="Admin" asp-action="StudentAttendanceReport" asp-route-studentId="@Model.Id">
-                    <i class="fas fa-chart-bar me-2"></i>View Attendance Report
-                </a>
-                <a class="btn btn-info" asp-controller="Admin" asp-action="Enrollments" asp-route-studentId="@Model.Id">
-                    <i class="fas fa-book me-2"></i>View Enrolled Courses
-                </a>
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="m-0 fw-bold text-primary">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body bg-light bg-opacity-50 py-3">
+                    <div class="d-flex flex-wrap gap-2 justify-content-center">
+                        <a class="btn btn-primary shadow-sm" asp-controller="Admin" asp-action="StudentAttendanceReport" asp-route-studentId="@Model.Id">
+                            <i class="fas fa-chart-bar me-2"></i>Attendance Report
+                        </a>
+                        <a class="btn btn-info shadow-sm" asp-controller="Admin" asp-action="Enrollments" asp-route-studentId="@Model.Id">
+                            <i class="fas fa-book me-2"></i>Enrolled Courses
+                        </a>
+                        <a class="btn btn-success shadow-sm" asp-action="RegisterSubjects" asp-route-id="@Model.Id">
+                            <i class="fas fa-plus-circle me-2"></i>Register Subjects
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

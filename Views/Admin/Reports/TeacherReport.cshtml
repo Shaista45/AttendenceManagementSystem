@@ -3,8 +3,109 @@
     ViewData["Title"] = "Teacher Report";
 }
 
+<style>
+    .print-header {
+        display: none;
+    }
+    @@media print {
+        .no-print { display: none !important; }
+        .card { border: none !important; box-shadow: none !important; }
+        .card-header { background: white !important; border: none !important; padding: 0 !important; }
+        .card-body { padding: 0 !important; background: white !important; }
+        .print-header {
+            display: block !important;
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #000;
+        }
+        .print-header h2 {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .print-header p {
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .table { font-size: 12px; }
+        .badge { border: 1px solid #000 !important; }
+    }
+</style>
+
+<script>
+    function setMonthlyPeriod() {
+        var now = new Date();
+        var firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        var lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        document.getElementById('startDate').value = firstDay.toISOString().split('T')[0];
+        document.getElementById('endDate').value = lastDay.toISOString().split('T')[0];
+    }
+    
+    function setYearlyPeriod() {
+        var now = new Date();
+        var firstDay = new Date(now.getFullYear(), 0, 1);
+        var lastDay = new Date(now.getFullYear(), 11, 31);
+        document.getElementById('startDate').value = firstDay.toISOString().split('T')[0];
+        document.getElementById('endDate').value = lastDay.toISOString().split('T')[0];
+    }
+    
+    function setLastSemester() {
+        var now = new Date();
+        var month = now.getMonth();
+        if (month >= 0 && month <= 5) {
+            var start = new Date(now.getFullYear() - 1, 7, 1);
+            var end = new Date(now.getFullYear() - 1, 11, 31);
+        } else {
+            var start = new Date(now.getFullYear(), 0, 1);
+            var end = new Date(now.getFullYear(), 5, 30);
+        }
+        document.getElementById('startDate').value = start.toISOString().split('T')[0];
+        document.getElementById('endDate').value = end.toISOString().split('T')[0];
+    }
+    
+    function setCurrentSemester() {
+        var now = new Date();
+        var month = now.getMonth();
+        if (month >= 0 && month <= 5) {
+            var start = new Date(now.getFullYear(), 0, 1);
+            var end = new Date(now.getFullYear(), 5, 30);
+        } else {
+            var start = new Date(now.getFullYear(), 7, 1);
+            var end = new Date(now.getFullYear(), 11, 31);
+        }
+        document.getElementById('startDate').value = start.toISOString().split('T')[0];
+        document.getElementById('endDate').value = end.toISOString().split('T')[0];
+    }
+</script>
+
 <div class="container-fluid px-4 mt-4">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+    <!-- Print Header (visible only when printing) -->
+    <div class="print-header">
+        <h2>Teacher Performance Report</h2>
+        @if (!string.IsNullOrEmpty(ViewBag.SelectedDepartment as string))
+        {
+            <p><strong>Department:</strong> @ViewBag.SelectedDepartment</p>
+        }
+        @if (!string.IsNullOrEmpty(ViewBag.SelectedBatch as string))
+        {
+            <p><strong>Session:</strong> @ViewBag.SelectedBatch</p>
+        }
+        @if (!string.IsNullOrEmpty(ViewBag.SelectedSection as string))
+        {
+            <p><strong>Section:</strong> @ViewBag.SelectedSection</p>
+        }
+        @if (Model.Filters.StartDate.HasValue || Model.Filters.EndDate.HasValue)
+        {
+            <p><strong>Period:</strong> 
+                @if (Model.Filters.StartDate.HasValue) { @Model.Filters.StartDate.Value.ToString("dd MMM yyyy") } 
+                @if (Model.Filters.StartDate.HasValue && Model.Filters.EndDate.HasValue) { <text> to </text> }
+                @if (Model.Filters.EndDate.HasValue) { @Model.Filters.EndDate.Value.ToString("dd MMM yyyy") }
+            </p>
+        }
+    </div>
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3 no-print">
         <div>
             <h1 class="h3 mb-0 fw-bold text-primary">
                 <i class="fas fa-chalkboard-teacher me-2"></i>Teacher Performance Report
@@ -17,33 +118,51 @@
     </div>
 
     <!-- Filters -->
-    <div class="card shadow-sm mb-4 border-0">
-        <div class="card-header bg-white py-3 border-bottom">
-            <h6 class="m-0 fw-bold text-primary">
-                <i class="fas fa-filter me-2"></i>Report Filters
-            </h6>
-        </div>
-        <div class="card-body bg-light bg-opacity-50">
-            <form method="get" asp-action="TeacherReport">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold small text-dark">Department</label>
-                        <select name="DepartmentId" class="form-select shadow-sm" asp-items="ViewBag.Departments">
+    <div class="card shadow-sm border-0 mb-4 no-print">
+        <div class="card-body bg-light bg-opacity-50 py-3">
+            <form method="get" asp-action="TeacherReport" id="reportForm">
+                <!-- Quick Period Selection -->
+                <div class="row g-2 mb-3">
+                    <div class="col-12">
+                        <label class="form-label small text-muted text-uppercase fw-bold mb-2">Quick Period Selection</label>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-primary" onclick="setMonthlyPeriod()">Current Month</button>
+                            <button type="button" class="btn btn-outline-primary" onclick="setYearlyPeriod()">Current Year</button>
+                            <button type="button" class="btn btn-outline-primary" onclick="setLastSemester()">Last Semester</button>
+                            <button type="button" class="btn btn-outline-primary" onclick="setCurrentSemester()">Current Semester</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted text-uppercase fw-bold">Department</label>
+                        <select name="DepartmentId" class="form-select border-0 shadow-sm" asp-items="ViewBag.Departments">
                             <option value="">All Departments</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold small text-dark">Course</label>
-                        <select name="CourseId" class="form-select shadow-sm" asp-items="ViewBag.Courses">
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted text-uppercase fw-bold">Course</label>
+                        <select name="CourseId" class="form-select border-0 shadow-sm" asp-items="ViewBag.Courses">
                             <option value="">All Courses</option>
                         </select>
                     </div>
-                    <div class="col-md-4 d-flex align-items-end gap-2">
-                        <button type="submit" class="btn btn-primary shadow-sm">
-                            <i class="fas fa-search me-2"></i>Apply Filters
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted text-uppercase fw-bold">Start Date</label>
+                        <input type="date" name="StartDate" id="startDate" class="form-control border-0 shadow-sm" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted text-uppercase fw-bold">End Date</label>
+                        <input type="date" name="EndDate" id="endDate" class="form-control border-0 shadow-sm" />
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary shadow-sm w-100">
+                            <i class="fas fa-search me-1"></i>Apply
                         </button>
-                        <a asp-action="TeacherReport" class="btn btn-outline-secondary shadow-sm">
-                            <i class="fas fa-times-circle me-2"></i>Clear
+                    </div>
+                    <div class="col-md-auto">
+                        <a asp-action="TeacherReport" class="btn btn-light border shadow-sm" title="Reset Filters">
+                            <i class="fas fa-undo text-muted"></i>
                         </a>
                     </div>
                 </div>
@@ -135,7 +254,7 @@
                     <i class="fas fa-table me-2"></i>Teacher Performance Details
                     <span class="badge bg-primary bg-opacity-10 text-primary ms-2">@Model.Teachers.Count Teachers</span>
                 </h6>
-                <div>
+                <div class="no-print">
                     <button onclick="window.print()" class="btn btn-sm btn-outline-primary shadow-sm">
                         <i class="fas fa-print me-2"></i>Print Report
                     </button>

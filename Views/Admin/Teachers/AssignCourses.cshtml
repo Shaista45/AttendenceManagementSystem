@@ -4,99 +4,150 @@
     ViewData["Title"] = "Assign Courses";
 }
 
-<div class="container-fluid py-4">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">
-                <i class="fas fa-book me-2"></i>Assign Courses to Teacher
-            </h4>
+<div class="container-fluid px-4 mt-4">
+    <!-- Page Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h1 class="h3 mb-0 fw-bold text-primary">
+                <i class="fas fa-book-reader me-2"></i>Course Assignment Manager
+            </h1>
+            <p class="text-muted small mb-0">Assign courses and manage teaching schedule</p>
         </div>
-        <div class="card-body">
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <strong>Teacher:</strong> @Model.TeacherName
-                </div>
-                <div class="col-md-6">
-                    <strong>Department:</strong> @Model.DepartmentName
-                </div>
-            </div>
+        <a asp-action="TeacherDetails" asp-route-id="@Model.TeacherId" class="btn btn-outline-secondary btn-sm shadow-sm">
+            <i class="fas fa-arrow-left me-2"></i>Back to Profile
+        </a>
+    </div>
 
-            @if (Model.ExistingAssignments.Any())
-            {
-                <div class="card mb-4">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0">Existing Course Assignments</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>Course</th>
-                                        <th>Batch</th>
-                                        <th>Section</th>
-                                        <th>Day</th>
-                                        <th>Time</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var assignment in Model.ExistingAssignments)
-                                    {
-                                        <tr>
-                                            <td>@assignment.CourseName</td>
-                                            <td>@assignment.BatchName</td>
-                                            <td>@assignment.SectionName</td>
-                                            <td><span class="badge bg-primary">@assignment.DayOfWeek</span></td>
-                                            <td>@assignment.TimeSlot</td>
-                                            <td>
-                                                <form asp-action="RemoveAssignment" method="post" class="d-inline">
-                                                    @Html.AntiForgeryToken()
-                                                    <input type="hidden" name="timetableId" value="@assignment.TimetableId" />
-                                                    <input type="hidden" name="teacherId" value="@Model.TeacherId" />
-                                                    <button type="submit" class="btn btn-sm btn-danger" 
-                                                            onclick="return confirm('Remove this course assignment?');">
-                                                        <i class="fas fa-trash"></i> Remove
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            }
-
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">Add New Course Assignments</h5>
-                </div>
+    <!-- Teacher Info Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card h-100 border-start border-4 border-success shadow-sm">
                 <div class="card-body">
-                    <form asp-action="AssignCourses" method="post" id="assignForm">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="teacherId" value="@Model.TeacherId" />
-
-                        <div id="assignmentsContainer">
-                            <!-- Assignment rows will be added here dynamically -->
+                    <div class="row align-items-center">
+                        <div class="col me-2">
+                            <div class="text-uppercase text-success fw-bold x-small mb-1">Teacher Name</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">@Model.TeacherName</div>
                         </div>
-
-                        <button type="button" class="btn btn-secondary mb-3" onclick="addAssignmentRow()">
-                            <i class="fas fa-plus me-2"></i>Add Course Assignment
-                        </button>
-
-                        <div class="d-flex justify-content-between mt-4">
-                            <a asp-action="TeacherDetails" asp-route-id="@Model.TeacherId" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>Back to Details
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-2"></i>Save Assignments
-                            </button>
+                        <div class="col-auto">
+                            <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
+                                <i class="fas fa-chalkboard-teacher fa-lg"></i>
+                            </div>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100 border-start border-4 border-warning shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col me-2">
+                            <div class="text-uppercase text-warning text-dark fw-bold x-small mb-1">Department</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">@Model.DepartmentName</div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning text-dark">
+                                <i class="fas fa-building fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Existing Assignments -->
+    @if (Model.ExistingAssignments.Any())
+    {
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h6 class="m-0 fw-bold text-info">
+                    <i class="fas fa-list-check me-2"></i>Current Course Assignments (@Model.ExistingAssignments.Count)
+                </h6>
+            </div>
+            <div class="card-body bg-light bg-opacity-50 p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 bg-white">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="fw-bold small">Course</th>
+                                <th class="fw-bold small">Batch</th>
+                                <th class="fw-bold small">Section</th>
+                                <th class="fw-bold small">Day</th>
+                                <th class="fw-bold small">Time Slot</th>
+                                <th class="fw-bold small text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var assignment in Model.ExistingAssignments)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-primary small">@assignment.CourseName</td>
+                                    <td class="small">@assignment.BatchName</td>
+                                    <td class="small">@assignment.SectionName</td>
+                                    <td>
+                                        <span class="badge bg-primary">@assignment.DayOfWeek</span>
+                                    </td>
+                                    <td class="small text-muted">@assignment.TimeSlot</td>
+                                    <td class="text-center">
+                                        <form asp-action="RemoveAssignment" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="timetableId" value="@assignment.TimetableId" />
+                                            <input type="hidden" name="teacherId" value="@Model.TeacherId" />
+                                            <button type="submit" class="btn btn-sm btn-danger shadow-sm" 
+                                                    onclick="return confirm('Remove this course assignment?');">
+                                                <i class="fas fa-trash me-1"></i>Remove
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Add New Assignments -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <h6 class="m-0 fw-bold text-success">
+                <i class="fas fa-plus-circle me-2"></i>Add New Course Assignments
+            </h6>
+            <button type="button" class="btn btn-sm btn-success shadow-sm" onclick="addAssignmentRow()">
+                <i class="fas fa-plus me-1"></i>Add Row
+            </button>
+        </div>
+        <div class="card-body bg-light bg-opacity-50">
+            <form asp-action="AssignCourses" method="post" id="assignForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="teacherId" value="@Model.TeacherId" />
+
+                <div id="assignmentsContainer" class="mb-3">
+                    <!-- Assignment rows will be added here dynamically -->
+                </div>
+
+                <div class="alert alert-info border-0 shadow-sm">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-info bg-opacity-10 p-2 rounded-circle text-info me-3">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="small">
+                            <strong>Instructions:</strong> Click "Add Row" to create new course assignments. Fill in all required fields and click "Save Assignments" when done.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                    <a asp-action="TeacherDetails" asp-route-id="@Model.TeacherId" class="btn btn-outline-secondary shadow-sm">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary shadow-sm px-4">
+                        <i class="fas fa-save me-2"></i>Save All Assignments
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -117,35 +168,43 @@
         function addAssignmentRow() {
             const container = document.getElementById('assignmentsContainer');
             const row = document.createElement('div');
-            row.className = 'card mb-3 assignment-row';
+            row.className = 'card border-0 shadow-sm mb-3 assignment-row';
             row.innerHTML = `
-                <div class="card-body">
+                <div class="card-body bg-white">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0 text-primary fw-bold">
+                            <i class="fas fa-calendar-plus me-2"></i>Assignment #${assignmentIndex + 1}
+                        </h6>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeAssignmentRow(this)">
+                            <i class="fas fa-times me-1"></i>Remove
+                        </button>
+                    </div>
                     <div class="row g-3">
                         <div class="col-md-3">
-                            <label class="form-label">Course</label>
-                            <select name="assignments[${assignmentIndex}].CourseId" class="form-select" required>
-                                <option value="">Select Course</option>
+                            <label class="form-label small fw-bold text-muted">Course <span class="text-danger">*</span></label>
+                            <select name="assignments[${assignmentIndex}].CourseId" class="form-select form-select-sm shadow-sm" required>
+                                <option value="">-- Select Course --</option>
                                 ${buildOptions(courses)}
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label">Batch</label>
-                            <select name="assignments[${assignmentIndex}].BatchId" class="form-select" required>
-                                <option value="">Select Batch</option>
+                            <label class="form-label small fw-bold text-muted">Batch <span class="text-danger">*</span></label>
+                            <select name="assignments[${assignmentIndex}].BatchId" class="form-select form-select-sm shadow-sm" required>
+                                <option value="">-- Select --</option>
                                 ${buildOptions(batches)}
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label">Section</label>
-                            <select name="assignments[${assignmentIndex}].SectionId" class="form-select" required>
-                                <option value="">Select Section</option>
+                            <label class="form-label small fw-bold text-muted">Section <span class="text-danger">*</span></label>
+                            <select name="assignments[${assignmentIndex}].SectionId" class="form-select form-select-sm shadow-sm" required>
+                                <option value="">-- Select --</option>
                                 ${buildOptions(sections)}
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label">Day</label>
-                            <select name="assignments[\${assignmentIndex}].DayOfWeek" class="form-select" required>
-                                <option value="">Select Day</option>
+                            <label class="form-label small fw-bold text-muted">Day of Week <span class="text-danger">*</span></label>
+                            <select name="assignments[${assignmentIndex}].DayOfWeek" class="form-select form-select-sm shadow-sm" required>
+                                <option value="">-- Select Day --</option>
                                 <option value="0">Sunday</option>
                                 <option value="1">Monday</option>
                                 <option value="2">Tuesday</option>
@@ -155,17 +214,17 @@
                                 <option value="6">Saturday</option>
                             </select>
                         </div>
-                        <div class="col-md-1">
-                            <label class="form-label">Start Time</label>
-                            <input type="time" name="assignments[\${assignmentIndex}].StartTime" class="form-control" required />
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold text-muted">Start Time <span class="text-danger">*</span></label>
+                            <input type="time" name="assignments[${assignmentIndex}].StartTime" class="form-control form-control-sm shadow-sm" required />
                         </div>
-                        <div class="col-md-1">
-                            <label class="form-label">End Time</label>
-                            <input type="time" name="assignments[\${assignmentIndex}].EndTime" class="form-control" required />
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold text-muted">End Time <span class="text-danger">*</span></label>
+                            <input type="time" name="assignments[${assignmentIndex}].EndTime" class="form-control form-control-sm shadow-sm" required />
                         </div>
                         <div class="col-md-1 d-flex align-items-end">
-                            <button type="button" class="btn btn-danger w-100" onclick="removeAssignmentRow(this)">
-                                <i class="fas fa-times"></i>
+                            <button type="button" class="btn btn-danger btn-sm w-100 shadow-sm" onclick="removeAssignmentRow(this)">
+                                <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     </div>
@@ -176,7 +235,11 @@
         }
 
         function removeAssignmentRow(button) {
-            button.closest('.assignment-row').remove();
+            const row = button.closest('.assignment-row');
+            row.style.opacity = '0';
+            row.style.transform = 'scale(0.95)';
+            row.style.transition = 'all 0.3s ease';
+            setTimeout(() => row.remove(), 300);
         }
 
         // Add first row on page load
@@ -195,3 +258,4 @@
         });
     </script>
 }
+

@@ -4,78 +4,96 @@
     ViewData["Title"] = "Add Teacher";
 }
 
-<div class="container-fluid py-4">
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h1 class="h3 mb-0 fw-bold text-success">
+                <i class="fas fa-user-plus me-2"></i>Add New Faculty Member
+            </h1>
+            <p class="text-muted small mb-0">Register a new teacher in the system</p>
+        </div>
+        <a class="btn btn-outline-secondary btn-sm shadow-sm" asp-action="Teachers">
+            <i class="fas fa-arrow-left me-2"></i>Back to Faculty
+        </a>
+    </div>
+
     <!-- Alert Container -->
     <div id="formAlert"></div>
 
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-user-plus me-2"></i>Add New Teacher
-                    </h4>
+        <div class="col-lg-9">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="m-0 fw-bold text-success">
+                        <i class="fas fa-user-circle me-2"></i>Faculty Information
+                    </h6>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4 bg-light bg-opacity-50">
                     <form id="createTeacherForm" asp-action="CreateTeacher" method="post">
                         @Html.AntiForgeryToken()
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                        <div class="row mb-3">
+                        <div class="row g-4 mb-4">
                             <div class="col-md-6">
-                                <label asp-for="FullName" class="form-label"></label>
-                                <input asp-for="FullName" class="form-control" placeholder="Enter full name" />
+                                <label asp-for="FullName" class="form-label fw-bold text-muted small">Full Name <span class="text-danger">*</span></label>
+                                <input asp-for="FullName" class="form-control shadow-sm" placeholder="Enter full name" />
                                 <span asp-validation-for="FullName" class="text-danger"></span>
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="Email" class="form-label"></label>
-                                <input asp-for="Email" class="form-control" placeholder="Enter email address" />
+                                <label asp-for="Email" class="form-label fw-bold text-muted small">Email Address <span class="text-danger">*</span></label>
+                                <input asp-for="Email" class="form-control shadow-sm" placeholder="Enter email address" />
                                 <span asp-validation-for="Email" class="text-danger"></span>
                             </div>
                         </div>
 
-                        <div class="row mb-3">
+                        <div class="row g-4 mb-4">
                             <div class="col-md-6">
-                                <label asp-for="EmployeeId" class="form-label"></label>
-                                <input asp-for="EmployeeId" class="form-control" placeholder="Enter employee ID (optional)" />
+                                <label asp-for="EmployeeId" class="form-label fw-bold text-muted small">Employee ID</label>
+                                <input asp-for="EmployeeId" class="form-control shadow-sm" placeholder="Enter employee ID (optional)" />
                                 <span asp-validation-for="EmployeeId" class="text-danger"></span>
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="PhoneNumber" class="form-label"></label>
-                                <input asp-for="PhoneNumber" class="form-control" placeholder="Enter phone number (optional)" />
+                                <label asp-for="PhoneNumber" class="form-label fw-bold text-muted small">Phone Number</label>
+                                <input asp-for="PhoneNumber" class="form-control shadow-sm" placeholder="Enter phone number (optional)" />
                                 <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label asp-for="DepartmentId" class="form-label"></label>
-                            <select asp-for="DepartmentId" asp-items="ViewBag.Departments" class="form-select">
+                        <div class="mb-4">
+                            <label asp-for="DepartmentId" class="form-label fw-bold text-muted small">Department <span class="text-danger">*</span></label>
+                            <select asp-for="DepartmentId" asp-items="ViewBag.Departments" class="form-select shadow-sm">
                                 <option value="">-- Select Department --</option>
                             </select>
                             <span asp-validation-for="DepartmentId" class="text-danger"></span>
                         </div>
 
-                        <div class="row mb-3">
+                        <div class="row g-4 mb-4">
                             <div class="col-md-6">
-                                <label asp-for="Password" class="form-label"></label>
-                                <input asp-for="Password" class="form-control" placeholder="Enter password (min 6 characters)" />
+                                <label asp-for="Password" class="form-label fw-bold text-muted small">Password <span class="text-danger">*</span></label>
+                                <input asp-for="Password" class="form-control shadow-sm" placeholder="Enter password (min 6 characters)" />
                                 <span asp-validation-for="Password" class="text-danger"></span>
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="ConfirmPassword" class="form-label"></label>
-                                <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm password" />
+                                <label asp-for="ConfirmPassword" class="form-label fw-bold text-muted small">Confirm Password <span class="text-danger">*</span></label>
+                                <input asp-for="ConfirmPassword" class="form-control shadow-sm" placeholder="Confirm password" />
                                 <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                             </div>
                         </div>
 
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>Note:</strong> The teacher will be created with "Pending" status. You can approve them from the Teachers list.
+                        <div class="alert alert-info border-0 shadow-sm">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-info bg-opacity-10 p-2 rounded-circle text-info me-3">
+                                    <i class="fas fa-info-circle"></i>
+                                </div>
+                                <div class="small">
+                                    <strong>Note:</strong> The teacher will be created with "Pending" status. You can approve them from the Teachers list.
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="d-flex justify-content-between mt-4">
-                            <a asp-action="Teachers" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>Back to Teachers
+                        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                            <a asp-action="Teachers" class="btn btn-outline-secondary px-4">
+                                <i class="fas fa-times me-2"></i>Cancel
                             </a>
                             <div>
                                 <button type="submit" id="saveOnlyBtn" name="action" value="save" class="btn btn-outline-primary me-2">
