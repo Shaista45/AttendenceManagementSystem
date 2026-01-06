@@ -83,14 +83,47 @@ namespace AttendenceManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                department.CreatedAt = DateTime.UtcNow;
-                // Use the DbSet to add the entity so the correct EF Core Add method is used
-                _context.Departments.Add(department);
-                await _context.SaveChangesAsync();
-                ShowMessage("Department created successfully!");
-                return RedirectToAction(nameof(Departments));
+                try
+                {
+                    // Check for duplicate code
+                    if (await _context.Departments.AnyAsync(d => d.Code == department.Code))
+                    {
+                        return Json(new { 
+                            success = false, 
+                            message = "Department code already exists." 
+                        });
+                    }
+
+                    department.CreatedAt = DateTime.UtcNow;
+                    _context.Departments.Add(department);
+                    await _context.SaveChangesAsync();
+                    
+                    // Return JSON for AJAX
+                    return Json(new { 
+                        success = true, 
+                        message = "Department created successfully!",
+                        departmentId = department.Id
+                    });
+                }
+                catch (Exception ex)
+                {
+                    return Json(new { 
+                        success = false, 
+                        message = $"Error: {ex.Message}" 
+                    });
+                }
             }
-            return View(department);
+            
+            // Return validation errors as JSON
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+            return Json(new { 
+                success = false, 
+                message = "Validation failed", 
+                errors = errors 
+            });
         }
 
         public async Task<IActionResult>EditDepartment(int? id)
@@ -120,7 +153,7 @@ namespace AttendenceManagementSystem.Controllers
         public async Task<IActionResult> EditDepartment(int id, Department department)
         {
             if (id != department.Id)
-                return NotFound();
+                return Json(new { success = false, message = "Invalid Department ID." });
 
             if (ModelState.IsValid)
             {
@@ -128,17 +161,31 @@ namespace AttendenceManagementSystem.Controllers
                 {
                     _context.Update(department);
                     await _context.SaveChangesAsync();
-                    ShowMessage("Department updated successfully!");
+                    
+                    // Return JSON for AJAX
+                    return Json(new { 
+                        success = true, 
+                        message = "Department updated successfully!" 
+                    });
                 }
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!DepartmentExists(department.Id))
-                        return NotFound();
+                        return Json(new { success = false, message = "Department not found." });
                     throw;
                 }
-                return RedirectToAction(nameof(Departments));
             }
-            return View("~/Views/Admin/Departments/EditDepartment.cshtml",department);
+            
+            // Return validation errors as JSON
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+            return Json(new { 
+                success = false, 
+                message = "Validation failed", 
+                errors = errors 
+            });
         }
 
         public async Task<IActionResult> ViewDepartment(int? id)
@@ -683,7 +730,7 @@ namespace AttendenceManagementSystem.Controllers
         #region Student Management
         
         // UPDATE THIS METHOD
-      public async Task<IActionResult> Students(int? batchId, int? sectionId, string search)
+      public async Task<IActionResult> Students(int? departmentId, int? batchId, int? sectionId, string search)
         {
             // 1. Base Query
             var query = _context.Students
@@ -693,6 +740,11 @@ namespace AttendenceManagementSystem.Controllers
                 .AsQueryable();
 
             // 2. Apply Filters
+            if (departmentId.HasValue)
+            {
+                query = query.Where(s => s.DepartmentId == departmentId.Value);
+            }
+
             if (batchId.HasValue)
             {
                 query = query.Where(s => s.BatchId == batchId.Value);
@@ -715,18 +767,44 @@ namespace AttendenceManagementSystem.Controllers
 
             // 3. Populate Dropdowns (Preserve Selection)
             
-            // Batches: Always load all batches for the filter
-            ViewData["Batches"] = new SelectList(await _context.Batches.OrderByDescending(b => b.Year).ToListAsync(), "Id", "Year", batchId);
+            // Departments: Load all departments
+            ViewData["Departments"] = new SelectList(
+                await _context.Departments.OrderBy(d => d.Name).ToListAsync(), 
+                "Id", "Name", departmentId);
 
-            // Sections: If a batch is selected, filter sections. Otherwise, show all or none.
-            IQueryable<Section> sectionsQuery = _context.Sections;
+            // Batches: Load distinct batches that have students, optionally filtered by department
+            var batchesQuery = _context.Batches
+                .Where(b => _context.Students.Any(s => s.BatchId == b.Id));
+            
+            if (departmentId.HasValue)
+            {
+                batchesQuery = batchesQuery.Where(b => _context.Students.Any(s => s.BatchId == b.Id && s.DepartmentId == departmentId.Value));
+            }
+            
+            ViewData["Batches"] = new SelectList(
+                await batchesQuery.Distinct().OrderByDescending(b => b.Year).ToListAsync(), 
+                "Id", "Year", batchId);
+
+            // Sections: Load sections based on selected batch and/or department
+            var sectionsQuery = _context.Sections
+                .Where(s => _context.Students.Any(st => st.SectionId == s.Id));
+            
             if (batchId.HasValue)
             {
                 sectionsQuery = sectionsQuery.Where(s => s.BatchId == batchId.Value);
             }
-            ViewData["Sections"] = new SelectList(await sectionsQuery.OrderBy(s => s.Name).ToListAsync(), "Id", "Name", sectionId);
+            else if (departmentId.HasValue)
+            {
+                // If no batch selected but department is, show sections from batches in that department
+                sectionsQuery = sectionsQuery.Where(s => _context.Students.Any(st => st.SectionId == s.Id && st.DepartmentId == departmentId.Value));
+            }
+            
+            ViewData["Sections"] = new SelectList(
+                await sectionsQuery.Distinct().OrderBy(s => s.Name).ToListAsync(), 
+                "Id", "Name", sectionId);
 
             // 4. Pass filter state to View for "No records" message
+            ViewBag.CurrentDepartmentId = departmentId;
             ViewBag.CurrentBatchId = batchId;
             ViewBag.CurrentSectionId = sectionId;
             ViewBag.CurrentSearch = search;
@@ -755,58 +833,73 @@ namespace AttendenceManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                // 1. Check if email already exists in the system
-                var existingUser = await _userManager.FindByEmailAsync(student.Email);
-                if (existingUser != null)
+                try
                 {
-                    ShowMessage("A user with this email already exists.", "error");
-                    await PopulateStudentDropdowns();
-                    return View("~/Views/Admin/CreateStudent.cshtml", student);
-                }
-
-                // 2. Create the Identity User (Login Account) first
-                var user = new ApplicationUser
-                {
-                    UserName = student.Email,
-                    Email = student.Email,
-                    EmailConfirmed = true // Admin created, so mark as confirmed
-                };
-
-                // Set a default strong password (Or generate one)
-                string defaultPassword = "Student@123"; 
-
-                var result = await _userManager.CreateAsync(user, defaultPassword);
-
-                if (result.Succeeded)
-                {
-                    // 3. Assign the "Student" role
-                    await _userManager.AddToRoleAsync(user, "Student");
-
-                    // 4. Link the new User ID to the Student entity
-                    // This fixes the Foreign Key Constraint error
-                    student.UserId = user.Id; 
-                    student.CreatedAt = DateTime.UtcNow;
-
-                    // 5. Save the Student Record
-                    _context.Students.Add(student);
-                    await _context.SaveChangesAsync();
-                
-                    ShowMessage($"Student created successfully! Default Password: {defaultPassword}");
-                    return RedirectToAction(nameof(Students));
-                }
-                else
-                {
-                    // If User creation failed (e.g. weak password), show errors
-                    foreach (var error in result.Errors)
+                    // 1. Check if email already exists in the system
+                    var existingUser = await _userManager.FindByEmailAsync(student.Email);
+                    if (existingUser != null)
                     {
-                        ModelState.AddModelError("", error.Description);
+                        return Json(new { success = false, message = "A user with this email already exists." });
                     }
+
+                    // 2. Create the Identity User (Login Account) first
+                    var user = new ApplicationUser
+                    {
+                        UserName = student.Email,
+                        Email = student.Email,
+                        EmailConfirmed = true
+                    };
+
+                    // Set a default strong password
+                    string defaultPassword = "Student@123"; 
+
+                    var result = await _userManager.CreateAsync(user, defaultPassword);
+
+                    if (result.Succeeded)
+                    {
+                        // 3. Assign the "Student" role
+                        await _userManager.AddToRoleAsync(user, "Student");
+
+                        // 4. Link the new User ID to the Student entity
+                        student.UserId = user.Id; 
+                        student.CreatedAt = DateTime.UtcNow;
+
+                        // 5. Save the Student Record
+                        _context.Students.Add(student);
+                        await _context.SaveChangesAsync();
+                    
+                        return Json(new { 
+                            success = true, 
+                            message = $"Student created successfully! Default Password: {defaultPassword}" 
+                        });
+                    }
+                    else
+                    {
+                        // If User creation failed
+                        var errors = result.Errors.Select(e => e.Description).ToList();
+                        return Json(new { 
+                            success = false, 
+                            message = "User creation failed", 
+                            errors = errors 
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return Json(new { success = false, message = $"Error: {ex.Message}" });
                 }
             }
             
-            // If we got here, something failed, reload the form
-            await PopulateStudentDropdowns();
-            return View("~/Views/Admin/CreateStudent.cshtml", student);
+            // Return validation errors as JSON
+            var validationErrors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+            return Json(new { 
+                success = false, 
+                message = "Validation failed", 
+                errors = validationErrors 
+            });
         }
    
 
@@ -905,10 +998,7 @@ namespace AttendenceManagementSystem.Controllers
         public async Task<IActionResult> EditStudent(int id, Student student)
         {
             if (id != student.Id)
-            {
-                ShowMessage("Invalid student data.", "error");
-                return RedirectToAction(nameof(Students));
-            }
+                return Json(new { success = false, message = "Invalid student ID." });
 
             if (ModelState.IsValid)
             {
@@ -916,10 +1006,7 @@ namespace AttendenceManagementSystem.Controllers
                 {
                     var existingStudent = await _context.Students.FindAsync(id);
                     if (existingStudent == null)
-                    {
-                        ShowMessage("Student not found.", "error");
-                        return RedirectToAction(nameof(Students));
-                    }
+                        return Json(new { success = false, message = "Student not found." });
 
                     // Update student properties
                     existingStudent.FullName = student.FullName;
@@ -932,28 +1019,25 @@ namespace AttendenceManagementSystem.Controllers
                     _context.Update(existingStudent);
                     await _context.SaveChangesAsync();
 
-                    ShowMessage("Student updated successfully!");
-                    return RedirectToAction(nameof(Students));
+                    return Json(new { success = true, message = "Student updated successfully!" });
                 }
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!await StudentExists(student.Id))
-                    {
-                        ShowMessage("Student not found.", "error");
-                    }
-                    else
-                    {
-                        ShowMessage("Error updating student. Please try again.", "error");
-                    }
+                        return Json(new { success = false, message = "Student not found." });
+                    return Json(new { success = false, message = "Error updating student. Please try again." });
                 }
                 catch (Exception ex)
                 {
-                    ShowMessage($"Error: {ex.Message}", "error");
+                    return Json(new { success = false, message = $"Error: {ex.Message}" });
                 }
             }
 
-            await PopulateStudentDropdowns(student.DepartmentId, student.BatchId);
-            return View("~/Views/Admin/Students/Edit.cshtml", student);
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+            return Json(new { success = false, message = "Validation failed", errors = errors });
         }
 
         // Delete Student - POST
@@ -1707,21 +1791,31 @@ namespace AttendenceManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Check if course code already exists
-                if (await _context.Courses.AnyAsync(c => c.Code == course.Code))
+                try
                 {
-                    ShowMessage("A course with this code already exists.", "error");
-                    return RedirectToAction(nameof(CreateDepartment));
-                }
+                    // Check if course code already exists
+                    if (await _context.Courses.AnyAsync(c => c.Code == course.Code))
+                    {
+                        return Json(new { success = false, message = "A course with this code already exists." });
+                    }
 
-                course.CreatedAt = DateTime.UtcNow;
-                _context.Courses.Add(course);
-                await _context.SaveChangesAsync();
-                ShowMessage("Course created successfully!");
-                return RedirectToAction(nameof(CreateDepartment));
+                    course.CreatedAt = DateTime.UtcNow;
+                    _context.Courses.Add(course);
+                    await _context.SaveChangesAsync();
+                    
+                    return Json(new { success = true, message = "Course created successfully!", courseId = course.Id });
+                }
+                catch (Exception ex)
+                {
+                    return Json(new { success = false, message = $"Error: {ex.Message}" });
+                }
             }
-            ShowMessage("Error creating course. Please check your input.", "error");
-            return RedirectToAction(nameof(CreateDepartment));
+            
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+            return Json(new { success = false, message = "Validation failed", errors = errors });
         }
 
         [HttpPost]
@@ -1785,7 +1879,7 @@ namespace AttendenceManagementSystem.Controllers
         public async Task<IActionResult> EditCourse(int id, Course course)
         {
             if (id != course.Id)
-                return NotFound();
+                return Json(new { success = false, message = "Invalid course ID." });
 
             if (ModelState.IsValid)
             {
@@ -1794,25 +1888,27 @@ namespace AttendenceManagementSystem.Controllers
                     // Check if course code is being changed and already exists
                     if (await _context.Courses.AnyAsync(c => c.Code == course.Code && c.Id != course.Id))
                     {
-                        ShowMessage("A course with this code already exists.", "error");
-                        ViewData["DepartmentId"] = new SelectList(await _context.Departments.ToListAsync(), "Id", "Name", course.DepartmentId);
-                        return View("~/Views/Admin/Courses/EditCourse.cshtml", course);
+                        return Json(new { success = false, message = "A course with this code already exists." });
                     }
 
                     _context.Update(course);
                     await _context.SaveChangesAsync();
-                    ShowMessage("Course updated successfully!");
+                    
+                    return Json(new { success = true, message = "Course updated successfully!" });
                 }
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!_context.Courses.Any(e => e.Id == course.Id))
-                        return NotFound();
+                        return Json(new { success = false, message = "Course not found." });
                     throw;
                 }
-                return RedirectToAction(nameof(Departments));
             }
-            ViewData["DepartmentId"] = new SelectList(await _context.Departments.ToListAsync(), "Id", "Name", course.DepartmentId);
-            return View("~/Views/Admin/Courses/EditCourse.cshtml", course);
+            
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+            return Json(new { success = false, message = "Validation failed", errors = errors });
         }
 
         [HttpPost]
@@ -1990,7 +2086,7 @@ namespace AttendenceManagementSystem.Controllers
         public async Task<IActionResult> EditTeacher(int id, Teacher teacher)
         {
             if (id != teacher.Id)
-                return NotFound();
+                return Json(new { success = false, message = "Invalid teacher ID." });
 
             if (ModelState.IsValid)
             {
@@ -1998,18 +2094,26 @@ namespace AttendenceManagementSystem.Controllers
                 {
                     _context.Update(teacher);
                     await _context.SaveChangesAsync();
-                    ShowMessage("Teacher updated successfully!");
-                    return RedirectToAction("EditDepartment", new { id = teacher.DepartmentId });
+                    
+                    return Json(new { 
+                        success = true, 
+                        message = "Teacher updated successfully!",
+                        departmentId = teacher.DepartmentId 
+                    });
                 }
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!_context.Teachers.Any(t => t.Id == teacher.Id))
-                        return NotFound();
+                        return Json(new { success = false, message = "Teacher not found." });
                     throw;
                 }
             }
-            ViewBag.Departments = new SelectList(await _context.Departments.ToListAsync(), "Id", "Name", teacher.DepartmentId);
-            return View("~/Views/Admin/Teachers/EditTeacher.cshtml", teacher);
+            
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+            return Json(new { success = false, message = "Validation failed", errors = errors });
         }
         #endregion
 
@@ -2062,9 +2166,7 @@ namespace AttendenceManagementSystem.Controllers
                     var existingUser = await _userManager.FindByEmailAsync(model.Email);
                     if (existingUser != null)
                     {
-                        ShowMessage("A user with this email already exists.", "error");
-                        ViewBag.Departments = new SelectList(await _context.Departments.ToListAsync(), "Id", "Name", model.DepartmentId);
-                        return View("~/Views/Admin/Teachers/Create.cshtml", model);
+                        return Json(new { success = false, message = "A user with this email already exists." });
                     }
 
                     // Create ApplicationUser
@@ -2098,33 +2200,31 @@ namespace AttendenceManagementSystem.Controllers
                         _context.Teachers.Add(teacher);
                         await _context.SaveChangesAsync();
 
-                        ShowMessage("Teacher created successfully! Status: Pending Approval");
-                        
-                        // Check which button was clicked
-                        if (action == "saveAndAssign")
-                        {
-                            return RedirectToAction(nameof(AssignCourses), new { id = teacher.Id });
-                        }
-                        
-                        return RedirectToAction(nameof(Teachers));
+                        return Json(new { 
+                            success = true, 
+                            message = "Teacher created successfully! Status: Pending Approval",
+                            teacherId = teacher.Id,
+                            action = action
+                        });
                     }
                     else
                     {
-                        foreach (var error in result.Errors)
-                        {
-                            ModelState.AddModelError("", error.Description);
-                        }
+                        var errors = result.Errors.Select(e => e.Description).ToList();
+                        return Json(new { success = false, message = "User creation failed", errors = errors });
                     }
                 }
                 catch (Exception ex)
                 {
-                    ShowMessage($"Error creating teacher: {ex.Message}", "error");
                     _logger.LogError(ex, "Error creating teacher");
+                    return Json(new { success = false, message = $"Error: {ex.Message}" });
                 }
             }
 
-            ViewBag.Departments = new SelectList(await _context.Departments.ToListAsync(), "Id", "Name", model.DepartmentId);
-            return View("~/Views/Admin/Teachers/Create.cshtml", model);
+            var validationErrors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+            return Json(new { success = false, message = "Validation failed", errors = validationErrors });
         }
 
         public async Task<IActionResult> EditTeacherInfo(int? id)

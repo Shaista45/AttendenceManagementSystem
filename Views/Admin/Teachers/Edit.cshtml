@@ -5,6 +5,9 @@
 }
 
 <div class="container-fluid py-4">
+    <!-- Alert Container -->
+    <div id="formAlert"></div>
+
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card shadow-sm">
@@ -14,7 +17,7 @@
                     </h4>
                 </div>
                 <div class="card-body">
-                    <form asp-action="EditTeacherInfo" method="post">
+                    <form id="editTeacherForm" asp-action="EditTeacherInfo" method="post">
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="Id" />
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
@@ -62,7 +65,7 @@
                             <a asp-action="Teachers" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left me-2"></i>Back to Teachers
                             </a>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" id="updateBtn" class="btn btn-primary">
                                 <i class="fas fa-save me-2"></i>Update Teacher
                             </button>
                         </div>
@@ -75,4 +78,73 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function() {
+            // AJAX form submission
+            $('#editTeacherForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                var form = $(this);
+                var btn = $('#updateBtn');
+                var originalText = btn.html();
+                
+                // Disable button and change text
+                btn.prop('disabled', true).text('Updating...');
+                
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success message
+                            $('#formAlert').html(
+                                '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                                '<i class="fas fa-check-circle me-2"></i>' + response.message +
+                                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                                '</div>'
+                            );
+                            
+                            // Auto-dismiss after 5 seconds and redirect
+                            setTimeout(function() {
+                                window.location.href = '@Url.Action("Teachers", "Admin")';
+                            }, 2000);
+                        } else {
+                            // Show error message
+                            var errorHtml = '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                                '<i class="fas fa-exclamation-triangle me-2"></i><strong>Error:</strong> ' + response.message;
+                            
+                            if (response.errors && response.errors.length > 0) {
+                                errorHtml += '<ul class="mb-0 mt-2">';
+                                response.errors.forEach(function(error) {
+                                    errorHtml += '<li>' + error + '</li>';
+                                });
+                                errorHtml += '</ul>';
+                            }
+                            
+                            errorHtml += '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+                            $('#formAlert').html(errorHtml);
+                            
+                            // Re-enable button
+                            btn.prop('disabled', false).html(originalText);
+                            
+                            // Auto-dismiss after 10 seconds
+                            setTimeout(function() {
+                                $('.alert').alert('close');
+                            }, 10000);
+                        }
+                    },
+                    error: function() {
+                        $('#formAlert').html(
+                            '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                            '<i class="fas fa-exclamation-triangle me-2"></i>An unexpected error occurred. Please try again.' +
+                            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                            '</div>'
+                        );
+                        btn.prop('disabled', false).html(originalText);
+                    }
+                });
+            });
+        });
+    </script>
 }

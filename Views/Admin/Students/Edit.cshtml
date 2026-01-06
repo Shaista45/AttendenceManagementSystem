@@ -13,6 +13,9 @@
         </a>
     </div>
 
+    <!-- Alert Container -->
+    <div id="formAlert"></div>
+
     <div class="row">
         <div class="col-md-8">
             <div class="card shadow">
@@ -20,7 +23,7 @@
                     <h6 class="m-0 font-weight-bold text-primary">Student Information</h6>
                 </div>
                 <div class="card-body">
-                    <form method="post" asp-action="EditStudent">
+                    <form id="editStudentForm" method="post" asp-action="EditStudent">
                         <input type="hidden" asp-for="Id" />
                         <input type="hidden" asp-for="UserId" />
                         <input type="hidden" asp-for="RollNumber" />
@@ -103,7 +106,7 @@
                         </div>
 
                         <div class="form-group mt-4">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" id="saveBtn" class="btn btn-primary">
                                 <i class="fas fa-save me-2"></i>Save Changes
                             </button>
                             <a asp-action="Students" class="btn btn-secondary">
@@ -137,6 +140,71 @@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
         $(document).ready(function() {
+            // AJAX form submission
+            $('#editStudentForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                var form = $(this);
+                var btn = $('#saveBtn');
+                
+                // Disable button and change text
+                btn.prop('disabled', true).text('Saving...');
+                
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success message
+                            $('#formAlert').html(
+                                '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                                '<i class="fas fa-check-circle me-2"></i>' + response.message +
+                                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                                '</div>'
+                            );
+                            
+                            // Auto-dismiss after 5 seconds and redirect
+                            setTimeout(function() {
+                                window.location.href = '@Url.Action("Students", "Admin")';
+                            }, 2000);
+                        } else {
+                            // Show error message
+                            var errorHtml = '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                                '<i class="fas fa-exclamation-triangle me-2"></i><strong>Error:</strong> ' + response.message;
+                            
+                            if (response.errors && response.errors.length > 0) {
+                                errorHtml += '<ul class="mb-0 mt-2">';
+                                response.errors.forEach(function(error) {
+                                    errorHtml += '<li>' + error + '</li>';
+                                });
+                                errorHtml += '</ul>';
+                            }
+                            
+                            errorHtml += '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+                            $('#formAlert').html(errorHtml);
+                            
+                            // Re-enable button
+                            btn.prop('disabled', false).html('<i class="fas fa-save me-2"></i>Save Changes');
+                            
+                            // Auto-dismiss after 10 seconds
+                            setTimeout(function() {
+                                $('.alert').alert('close');
+                            }, 10000);
+                        }
+                    },
+                    error: function() {
+                        $('#formAlert').html(
+                            '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                            '<i class="fas fa-exclamation-triangle me-2"></i>An unexpected error occurred. Please try again.' +
+                            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                            '</div>'
+                        );
+                        btn.prop('disabled', false).html('<i class="fas fa-save me-2"></i>Save Changes');
+                    }
+                });
+            });
+
             // Load batches when department is selected
             $('#departmentSelect').on('change', function() {
                 var departmentId = $(this).val();

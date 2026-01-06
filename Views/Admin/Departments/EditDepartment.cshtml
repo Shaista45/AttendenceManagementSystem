@@ -45,6 +45,9 @@
                     </h6>
                 </div>
                 <div class="card-body bg-light bg-opacity-10 p-4">
+                    <!-- Alert Container -->
+                    <div id="editDepartmentAlert"></div>
+
                     <form asp-action="EditDepartment" method="post" id="departmentForm">
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="Id" />
@@ -320,6 +323,63 @@
                     $(this).remove();
                 });
             }, 5000);
+            
+            // ========================================
+            // HELPER FUNCTION
+            // ========================================
+            function showMessage(containerId, message, isSuccess) {
+                var colorClass = isSuccess ? 'alert-success' : 'alert-danger';
+                var icon = isSuccess ? 'fa-check-circle' : 'fa-exclamation-circle';
+                var html = `
+                    <div class="alert ${colorClass} alert-dismissible fade show" role="alert">
+                        <i class="fas ${icon} me-2"></i>${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>`;
+                $('#' + containerId).html(html);
+                
+                if(isSuccess) {
+                    setTimeout(function() {
+                        $('#' + containerId).find('.alert').fadeOut();
+                    }, 3000);
+                }
+            }
+
+            // ========================================
+            // 0. EDIT DEPARTMENT AJAX FORM
+            // ========================================
+            $('#departmentForm').on('submit', function(e) {
+                e.preventDefault();
+                var form = $(this);
+                var btn = $('#saveDepartmentBtn');
+                var originalBtnText = btn.html();
+
+                if (!form.valid()) return;
+
+                btn.prop('disabled', true).text('Saving...');
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function(response) {
+                        btn.prop('disabled', false).html(originalBtnText);
+                        
+                        if (response.success) {
+                            showMessage('editDepartmentAlert', response.message, true);
+                        } else {
+                            var errorMsg = response.message || 'Update failed.';
+                            if(response.errors && response.errors.length > 0) {
+                                errorMsg += '<br/>' + response.errors.join('<br/>');
+                            }
+                            showMessage('editDepartmentAlert', errorMsg, false);
+                        }
+                    },
+                    error: function() {
+                        btn.prop('disabled', false).html(originalBtnText);
+                        showMessage('editDepartmentAlert', 'Server error. Please try again.', false);
+                    }
+                });
+            });
             
             // ==========================================
             // FIX: Move modals to body to prevent backdrop z-index issues

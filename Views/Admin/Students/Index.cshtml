@@ -25,9 +25,19 @@
         <div class="card-body bg-light bg-opacity-50 py-3">
             <form method="get" asp-action="Students" id="filterForm">
                 <div class="row g-3 align-items-end">
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted text-uppercase fw-bold">Department</label>
+                        <select name="departmentId" 
+                                class="form-select border-0 shadow-sm" 
+                                asp-items="@(ViewData["Departments"] as SelectList)"
+                                onchange="document.getElementById('batchFilter').value=''; document.getElementById('sectionFilter').value=''; this.form.submit()">
+                            <option value="">All Departments</option>
+                        </select>
+                    </div>
+
                     <div class="col-md-3">
                         <label class="form-label small text-muted text-uppercase fw-bold">Session (Batch)</label>
-                        <select name="batchId" 
+                        <select name="batchId" id="batchFilter"
                                 class="form-select border-0 shadow-sm" 
                                 asp-items="@(ViewData["Batches"] as SelectList)"
                                 onchange="document.getElementById('sectionFilter').value=''; this.form.submit()">
@@ -35,7 +45,7 @@
                         </select>
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label small text-muted text-uppercase fw-bold">Section</label>
                         <select name="sectionId" id="sectionFilter"
                                 class="form-select border-0 shadow-sm" 
@@ -44,18 +54,6 @@
                             <option value="">All Sections</option>
                         </select>
                     </div>
-                    <!--  filter by department button -->
-                    <div class="col-md-2">
-                        <label class="form-label small text-muted text-uppercase fw-bold">Department</label>
-                        <select name="departmentId" 
-                                class="form-select border-0 shadow-sm" 
-                                asp-items="@(ViewData["Departments"] as SelectList)"
-                                onchange="this.form.submit()">
-                            <option value="">All Departments</option>
-                        </select>
-                    </div>
-
-                     <!-- when any name , roll number, or e mail is entered the related student should be shown other wise print message that student not found -->
 
                     <div class="col-md-4">
                         <label class="form-label small text-muted text-uppercase fw-bold">Search</label>

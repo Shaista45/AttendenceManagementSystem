@@ -1,0 +1,145 @@
+@model AttendenceManagementSystem.Models.Department
+@{
+    ViewData["Title"] = "Create Department";
+}
+
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 fw-bold text-primary">
+                <i class="fas fa-plus-circle me-2"></i>Create New Department
+            </h1>
+            <p class="text-muted small mb-0">Add a new department to the system</p>
+        </div>
+        <a class="btn btn-outline-secondary btn-sm shadow-sm" asp-action="Departments">
+            <i class="fas fa-arrow-left me-2"></i>Back to List
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="m-0 fw-bold text-primary">
+                        <i class="fas fa-info-circle me-2"></i>Department Information
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Alert Container -->
+                    <div id="departmentFormAlert"></div>
+
+                    <form asp-action="CreateDepartment" method="post" id="createDepartmentForm">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label asp-for="Name" class="form-label fw-bold">Department Name <span class="text-danger">*</span></label>
+                                <input asp-for="Name" class="form-control shadow-sm" placeholder="e.g., Computer Science" />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Code" class="form-label fw-bold">Department Code <span class="text-danger">*</span></label>
+                                <input asp-for="Code" class="form-control shadow-sm" placeholder="e.g., CS" maxlength="10" />
+                                <span asp-validation-for="Code" class="text-danger"></span>
+                                <small class="form-text text-muted">Short code for IDs (e.g., 2023-CS-01)</small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-3 mt-4 border-top pt-3">
+                            <a class="btn btn-light border px-4" asp-action="Departments">Cancel</a>
+                            <button type="submit" class="btn btn-primary px-4 shadow-sm fw-bold" id="submitBtn">
+                                <i class="fas fa-save me-2"></i>Create Department
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            
+            // ========================================
+            // HELPER FUNCTION
+            // ========================================
+            function showMessage(containerId, message, isSuccess) {
+                var colorClass = isSuccess ? 'alert-success' : 'alert-danger';
+                var icon = isSuccess ? 'fa-check-circle' : 'fa-exclamation-circle';
+                var html = `
+                    <div class="alert ${colorClass} alert-dismissible fade show" role="alert">
+                        <i class="fas ${icon} me-2"></i>${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>`;
+                $('#' + containerId).html(html);
+                
+                // Auto-dismiss success messages
+                if(isSuccess) {
+                    setTimeout(function() {
+                        $('#' + containerId).find('.alert').fadeOut();
+                    }, 3000);
+                }
+            }
+
+            // ========================================
+            // CREATE DEPARTMENT AJAX FORM
+            // ========================================
+            $('#createDepartmentForm').on('submit', function(e) {
+                e.preventDefault(); // ⚠️ CRITICAL: Prevent default form submission
+                
+                var form = $(this);
+                var btn = $('#submitBtn');
+                var originalBtnText = btn.html();
+
+                // Validate form first
+                if (!form.valid()) return;
+
+                // Disable button
+                btn.prop('disabled', true).text('Creating...');
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function(response) {
+                        btn.prop('disabled', false).html(originalBtnText);
+                        
+                        if (response.success) {
+                            // SUCCESS: Show message
+                            showMessage('departmentFormAlert', response.message, true);
+                            
+                            // Clear form
+                            form[0].reset();
+                            
+                            // Optional: Redirect to list after delay
+                            setTimeout(function() {
+                                window.location.href = '@Url.Action("Departments", "Admin")';
+                            }, 1500);
+                            
+                        } else {
+                            // ERROR: Show validation/error messages
+                            var errorMsg = response.message || 'Operation failed.';
+                            if(response.errors && response.errors.length > 0) {
+                                errorMsg += '<br/>' + response.errors.join('<br/>');
+                            }
+                            showMessage('departmentFormAlert', errorMsg, false);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        btn.prop('disabled', false).html(originalBtnText);
+                        showMessage('departmentFormAlert', 'Server error. Please try again.', false);
+                    }
+                });
+            });
+        });
+    </script>
+}
+
+<style>
+    .x-small { font-size: 0.75rem; letter-spacing: 0.05em; }
+</style>

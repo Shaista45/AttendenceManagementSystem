@@ -13,6 +13,9 @@
         </a>
     </div>
 
+    <!-- Alert Container -->
+    <div id="formAlert"></div>
+
     <div class="row">
         <div class="col-md-12">
             <div class="card shadow mb-4">
@@ -114,6 +117,71 @@
     
     <script>
         $(document).ready(function() {
+            // AJAX form submission
+            $('#studentForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                var form = $(this);
+                var btn = $('#saveStudentBtn');
+                
+                // Disable button and change text
+                btn.prop('disabled', true).text('Saving...');
+                
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success message
+                            $('#formAlert').html(
+                                '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                                '<i class="fas fa-check-circle me-2"></i>' + response.message +
+                                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                                '</div>'
+                            );
+                            
+                            // Auto-dismiss after 5 seconds and redirect
+                            setTimeout(function() {
+                                window.location.href = '@Url.Action("Students", "Admin")';
+                            }, 2000);
+                        } else {
+                            // Show error message
+                            var errorHtml = '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                                '<i class="fas fa-exclamation-triangle me-2"></i><strong>Error:</strong> ' + response.message;
+                            
+                            if (response.errors && response.errors.length > 0) {
+                                errorHtml += '<ul class="mb-0 mt-2">';
+                                response.errors.forEach(function(error) {
+                                    errorHtml += '<li>' + error + '</li>';
+                                });
+                                errorHtml += '</ul>';
+                            }
+                            
+                            errorHtml += '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+                            $('#formAlert').html(errorHtml);
+                            
+                            // Re-enable button
+                            btn.prop('disabled', false).text('Save Student');
+                            
+                            // Auto-dismiss after 10 seconds
+                            setTimeout(function() {
+                                $('.alert').alert('close');
+                            }, 10000);
+                        }
+                    },
+                    error: function() {
+                        $('#formAlert').html(
+                            '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                            '<i class="fas fa-exclamation-triangle me-2"></i>An unexpected error occurred. Please try again.' +
+                            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                            '</div>'
+                        );
+                        btn.prop('disabled', false).text('Save Student');
+                    }
+                });
+            });
+
             // Load batches when department is selected
             $('#departmentSelect').on('change', function() {
                 var departmentId = $(this).val();
@@ -166,27 +234,6 @@
                         }
                     });
                 }
-            });
-
-            // Form validation and submission
-            $('#studentForm').on('submit', function(e) {
-                // Ensure dependent dropdowns are validated if they are empty
-                var departmentId = $('#departmentSelect').val();
-                var batchId = $('#batchSelect').val();
-                var sectionId = $('#sectionSelect').val();
-                
-                if (!departmentId || !batchId || !sectionId) {
-                    // Let the unobtrusive validation handle showing errors, but we can also alert if needed
-                    // Usually unobtrusive validation handles required fields automatically if configured
-                }
-                
-                if ($(this).valid()) {
-                    // Disable button to prevent double submission
-                    $('#saveStudentBtn').prop('disabled', true)
-                        .html('<i class="fas fa-spinner fa-spin me-2"></i>Saving...');
-                    return true;
-                }
-                return false;
             });
         });
     </script>
