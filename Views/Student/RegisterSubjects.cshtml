@@ -8,6 +8,9 @@
         <h1 class="h3 mb-0 text-gray-800">Register Subjects</h1>
     </div>
 
+    <!-- Alert Container -->
+    <div id="courseAlert"></div>
+
     @if (Model.AllCoursesRegistered)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -22,10 +25,10 @@
             <h6 class="m-0 font-weight-bold text-primary">Select Criteria</h6>
         </div>
         <div class="card-body">
-            <form asp-action="RegisterSubjects" method="get" class="row g-3">
+            <form asp-action="RegisterSubjects" method="get" class="row g-3" id="filterForm">
                 <div class="col-md-5">
     <label class="form-label fw-bold">Semester</label>
-    <select name="semester" class="form-select" onchange="this.form.submit()">
+    <select name="semester" class="form-select" id="semesterSelect">
         <option value="">-- Select Semester --</option>
         @if (Model.Semesters != null && Model.Semesters.Any())
         {
@@ -49,7 +52,7 @@
 </div>
                 <div class="col-md-5">
                     <label class="form-label fw-bold">Section</label>
-                    <select name="sectionId" class="form-select" onchange="this.form.submit()">
+                    <select name="sectionId" class="form-select" id="sectionSelect">
                         <option value="">-- Select Section --</option>
                         @foreach (var sec in Model.Sections)
                         {
@@ -120,7 +123,8 @@
                                     <td class="text-center align-middle">
                                         @if (course.IsRegistered)
                                         {
-                                            <form asp-action="UnregisterCourse" method="post">
+                                            <form class="unregister-form" data-course-id="@course.CourseId">
+                                                @Html.AntiForgeryToken()
                                                 <input type="hidden" name="courseId" value="@course.CourseId" />
                                                 <input type="hidden" name="semester" value="@Model.SelectedSemester" />
                                                 <input type="hidden" name="sectionId" value="@Model.SelectedSectionId" />
@@ -131,7 +135,8 @@
                                         }
                                         else
                                         {
-                                            <form asp-action="RegisterCourse" method="post">
+                                            <form class="register-form" data-course-id="@course.CourseId">
+                                                @Html.AntiForgeryToken()
                                                 <input type="hidden" name="courseId" value="@course.CourseId" />
                                                 <input type="hidden" name="semester" value="@Model.SelectedSemester" />
                                                 <input type="hidden" name="sectionId" value="@Model.SelectedSectionId" />
@@ -156,3 +161,138 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Display alert messages
+            function showAlert(message, type) {
+                const alertHtml = `
+                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2"></i>
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>`;
+                $('#courseAlert').html(alertHtml);
+                
+                // Auto-dismiss after 5 seconds
+                setTimeout(function() {
+                    $('.alert').fadeOut(500, function() { $(this).remove(); });
+                }, 5000);
+            }
+
+            // Handle filter form changes - AJAX reload
+            $('#semesterSelect, #sectionSelect').on('change', function () {
+                $('#filterForm').submit();
+            });
+
+            // Handle Register Course - AJAX
+            $(document).on('submit', '.register-form', function (e) {
+                e.preventDefault();
+                const form = $(this);
+                const button = form.find('button[type="submit"]');
+                const originalHtml = button.html();
+                
+                // Disable button and show loading
+                button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Registering...');
+
+                $.ajax({
+                    url: '@Url.Action("RegisterCourse", "Student")',
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function (response) {
+                        if (response.success) {
+                            showAlert(response.message, 'success');
+                            
+                            // Update button to Unregister
+                            const courseId = form.data('course-id');
+                            const newForm = `
+                                <form class="unregister-form" data-course-id="${courseId}">
+                                    ${form.find('input[name="__RequestVerificationToken"]').prop('outerHTML')}
+                                    <input type="hidden" name="courseId" value="${courseId}" />
+                                    <input type="hidden" name="semester" value="${form.find('input[name="semester"]').val()}" />
+                                    <input type="hidden" name="sectionId" value="${form.find('input[name="sectionId"]').val()}" />
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-times me-1"></i> Unregister
+                                    </button>
+                                </form>`;
+                            form.replaceWith(newForm);
+                            
+                            // Update registered count badge
+                            const registeredBadge = $('.badge.bg-success');
+                            if (registeredBadge.length) {
+                                const currentCount = parseInt(registeredBadge.text());
+                                registeredBadge.text(currentCount + 1);
+                            }
+                        } else {
+                            showAlert(response.message, 'danger');
+                            button.prop('disabled', false).html(originalHtml);
+                        }
+                    },
+                    error: function (xhr) {
+                        let errorMsg = 'An error occurred while registering for the course.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+                        showAlert(errorMsg, 'danger');
+                        button.prop('disabled', false).html(originalHtml);
+                    }
+                });
+            });
+
+            // Handle Unregister Course - AJAX
+            $(document).on('submit', '.unregister-form', function (e) {
+                e.preventDefault();
+                const form = $(this);
+                const button = form.find('button[type="submit"]');
+                const originalHtml = button.html();
+                
+                // Disable button and show loading
+                button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Unregistering...');
+
+                $.ajax({
+                    url: '@Url.Action("UnregisterCourse", "Student")',
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function (response) {
+                        if (response.success) {
+                            showAlert(response.message, 'success');
+                            
+                            // Update button to Register
+                            const courseId = form.data('course-id');
+                            const newForm = `
+                                <form class="register-form" data-course-id="${courseId}">
+                                    ${form.find('input[name="__RequestVerificationToken"]').prop('outerHTML')}
+                                    <input type="hidden" name="courseId" value="${courseId}" />
+                                    <input type="hidden" name="semester" value="${form.find('input[name="semester"]').val()}" />
+                                    <input type="hidden" name="sectionId" value="${form.find('input[name="sectionId"]').val()}" />
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-plus me-1"></i> Register
+                                    </button>
+                                </form>`;
+                            form.replaceWith(newForm);
+                            
+                            // Update registered count badge
+                            const registeredBadge = $('.badge.bg-success');
+                            if (registeredBadge.length) {
+                                const currentCount = parseInt(registeredBadge.text());
+                                registeredBadge.text(currentCount - 1);
+                            }
+                        } else {
+                            showAlert(response.message, 'danger');
+                            button.prop('disabled', false).html(originalHtml);
+                        }
+                    },
+                    error: function (xhr) {
+                        let errorMsg = 'An error occurred while unregistering from the course.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+                        showAlert(errorMsg, 'danger');
+                        button.prop('disabled', false).html(originalHtml);
+                    }
+                });
+            });
+        });
+    </script>
+}

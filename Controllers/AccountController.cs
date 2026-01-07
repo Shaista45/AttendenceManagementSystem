@@ -67,16 +67,17 @@ namespace AttendenceManagementSystem.Controllers
                     return View(model);
                 }
                 
+                // Use RememberMe to make the cookie persistent
                 var result = await _signInManager.PasswordSignInAsync(
                     user,
                     model.Password,
-                    model.RememberMe,
+                    isPersistent: model.RememberMe, // This makes cookie persist across browser sessions
                     lockoutOnFailure: true
                 );
 
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation("Login successful for user: {Email}", credential);
+                    _logger.LogInformation("Login successful for user: {Email} (RememberMe: {RememberMe})", credential, model.RememberMe);
                     
                     if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                     {
@@ -287,7 +288,8 @@ namespace AttendenceManagementSystem.Controllers
                             _context.Students.Add(student);
                             await _context.SaveChangesAsync();
 
-                            await _signInManager.SignInAsync(user, isPersistent: false);
+                            // Sign in with persistent cookie for better UX
+                            await _signInManager.SignInAsync(user, isPersistent: true);
                             return RedirectToAction("Dashboard", "Student");
                         }
                         else if (model.Role == "Teacher")

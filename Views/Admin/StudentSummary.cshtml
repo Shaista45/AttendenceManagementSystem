@@ -27,7 +27,7 @@
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label class="form-label text-uppercase x-small fw-bold text-muted">Course *</label>
-                        <select name="courseId" class="form-select border-0 shadow-sm" onchange="this.form.submit()" required>
+                        <select name="courseId" class="form-select border-0 shadow-sm" id="courseSelect" required>
                             <option value="">-- Select Course --</option>
                             @foreach (var course in Model.Courses)
                             {
@@ -40,7 +40,7 @@
 
                     <div class="col-md-2">
                         <label class="form-label text-uppercase x-small fw-bold text-muted">Batch *</label>
-                        <select name="batchId" class="form-select border-0 shadow-sm" onchange="this.form.submit()" required>
+                        <select name="batchId" class="form-select border-0 shadow-sm" id="batchSelect" required>
                             <option value="">-- Batch --</option>
                             @foreach (var batch in Model.Batches)
                             {
@@ -53,7 +53,7 @@
 
                     <div class="col-md-2">
                         <label class="form-label text-uppercase x-small fw-bold text-muted">Section *</label>
-                        <select name="sectionId" class="form-select border-0 shadow-sm" onchange="this.form.submit()" required>
+                        <select name="sectionId" class="form-select border-0 shadow-sm" id="sectionSelect" required>
                             <option value="">-- Section --</option>
                             @foreach (var sec in Model.Sections)
                             {
@@ -67,13 +67,13 @@
                     <div class="col-md-2">
                         <label class="form-label text-uppercase x-small fw-bold text-muted">From</label>
                         <input type="date" name="fromDate" value="@Model.FromDate.ToString("yyyy-MM-dd")" 
-                               class="form-control border-0 shadow-sm" onchange="this.form.submit()" />
+                               class="form-control border-0 shadow-sm" id="fromDateInput" />
                     </div>
                     <div class="col-md-2">
                         <label class="form-label text-uppercase x-small fw-bold text-muted">To</label>
                         <input type="date" name="toDate" value="@Model.ToDate.ToString("yyyy-MM-dd")" 
                                class="form-control border-0 shadow-sm" max="@DateTime.Now.ToString("yyyy-MM-dd")" 
-                               onchange="this.form.submit()" />
+                               id="toDateInput" />
                     </div>
 
                     <div class="col-md-1 d-flex align-items-end">
@@ -254,6 +254,11 @@
             var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl)
             })
+        });
+
+        // Auto-submit form when filters change (smooth UX without AJAX complexity)
+        $('#courseSelect, #batchSelect, #sectionSelect, #fromDateInput, #toDateInput').on('change', function () {
+            $('#filterForm').submit();
         });
     </script>
     <style>

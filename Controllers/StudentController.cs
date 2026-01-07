@@ -102,7 +102,7 @@ namespace AttendenceManagementSystem.Controllers
         public async Task<IActionResult> RegisterCourse(int courseId, string semester, int sectionId)
         {
             var student = await GetCurrentStudentAsync();
-            if (student == null) return RedirectToAction("Error", "Home");
+            if (student == null) return Json(new { success = false, message = "Session expired. Please login again." });
 
             var exists = await _context.Enrollments.AnyAsync(e => e.StudentId == student.Id && e.CourseId == courseId);
             if (!exists)
@@ -114,14 +114,12 @@ namespace AttendenceManagementSystem.Controllers
                     EnrolledAt = DateTime.UtcNow
                 });
                 await _context.SaveChangesAsync();
-                ShowMessage("Successfully registered for the course.");
+                return Json(new { success = true, message = "Successfully registered for the course." });
             }
             else
             {
-                ShowMessage("You are already registered for this course.", "warning");
+                return Json(new { success = false, message = "You are already registered for this course." });
             }
-
-            return RedirectToAction(nameof(RegisterSubjects), new { semester, sectionId });
         }
 
         // POST: Unregister from a Course
@@ -130,7 +128,7 @@ namespace AttendenceManagementSystem.Controllers
         public async Task<IActionResult> UnregisterCourse(int courseId, string semester, int sectionId)
         {
             var student = await GetCurrentStudentAsync();
-            if (student == null) return RedirectToAction("Error", "Home");
+            if (student == null) return Json(new { success = false, message = "Session expired. Please login again." });
 
             var enrollment = await _context.Enrollments
                 .FirstOrDefaultAsync(e => e.StudentId == student.Id && e.CourseId == courseId);
@@ -139,10 +137,10 @@ namespace AttendenceManagementSystem.Controllers
             {
                 _context.Enrollments.Remove(enrollment);
                 await _context.SaveChangesAsync();
-                ShowMessage("Successfully unregistered from the course.");
+                return Json(new { success = true, message = "Successfully unregistered from the course." });
             }
 
-            return RedirectToAction(nameof(RegisterSubjects), new { semester, sectionId });
+            return Json(new { success = false, message = "Enrollment not found." });
         }
 
         // GET: Dashboard

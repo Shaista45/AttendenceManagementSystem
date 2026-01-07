@@ -4,26 +4,118 @@
 }
 
 <div class="container-fluid px-4 mt-4">
+    <!-- Page Header -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
         <div>
             <h1 class="h3 mb-0 fw-bold text-primary">
                 <i class="fas fa-user-graduate me-2"></i>Student Profile
             </h1>
-            <p class="text-muted small mb-0">View complete student information and academic details</p>
+            <p class="text-muted small mb-0">Detailed information and academic records</p>
         </div>
         <div class="d-flex gap-2">
-            <a class="btn btn-primary shadow-sm" asp-action="EditStudent" asp-route-id="@Model.Id">
-                <i class="fas fa-edit me-2"></i>Edit Info
+            <a asp-action="Students" class="btn btn-outline-secondary btn-sm shadow-sm">
+                <i class="fas fa-arrow-left me-2"></i>Back to List
             </a>
-            <a class="btn btn-outline-secondary shadow-sm" asp-action="Students">
-                <i class="fas fa-arrow-left me-2"></i>Back
+            <a asp-action="EditStudent" asp-route-id="@Model.Id" class="btn btn-primary btn-sm shadow-sm">
+                <i class="fas fa-edit me-2"></i>Edit Info
             </a>
         </div>
     </div>
 
+    <!-- Status Cards Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 border-start border-4 border-primary shadow-sm py-2">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col me-2">
+                            <div class="text-uppercase text-primary fw-bold x-small mb-1">Roll Number</div>
+                            <div class="h6 mb-0 fw-bold text-gray-800">@Model.RollNumber</div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                                <i class="fas fa-id-badge fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 border-start border-4 border-success shadow-sm py-2">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col me-2">
+                            <div class="text-uppercase text-success fw-bold x-small mb-1">Account Status</div>
+                            <div class="h6 mb-0 fw-bold text-gray-800">
+                                @if (Model.User != null)
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>Active
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-user-slash me-1"></i>No Account
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
+                                <i class="fas fa-user-check fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 border-start border-4 border-info shadow-sm py-2">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col me-2">
+                            <div class="text-uppercase text-info fw-bold x-small mb-1">Batch</div>
+                            <div class="small mb-0 fw-bold text-gray-800">@Model.Batch?.Year</div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="bg-info bg-opacity-10 p-3 rounded-circle text-info">
+                                <i class="fas fa-calendar fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 border-start border-4 border-warning shadow-sm py-2">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col me-2">
+                            <div class="text-uppercase text-warning text-dark fw-bold x-small mb-1">Department</div>
+                            <div class="small mb-0 fw-bold text-gray-800">@Model.Department?.Name</div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning text-dark">
+                                <i class="fas fa-building fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
     <div class="row g-4">
-        <!-- Personal Information -->
-        <div class="col-lg-6">
+<!-- Main Content -->
+    <div class="row g-4">
+        <!-- Personal Information Card -->
+        <div class="col-lg-5">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-white py-3 border-bottom">
                     <h6 class="m-0 fw-bold text-primary">
@@ -31,10 +123,6 @@
                     </h6>
                 </div>
                 <div class="card-body bg-light bg-opacity-50">
-                    <div class="mb-3 pb-3 border-bottom">
-                        <label class="text-muted small fw-bold mb-1">Roll Number</label>
-                        <div class="h5 mb-0 text-dark">@Model.RollNumber</div>
-                    </div>
                     <div class="mb-3 pb-3 border-bottom">
                         <label class="text-muted small fw-bold mb-1">Full Name</label>
                         <div class="h5 mb-0 text-dark">@Model.FullName</div>
@@ -46,13 +134,19 @@
                         </div>
                     </div>
                     <div class="mb-3 pb-3 border-bottom">
+                        <label class="text-muted small fw-bold mb-1">Roll Number</label>
+                        <div class="text-dark">
+                            <i class="fas fa-id-badge me-2 text-primary"></i>@Model.RollNumber
+                        </div>
+                    </div>
+                    <div class="mb-3 pb-3 border-bottom">
                         <label class="text-muted small fw-bold mb-1">Phone Number</label>
                         <div class="text-dark">
                             <i class="fas fa-phone me-2 text-info"></i>@(Model.PhoneNumber ?? "N/A")
                         </div>
                     </div>
                     <div class="mb-0">
-                        <label class="text-muted small fw-bold mb-1">Enrolled Since</label>
+                        <label class="text-muted small fw-bold mb-1">Member Since</label>
                         <div class="text-dark">
                             <i class="fas fa-calendar-alt me-2 text-warning"></i>@Model.CreatedAt.ToString("MMMM dd, yyyy")
                         </div>
@@ -61,8 +155,8 @@
             </div>
         </div>
 
-        <!-- Academic Information -->
-        <div class="col-lg-6">
+        <!-- Academic Information Card -->
+        <div class="col-lg-7">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-white py-3 border-bottom">
                     <h6 class="m-0 fw-bold text-success">
@@ -70,39 +164,53 @@
                     </h6>
                 </div>
                 <div class="card-body bg-light bg-opacity-50">
-                    <div class="mb-3 pb-3 border-bottom">
-                        <label class="text-muted small fw-bold mb-1">Department</label>
-                        <div class="text-dark">
-                            <span class="badge bg-warning bg-opacity-10 text-dark border border-warning px-3 py-2">@Model.Department?.Name</span>
+                    <div class="row">
+                        <div class="col-md-6 mb-3 pb-3 border-bottom">
+                            <label class="text-muted small fw-bold mb-1">Department</label>
+                            <div class="text-dark">
+                                <span class="badge bg-warning bg-opacity-10 text-dark border border-warning px-3 py-2">@Model.Department?.Name</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3 pb-3 border-bottom">
+                            <label class="text-muted small fw-bold mb-1">Batch / Session</label>
+                            <div class="text-dark">
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2">@Model.Batch?.Year</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3 pb-3 border-bottom">
+                            <label class="text-muted small fw-bold mb-1">Section</label>
+                            <div class="text-dark">
+                                <span class="badge bg-info bg-opacity-10 text-info border border-info px-3 py-2">@Model.Section?.Name</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3 pb-3 border-bottom">
+                            <label class="text-muted small fw-bold mb-1">Account Status</label>
+                            <div class="text-dark">
+                                @if (Model.User != null)
+                                {
+                                    <span class="badge bg-success px-3 py-2">
+                                        <i class="fas fa-check-circle me-1"></i>Active Account
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary px-3 py-2">
+                                        <i class="fas fa-user-slash me-1"></i>No Account
+                                    </span>
+                                }
+                            </div>
                         </div>
                     </div>
-                    <div class="mb-3 pb-3 border-bottom">
-                        <label class="text-muted small fw-bold mb-1">Batch / Session</label>
-                        <div class="text-dark">
-                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2">@Model.Batch?.Year</span>
-                        </div>
-                    </div>
-                    <div class="mb-3 pb-3 border-bottom">
-                        <label class="text-muted small fw-bold mb-1">Section</label>
-                        <div class="text-dark">
-                            <span class="badge bg-info bg-opacity-10 text-info border border-info px-3 py-2">@Model.Section?.Name</span>
-                        </div>
-                    </div>
-                    <div class="mb-0">
-                        <label class="text-muted small fw-bold mb-1">Account Status</label>
-                        <div class="text-dark">
-                            @if (Model.User != null)
-                            {
-                                <span class="badge bg-success px-3 py-2">
-                                    <i class="fas fa-check-circle me-1"></i>Active Account
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary px-3 py-2">
-                                    <i class="fas fa-user-slash me-1"></i>No Account
-                                </span>
-                            }
+                    
+                    <div class="alert alert-info mt-3 mb-0 border-0 shadow-sm">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-info bg-opacity-10 p-2 rounded-circle text-info me-3">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div>
+                                <strong>Student ID</strong>
+                                <div class="small">Roll Number: @Model.RollNumber</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -110,25 +218,26 @@
         </div>
     </div>
 
-    <!-- Quick Actions -->
+    <!-- Action Buttons -->
     <div class="row mt-4">
         <div class="col-12">
             <div class="card shadow-sm border-0">
-                <div class="card-header bg-white py-3 border-bottom">
-                    <h6 class="m-0 fw-bold text-primary">
-                        <i class="fas fa-bolt me-2"></i>Quick Actions
-                    </h6>
-                </div>
                 <div class="card-body bg-light bg-opacity-50 py-3">
                     <div class="d-flex flex-wrap gap-2 justify-content-center">
-                        <a class="btn btn-primary shadow-sm" asp-controller="Admin" asp-action="StudentAttendanceReport" asp-route-studentId="@Model.Id">
+                        <a asp-action="EditStudent" asp-route-id="@Model.Id" class="btn btn-primary shadow-sm">
+                            <i class="fas fa-edit me-2"></i>Edit Information
+                        </a>
+                        <a asp-controller="Admin" asp-action="StudentAttendanceReport" asp-route-studentId="@Model.Id" class="btn btn-info shadow-sm">
                             <i class="fas fa-chart-bar me-2"></i>Attendance Report
                         </a>
-                        <a class="btn btn-info shadow-sm" asp-controller="Admin" asp-action="Enrollments" asp-route-studentId="@Model.Id">
+                        <a asp-controller="Admin" asp-action="Enrollments" asp-route-studentId="@Model.Id" class="btn btn-success shadow-sm">
                             <i class="fas fa-book me-2"></i>Enrolled Courses
                         </a>
-                        <a class="btn btn-success shadow-sm" asp-action="RegisterSubjects" asp-route-id="@Model.Id">
+                        <a asp-action="RegisterSubjects" asp-route-id="@Model.Id" class="btn btn-warning shadow-sm text-dark">
                             <i class="fas fa-plus-circle me-2"></i>Register Subjects
+                        </a>
+                        <a asp-action="Students" class="btn btn-outline-secondary shadow-sm">
+                            <i class="fas fa-list me-2"></i>View All Students
                         </a>
                     </div>
                 </div>
@@ -136,3 +245,7 @@
         </div>
     </div>
 </div>
+
+<style>
+    .x-small { font-size: 0.75rem; letter-spacing: 0.05em; }
+</style>

@@ -6,14 +6,22 @@ namespace AttendenceManagementSystem.Controllers
     {
         public IActionResult Index()
         {
-            if (User.Identity.IsAuthenticated)
+            // Check if user is authenticated
+            if (User?.Identity?.IsAuthenticated == true)
             {
+                // Redirect to appropriate dashboard based on role
                 if (User.IsInRole("Admin"))
+                {
                     return RedirectToAction("Dashboard", "Admin");
+                }
                 else if (User.IsInRole("Teacher"))
+                {
                     return RedirectToAction("Dashboard", "Teacher");
+                }
                 else if (User.IsInRole("Student"))
+                {
                     return RedirectToAction("Dashboard", "Student");
+                }
             }
 
             return View();

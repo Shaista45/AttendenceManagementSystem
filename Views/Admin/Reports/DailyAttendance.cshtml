@@ -136,21 +136,15 @@
                     </div>
                 </div>
 
+                <!-- session filter -->
                 <div class="row g-3 align-items-end">
                     <div class="col-md-2">
-                        <label class="form-label small text-muted text-uppercase fw-bold">Semester</label>
-                        <select name="Semester" class="form-select border-0 shadow-sm">
-                            <option value="">All Semesters</option>
-                            <option value="1">1st Semester</option>
-                            <option value="2">2nd Semester</option>
-                            <option value="3">3rd Semester</option>
-                            <option value="4">4th Semester</option>
-                            <option value="5">5th Semester</option>
-                            <option value="6">6th Semester</option>
-                            <option value="7">7th Semester</option>
-                            <option value="8">8th Semester</option>
+                        <label class="form-label small text-muted text-uppercase fw-bold">Session</label>
+                        <select name="BatchId" class="form-select border-0 shadow-sm" asp-items="ViewBag.Batches">
+                            <option value="">All Sessions</option>
                         </select>
                     </div>
+                    
                     <div class="col-md-3">
                         <label class="form-label small text-muted text-uppercase fw-bold">Course</label>
                         <select name="CourseId" class="form-select border-0 shadow-sm" asp-items="ViewBag.Courses">

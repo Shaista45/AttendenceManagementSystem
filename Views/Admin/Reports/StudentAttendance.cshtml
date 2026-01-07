@@ -7,11 +7,15 @@
     .print-header {
         display: none;
     }
+    .x-small { font-size: 0.75rem; letter-spacing: 0.05em; }
+    .text-gray-800 { color: #5a5c69; }
+
     @@media print {
-        .no-print { display: none !important; }
+        .no-print, .btn, .card-header, .alert-info { display: none !important; }
         .card { border: none !important; box-shadow: none !important; }
         .card-header { background: white !important; border: none !important; padding: 0 !important; }
         .card-body { padding: 0 !important; background: white !important; }
+        
         .print-header {
             display: block !important;
             text-align: center;
@@ -29,58 +33,151 @@
             margin: 5px 0;
         }
         .table { font-size: 12px; }
-        .badge { border: 1px solid #000 !important; }
+        .badge { border: 1px solid #000 !important; color: #000 !important; }
+        /* Ensure table colors print correctly */
+        .table-danger { background-color: #f8d7da !important; -webkit-print-color-adjust: exact; }
     }
 </style>
 
 <script>
+    // Store unique data sources
+    var allBatches = [];
+    var allSections = [];
+    var allCourses = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Extract and Deduplicate options immediately on load
+        allBatches = getUniqueOptions('batchSelect');
+        allSections = getUniqueOptions('sectionSelect');
+        allCourses = getUniqueOptions('courseSelect');
+
+        // 2. Initial run to set state based on any pre-selected department
+        filterDropdowns();
+    });
+
+    // Helper to extract unique objects from a select element
+    function getUniqueOptions(elementId) {
+        var select = document.getElementById(elementId);
+        var seen = new Set();
+        var uniqueOptions = [];
+
+        Array.from(select.options).forEach(opt => {
+            // Skip the "All" placeholder (value is empty string)
+            if (opt.value === '') return;
+
+            // Create a unique key (Value + Text) to prevent duplicates
+            var key = opt.value + '|' + opt.text;
+            
+            if (!seen.has(key)) {
+                seen.add(key);
+                uniqueOptions.push({
+                    value: opt.value,
+                    text: opt.text,
+                    // Note: This relies on the option having a 'data-department' attribute
+                    dept: opt.getAttribute('data-department') 
+                });
+            }
+        });
+        return uniqueOptions;
+    }
+
+    function filterDropdowns() {
+        var deptId = document.getElementById('departmentSelect').value;
+
+        // Rebuild the dropdowns
+        repopulateSelect('batchSelect', allBatches, deptId, 'All Batches');
+        repopulateSelect('sectionSelect', allSections, deptId, 'All Sections');
+        repopulateSelect('courseSelect', allCourses, deptId, 'All Courses');
+    }
+
+    function repopulateSelect(elementId, sourceData, selectedDeptId, defaultText) {
+        var select = document.getElementById(elementId);
+        var currentSelection = select.value; // Remember what was selected
+
+        // Clear existing options
+        select.innerHTML = '';
+
+        // Add Default "All" Option
+        var defaultOption = new Option(defaultText, "");
+        select.add(defaultOption);
+
+        // Add filtered options
+        sourceData.forEach(function(item) {
+            // Logic: Show if no Dept selected OR item matches Dept
+            // If item.dept is null/undefined (server didn't send it), we usually show it to be safe, 
+            // or strictly hide it. Here we strictly filter if Dept is selected.
+            if (!selectedDeptId || (item.dept && item.dept === selectedDeptId)) {
+                var option = new Option(item.text, item.value);
+                option.setAttribute('data-department', item.dept || "");
+                select.add(option);
+            }
+        });
+
+        // Restore selection if it still exists in the new list
+        // (Use Array.from because existing options have changed)
+        var exists = Array.from(select.options).some(opt => opt.value === currentSelection);
+        if (exists && currentSelection !== "") {
+            select.value = currentSelection;
+        } else {
+            select.value = ""; // Reset to "All" if the selected item is now hidden
+        }
+    }
+
+    // Date Helpers
     function setMonthlyPeriod() {
         var now = new Date();
         var firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
         var lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        document.getElementById('startDate').value = firstDay.toISOString().split('T')[0];
-        document.getElementById('endDate').value = lastDay.toISOString().split('T')[0];
+        updateDateInputs(firstDay, lastDay);
     }
     
     function setYearlyPeriod() {
         var now = new Date();
         var firstDay = new Date(now.getFullYear(), 0, 1);
         var lastDay = new Date(now.getFullYear(), 11, 31);
-        document.getElementById('startDate').value = firstDay.toISOString().split('T')[0];
-        document.getElementById('endDate').value = lastDay.toISOString().split('T')[0];
+        updateDateInputs(firstDay, lastDay);
     }
     
     function setLastSemester() {
         var now = new Date();
         var month = now.getMonth();
-        if (month >= 0 && month <= 5) {
-            var start = new Date(now.getFullYear() - 1, 7, 1);
-            var end = new Date(now.getFullYear() - 1, 11, 31);
-        } else {
-            var start = new Date(now.getFullYear(), 0, 1);
-            var end = new Date(now.getFullYear(), 5, 30);
+        var start, end;
+        if (month >= 0 && month <= 5) { // Spring, so Last is Fall
+            start = new Date(now.getFullYear() - 1, 7, 1);
+            end = new Date(now.getFullYear() - 1, 11, 31);
+        } else { // Fall, so Last is Spring
+            start = new Date(now.getFullYear(), 0, 1);
+            end = new Date(now.getFullYear(), 5, 30);
         }
-        document.getElementById('startDate').value = start.toISOString().split('T')[0];
-        document.getElementById('endDate').value = end.toISOString().split('T')[0];
+        updateDateInputs(start, end);
     }
     
     function setCurrentSemester() {
         var now = new Date();
         var month = now.getMonth();
+        var start, end;
         if (month >= 0 && month <= 5) {
-            var start = new Date(now.getFullYear(), 0, 1);
-            var end = new Date(now.getFullYear(), 5, 30);
+            start = new Date(now.getFullYear(), 0, 1);
+            end = new Date(now.getFullYear(), 5, 30);
         } else {
-            var start = new Date(now.getFullYear(), 7, 1);
-            var end = new Date(now.getFullYear(), 11, 31);
+            start = new Date(now.getFullYear(), 7, 1);
+            end = new Date(now.getFullYear(), 11, 31);
         }
-        document.getElementById('startDate').value = start.toISOString().split('T')[0];
-        document.getElementById('endDate').value = end.toISOString().split('T')[0];
+        updateDateInputs(start, end);
+    }
+
+    function updateDateInputs(start, end) {
+        // Adjust for timezone offset to ensure YYYY-MM-DD matches local time
+        const offset = start.getTimezoneOffset();
+        const startLocal = new Date(start.getTime() - (offset*60*1000));
+        const endLocal = new Date(end.getTime() - (offset*60*1000));
+        
+        document.getElementById('startDate').value = startLocal.toISOString().split('T')[0];
+        document.getElementById('endDate').value = endLocal.toISOString().split('T')[0];
     }
 </script>
 
 <div class="container-fluid px-4 mt-4">
-    <!-- Print Header (visible only when printing) -->
     <div class="print-header">
         <h2>Student Attendance Report</h2>
         @if (!string.IsNullOrEmpty(ViewBag.SelectedDepartment as string))
@@ -117,11 +214,9 @@
         </a>
     </div>
 
-    <!-- Filters -->
     <div class="card shadow-sm border-0 mb-4 no-print">
         <div class="card-body bg-light bg-opacity-50 py-3">
             <form method="get" asp-action="StudentAttendanceReport" id="reportForm">
-                <!-- Quick Period Selection -->
                 <div class="row g-2 mb-3">
                     <div class="col-12">
                         <label class="form-label small text-muted text-uppercase fw-bold mb-2">Quick Period Selection</label>
@@ -137,25 +232,25 @@
                 <div class="row g-3 align-items-end">
                     <div class="col-md-2">
                         <label class="form-label small text-muted text-uppercase fw-bold">Department</label>
-                        <select name="DepartmentId" class="form-select border-0 shadow-sm" asp-items="ViewBag.Departments">
+                        <select name="DepartmentId" id="departmentSelect" class="form-select border-0 shadow-sm" asp-items="ViewBag.Departments" onchange="filterDropdowns()">
                             <option value="">All Departments</option>
-                        </select>
+                        </select>               
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small text-muted text-uppercase fw-bold">Batch</label>
-                        <select name="BatchId" class="form-select border-0 shadow-sm" asp-items="ViewBag.Batches">
+                        <select name="BatchId" id="batchSelect" class="form-select border-0 shadow-sm" asp-items="ViewBag.Batches">
                             <option value="">All Batches</option>
                         </select>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small text-muted text-uppercase fw-bold">Section</label>
-                        <select name="SectionId" class="form-select border-0 shadow-sm" asp-items="ViewBag.Sections">
+                        <select name="SectionId" id="sectionSelect" class="form-select border-0 shadow-sm" asp-items="ViewBag.Sections">
                             <option value="">All Sections</option>
                         </select>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small text-muted text-uppercase fw-bold">Course</label>
-                        <select name="CourseId" class="form-select border-0 shadow-sm" asp-items="ViewBag.Courses">
+                        <select name="CourseId" id="courseSelect" class="form-select border-0 shadow-sm" asp-items="ViewBag.Courses">
                             <option value="">All Courses</option>
                         </select>
                     </div>
@@ -182,10 +277,8 @@
         </div>
     </div>
 
-    <!-- Results -->
     @if (Model.Students.Any())
     {
-        <!-- Summary Statistics -->
         <div class="row g-4 mb-4">
             <div class="col-xl-4 col-md-6">
                 <div class="card h-100 border-start border-4 border-primary shadow-sm py-2">
@@ -311,34 +404,8 @@
                 </div>
             </div>
         </div>
-
-        <!-- Summary Statistics -->
-        <div class="row mt-4">
-            <div class="col-md-4">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h3 class="text-primary">@Model.Students.Count</h3>
-                        <p class="mb-0">Total Students</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h3 class="text-success">@Model.Students.Count(s => !s.IsBelowThreshold)</h3>
-                        <p class="mb-0">Above 75%</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h3 class="text-danger">@Model.Students.Count(s => s.IsBelowThreshold)</h3>
-                        <p class="mb-0">Below 75%</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        
+        @* REMOVED DUPLICATE SUMMARY STATISTICS BLOCK FROM HERE *@
     }
     else
     {
@@ -359,13 +426,3 @@
         </div>
     </div>
 </div>
-
-<style>
-    .x-small { font-size: 0.75rem; letter-spacing: 0.05em; }
-    .text-gray-800 { color: #5a5c69; }
-    
-    @@media print {
-        .btn, .card-header { display: none !important; }
-        .card { border: 1px solid #dee2e6 !important; }
-    }
-</style>

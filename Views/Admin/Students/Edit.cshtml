@@ -3,27 +3,21 @@
     ViewData["Title"] = "Edit Student";
 }
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-edit me-2"></i>Edit Student
-        </h1>
-        <a class="btn btn-secondary" asp-action="Students">
-            <i class="fas fa-arrow-left me-2"></i>Back to List
-        </a>
-    </div>
-
+<div class="container-fluid py-4">
     <!-- Alert Container -->
     <div id="formAlert"></div>
 
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Student Information</h6>
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Edit Student Information
+                    </h4>
                 </div>
                 <div class="card-body">
                     <form id="editStudentForm" method="post" asp-action="EditStudent">
+                        @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="Id" />
                         <input type="hidden" asp-for="UserId" />
                         <input type="hidden" asp-for="RollNumber" />
@@ -31,105 +25,85 @@
                         
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                        <div class="row">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-user me-2"></i>Personal Information
+                        </h5>
+
+                        <div class="row mb-3">
                             <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <input asp-for="FullName" class="form-control" placeholder="Full Name" />
-                                    <label asp-for="FullName">Full Name <span class="text-danger">*</span></label>
-                                    <span asp-validation-for="FullName" class="text-danger"></span>
-                                </div>
+                                <label asp-for="FullName" class="form-label">Full Name <span class="text-danger">*</span></label>
+                                <input asp-for="FullName" class="form-control" />
+                                <span asp-validation-for="FullName" class="text-danger"></span>
                             </div>
 
                             <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <input asp-for="Email" class="form-control" placeholder="Email" />
-                                    <label asp-for="Email">Email <span class="text-danger">*</span></label>
-                                    <span asp-validation-for="Email" class="text-danger"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <input asp-for="PhoneNumber" class="form-control" placeholder="Phone Number" />
-                                    <label asp-for="PhoneNumber">Phone Number</label>
-                                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <input type="text" class="form-control" value="@Model.RollNumber" disabled />
-                                    <label>Roll Number</label>
-                                    <small class="text-muted">Roll number cannot be changed</small>
-                                </div>
+                                <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                                <input asp-for="Email" class="form-control" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
                             </div>
                         </div>
 
-                        <h5 class="text-primary mb-3 mt-4">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="PhoneNumber" class="form-label">Phone Number</label>
+                                <input asp-for="PhoneNumber" class="form-control" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Roll Number</label>
+                                <input type="text" class="form-control" value="@Model.RollNumber" disabled />
+                                <small class="text-muted">Roll number cannot be changed</small>
+                            </div>
+                        </div>
+
+                        <hr class="my-4" />
+
+                        <h5 class="text-success mb-3">
                             <i class="fas fa-graduation-cap me-2"></i>Academic Information
                         </h5>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <select asp-for="DepartmentId" class="form-select" id="departmentSelect" asp-items="@(ViewData["Departments"] as SelectList)">
-                                        <option value="">-- Select Department --</option>
-                                    </select>
-                                    <label asp-for="DepartmentId">Department <span class="text-danger">*</span></label>
-                                    <span asp-validation-for="DepartmentId" class="text-danger"></span>
-                                </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label asp-for="DepartmentId" class="form-label">Department <span class="text-danger">*</span></label>
+                                <select asp-for="DepartmentId" class="form-select" id="departmentSelect" asp-items="@(ViewData["Departments"] as SelectList)">
+                                    <option value="">-- Select Department --</option>
+                                </select>
+                                <span asp-validation-for="DepartmentId" class="text-danger"></span>
                             </div>
 
-                            <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <select asp-for="BatchId" class="form-select" id="batchSelect" asp-items="@(ViewData["Batches"] as SelectList)">
-                                        <option value="">-- Select Batch/Session --</option>
-                                    </select>
-                                    <label asp-for="BatchId">Batch/Session <span class="text-danger">*</span></label>
-                                    <span asp-validation-for="BatchId" class="text-danger"></span>
-                                </div>
+                            <div class="col-md-4">
+                                <label asp-for="BatchId" class="form-label">Batch/Session <span class="text-danger">*</span></label>
+                                <select asp-for="BatchId" class="form-select" id="batchSelect" asp-items="@(ViewData["Batches"] as SelectList)">
+                                    <option value="">-- Select Batch/Session --</option>
+                                </select>
+                                <span asp-validation-for="BatchId" class="text-danger"></span>
                             </div>
-                        </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <select asp-for="SectionId" class="form-select" id="sectionSelect" asp-items="@(ViewData["Sections"] as SelectList)">
-                                        <option value="">-- Select Section --</option>
-                                    </select>
-                                    <label asp-for="SectionId">Section <span class="text-danger">*</span></label>
-                                    <span asp-validation-for="SectionId" class="text-danger"></span>
-                                </div>
+                            <div class="col-md-4">
+                                <label asp-for="SectionId" class="form-label">Section <span class="text-danger">*</span></label>
+                                <select asp-for="SectionId" class="form-select" id="sectionSelect" asp-items="@(ViewData["Sections"] as SelectList)">
+                                    <option value="">-- Select Section --</option>
+                                </select>
+                                <span asp-validation-for="SectionId" class="text-danger"></span>
                             </div>
                         </div>
 
-                        <div class="form-group mt-4">
-                            <button type="submit" id="saveBtn" class="btn btn-primary">
-                                <i class="fas fa-save me-2"></i>Save Changes
-                            </button>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Current Information:</strong> 
+                            @Model.Department?.Name (@Model.Batch?.Year - @Model.Section?.Name) | Registered: @Model.CreatedAt.ToString("MMM dd, yyyy")
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
                             <a asp-action="Students" class="btn btn-secondary">
-                                <i class="fas fa-times me-2"></i>Cancel
+                                <i class="fas fa-arrow-left me-2"></i>Back to Students
                             </a>
+                            <button type="submit" id="saveBtn" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Update Student
+                            </button>
                         </div>
                     </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Student Info Panel -->
-        <div class="col-md-4">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Student Info</h6>
-                </div>
-                <div class="card-body">
-                    <p><strong>Roll Number:</strong><br/>@Model.RollNumber</p>
-                    <p><strong>Current Department:</strong><br/>@Model.Department?.Name</p>
-                    <p><strong>Current Batch:</strong><br/>@Model.Batch?.Year</p>
-                    <p><strong>Current Section:</strong><br/>@Model.Section?.Name</p>
-                    <p><strong>Registered:</strong><br/>@Model.CreatedAt.ToString("MMM dd, yyyy")</p>
                 </div>
             </div>
         </div>
@@ -146,9 +120,10 @@
                 
                 var form = $(this);
                 var btn = $('#saveBtn');
+                var originalText = btn.html();
                 
                 // Disable button and change text
-                btn.prop('disabled', true).text('Saving...');
+                btn.prop('disabled', true).text('Updating...');
                 
                 $.ajax({
                     url: form.attr('action'),
@@ -163,6 +138,9 @@
                                 '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
                                 '</div>'
                             );
+                            
+                            // Scroll to top to show alert
+                            window.scrollTo(0, 0);
                             
                             // Auto-dismiss after 5 seconds and redirect
                             setTimeout(function() {
@@ -184,8 +162,11 @@
                             errorHtml += '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
                             $('#formAlert').html(errorHtml);
                             
+                            // Scroll to top to show alert
+                            window.scrollTo(0, 0);
+                            
                             // Re-enable button
-                            btn.prop('disabled', false).html('<i class="fas fa-save me-2"></i>Save Changes');
+                            btn.prop('disabled', false).html(originalText);
                             
                             // Auto-dismiss after 10 seconds
                             setTimeout(function() {
@@ -200,7 +181,8 @@
                             '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
                             '</div>'
                         );
-                        btn.prop('disabled', false).html('<i class="fas fa-save me-2"></i>Save Changes');
+                        window.scrollTo(0, 0);
+                        btn.prop('disabled', false).html(originalText);
                     }
                 });
             });

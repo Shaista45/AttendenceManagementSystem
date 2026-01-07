@@ -1098,7 +1098,8 @@ namespace AttendenceManagementSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> StudentAttendanceReport(ReportFilterViewModel filters)
         {
-            await LoadFilterDropdowns();
+            // Pass the selected IDs to trigger cascading logic
+            await LoadFilterDropdowns(filters.DepartmentId, filters.BatchId);
             await LoadSelectedFilterNames(filters);
             
             var query = _context.Students
@@ -1165,7 +1166,8 @@ namespace AttendenceManagementSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> TeacherReport(ReportFilterViewModel filters)
         {
-            await LoadFilterDropdowns();
+            // Pass the selected IDs to trigger cascading logic
+            await LoadFilterDropdowns(filters.DepartmentId, filters.BatchId);
             await LoadSelectedFilterNames(filters);
             
             var query = _context.Teachers
@@ -1247,7 +1249,8 @@ namespace AttendenceManagementSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> CourseReport(ReportFilterViewModel filters)
         {
-            await LoadFilterDropdowns();
+            // Pass the selected IDs to trigger cascading logic
+            await LoadFilterDropdowns(filters.DepartmentId, filters.BatchId);
             await LoadSelectedFilterNames(filters);
             
             var query = _context.Courses
@@ -1320,7 +1323,8 @@ namespace AttendenceManagementSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> DailyAttendanceReport(ReportFilterViewModel filters)
         {
-            await LoadFilterDropdowns();
+            // Pass the selected IDs to trigger cascading logic
+            await LoadFilterDropdowns(filters.DepartmentId, filters.BatchId);
             await LoadSelectedFilterNames(filters);
             
             var attendanceQuery = _context.Attendances
@@ -1369,7 +1373,8 @@ namespace AttendenceManagementSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> LowAttendanceReport(ReportFilterViewModel filters)
         {
-            await LoadFilterDropdowns();
+            // Pass the selected IDs to trigger cascading logic
+            await LoadFilterDropdowns(filters.DepartmentId, filters.BatchId);
             await LoadSelectedFilterNames(filters);
             
             var query = _context.Students
@@ -1589,13 +1594,89 @@ namespace AttendenceManagementSystem.Controllers
             }
         }
 
-        // Helper method to load filter dropdowns
-        private async Task LoadFilterDropdowns()
+        // Updated Helper method to implement cascading logic with full context
+        private async Task LoadFilterDropdowns(int? departmentId = null, int? batchId = null)
         {
-            ViewData["Departments"] = new SelectList(await _context.Departments.ToListAsync(), "Id", "Name");
-            ViewData["Batches"] = new SelectList(await _context.Batches.ToListAsync(), "Id", "Year");
-            ViewData["Sections"] = new SelectList(await _context.Sections.ToListAsync(), "Id", "Name");
-            ViewData["Courses"] = new SelectList(await _context.Courses.ToListAsync(), "Id", "Title");
+            // 1. Departments: Always load all
+            ViewData["Departments"] = new SelectList(await _context.Departments.OrderBy(d => d.Name).ToListAsync(), "Id", "Name", departmentId);
+
+            // 2. Batches: 
+            // If Dept selected -> Show Dept's batches with just Year
+            // If NO Dept selected -> Show ALL batches with "Dept - Year" format to avoid confusion
+            var batchesQuery = _context.Batches.Include(b => b.Department).AsQueryable();
+
+            if (departmentId.HasValue)
+            {
+                batchesQuery = batchesQuery.Where(b => b.DepartmentId == departmentId.Value);
+            }
+
+            var rawBatches = await batchesQuery
+                .OrderBy(b => b.Department.Name)
+                .ThenByDescending(b => b.Year)
+                .Select(b => new { 
+                    b.Id, 
+                    b.Year, 
+                    DeptName = b.Department.Name 
+                })
+                .ToListAsync();
+
+            var batches = rawBatches.Select(b => new
+            {
+                Id = b.Id,
+                // If filtering by dept, just show Year. Otherwise show "Dept - Year"
+                Text = departmentId.HasValue ? b.Year : $"{b.DeptName} - {b.Year}"
+            }).ToList();
+
+            ViewData["Batches"] = new SelectList(batches, "Id", "Text", batchId);
+
+            // 3. Sections:
+            // If Batch selected -> Show Batch's sections with just Name
+            // If only Dept selected -> Show sections with "Year - Name"
+            // If nothing selected -> Show all sections with "Dept Year - Name"
+            var sectionsQuery = _context.Sections
+                .Include(s => s.Batch)
+                .ThenInclude(b => b.Department)
+                .AsQueryable();
+
+            if (batchId.HasValue)
+            {
+                sectionsQuery = sectionsQuery.Where(s => s.BatchId == batchId.Value);
+            }
+            else if (departmentId.HasValue)
+            {
+                // If only Dept is selected, show all sections in that Dept
+                sectionsQuery = sectionsQuery.Where(s => s.Batch.DepartmentId == departmentId.Value);
+            }
+
+            var rawSections = await sectionsQuery
+                .OrderBy(s => s.Batch.Department.Name)
+                .ThenBy(s => s.Batch.Year)
+                .ThenBy(s => s.Name)
+                .Select(s => new {
+                    s.Id,
+                    s.Name,
+                    BatchYear = s.Batch.Year,
+                    DeptName = s.Batch.Department.Name
+                })
+                .ToListAsync();
+
+            var sections = rawSections.Select(s => new
+            {
+                Id = s.Id,
+                // Logic: If Batch is known, just Name. If only Dept known, "Year - Name". If nothing known, "Dept Year - Name"
+                Text = batchId.HasValue ? s.Name : 
+                      (departmentId.HasValue ? $"{s.BatchYear} - {s.Name}" : $"{s.DeptName} {s.BatchYear} - {s.Name}")
+            }).ToList();
+
+            ViewData["Sections"] = new SelectList(sections, "Id", "Text");
+            
+            // 4. Courses: Filter by department if selected
+            var coursesQuery = _context.Courses.AsQueryable();
+            if (departmentId.HasValue)
+            {
+                coursesQuery = coursesQuery.Where(c => c.DepartmentId == departmentId.Value);
+            }
+            ViewData["Courses"] = new SelectList(await coursesQuery.OrderBy(c => c.Title).ToListAsync(), "Id", "Title");
         }
 
         private async Task LoadSelectedFilterNames(ReportFilterViewModel filters)
